@@ -1,14 +1,14 @@
 """规则注册表：按配置决定启用哪些规则。"""
 from __future__ import annotations
 
-from thesis_review.rules.base import Rule
-from thesis_review.rules.format_rules import (
+from src.rules.base import Rule
+from src.rules.format_rules import (
     BodyFontRule,
     BodyFontSizeRule,
     FirstLineIndentRule,
     LineSpacingRule,
 )
-from thesis_review.rules.structure_rules import (
+from src.rules.structure_rules import (
     HeadingHierarchyRule,
     RequiredSectionRule,
 )

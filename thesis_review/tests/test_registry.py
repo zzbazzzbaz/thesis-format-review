@@ -1,5 +1,5 @@
-from thesis_review.rules.base import Rule
-from thesis_review.rules.registry import get_rules
+from src.rules.base import Rule
+from src.rules.registry import get_rules
 
 
 def test_registry_returns_all_six_rules():

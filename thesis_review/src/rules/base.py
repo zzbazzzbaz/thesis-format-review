@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from thesis_review.models import DocumentModel, Issue
+from src.models import DocumentModel, Issue
 
 
 @runtime_checkable

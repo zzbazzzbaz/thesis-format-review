@@ -1,5 +1,5 @@
 """测试用 DocumentModel 构造助手。"""
-from thesis_review.models import DocumentModel, ParagraphBlock, RunSpan
+from src.models import DocumentModel, ParagraphBlock, RunSpan
 
 
 def make_run(

@@ -1,7 +1,7 @@
 """结构规则：标题层级、必备章节。"""
 from __future__ import annotations
 
-from thesis_review.models import DocumentModel, Issue, Location
+from src.models import DocumentModel, Issue, Location
 
 
 class HeadingHierarchyRule:
@@ -10,6 +10,7 @@ class HeadingHierarchyRule:
     severity = "warning"
 
     def check(self, document: DocumentModel) -> list[Issue]:
+        """检查标题层级是否跳级（如 1 级直接跳到 3 级，缺少 2 级）。"""
         issues: list[Issue] = []
         prev_level: int | None = None
         for para in document.paragraphs:
@@ -47,6 +48,7 @@ class RequiredSectionRule:
         return text.replace(" ", "").replace("　", "").replace("：", "").replace(":", "")
 
     def check(self, document: DocumentModel) -> list[Issue]:
+        """检查是否包含必备章节（摘要、关键词、参考文献），按标题文本归一化后匹配。"""
         heading_texts = [
             self._norm(para.text)
             for para in document.paragraphs

@@ -1,5 +1,5 @@
-from thesis_review.models import DocumentModel
-from thesis_review.rules.base import Rule
+from src.models import DocumentModel
+from src.rules.base import Rule
 
 
 def test_rule_protocol_is_satisfied_by_a_simple_rule():

@@ -1,7 +1,7 @@
-from thesis_review.rules.format_rules import BodyFontRule
-from thesis_review.rules.format_rules import BodyFontSizeRule
-from thesis_review.rules.format_rules import FirstLineIndentRule
-from thesis_review.rules.format_rules import LineSpacingRule
+from src.rules.format_rules import BodyFontRule
+from src.rules.format_rules import BodyFontSizeRule
+from src.rules.format_rules import FirstLineIndentRule
+from src.rules.format_rules import LineSpacingRule
 from tests.builders import make_doc, make_para, make_run
 
 

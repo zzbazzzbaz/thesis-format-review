@@ -1,4 +1,4 @@
-from thesis_review.models import (
+from src.models import (
     DocumentModel,
     Issue,
     Location,
