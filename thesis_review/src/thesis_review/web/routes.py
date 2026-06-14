@@ -5,7 +5,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from starlette.background import BackgroundTask
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, Response
 
 from thesis_review.web import services
 
@@ -18,6 +18,11 @@ router = APIRouter()
 @router.get("/", include_in_schema=False)
 def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
+
+
+@router.head("/", include_in_schema=False)
+def index_head() -> Response:
+    return Response(status_code=200)
 
 
 @router.post("/api/review")

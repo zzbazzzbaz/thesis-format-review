@@ -19,6 +19,14 @@ def test_get_index_returns_upload_page():
     assert 'accept=".docx"' in response.text
 
 
+def test_head_index_returns_ok_for_curl_smoke_check():
+    client = TestClient(app)
+
+    response = client.head("/")
+
+    assert response.status_code == 200
+
+
 def test_post_review_returns_file_response(monkeypatch, tmp_path):
     output = tmp_path / "marked.docx"
     output.write_bytes(b"marked")
