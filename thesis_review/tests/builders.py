@@ -1,5 +1,5 @@
 """测试用 DocumentModel 构造助手。"""
-from src.models import DocumentModel, ParagraphBlock, RunSpan
+from thesis_review.models import DocumentModel, ParagraphBlock, RunSpan
 
 
 def make_run(
@@ -37,6 +37,11 @@ def make_para(
     block_id = f"p-{paragraph_index:04d}"
     if runs is None:
         runs = [make_run(text=text, block_id=block_id)]
+    else:
+        runs = [
+            run.model_copy(update={"id": f"{block_id}-r-{idx:04d}", "run_index": idx})
+            for idx, run in enumerate(runs)
+        ]
     return ParagraphBlock(
         id=block_id,
         text=text,

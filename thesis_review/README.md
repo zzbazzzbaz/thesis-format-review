@@ -48,15 +48,15 @@ docker build -f Dockerfile.uno-dev -t thesis-review-uno-dev .
 ```bash
 docker run --rm -v "$PWD":/workspace -w /workspace \
     thesis-review-uno-dev \
-    /opt/venv/bin/python -m src.cli \
+    /opt/venv/bin/python -m thesis_review.cli \
     tests/word/111.docx \
-    -o tests/word/marked.docx
+    -o /tmp/marked.docx
 ```
 
 输出示例：
 
 ```text
-检查完成：89 处错误，64 处警告 → tests/word/marked.docx
+检查完成：89 处错误，64 处警告 → /tmp/marked.docx
 ```
 
 ### 4. 运行测试
@@ -95,17 +95,19 @@ thesis_review/
 ├── Dockerfile.uno-dev      # UNO 开发镜像
 ├── README.md
 ├── src/
-│   ├── cli.py              # 命令行入口
-│   ├── pipeline.py         # 三步管道串联
-│   ├── models.py           # DocumentModel / Issue / Location
-│   ├── uno_session.py      # soffice 进程管理
-│   ├── extractor.py        # UNO 读 → DocumentModel
-│   ├── annotator.py        # Issue → marked.docx（红色底纹 + 批注）
-│   └── rules/
-│       ├── base.py         # Rule 协议
-│       ├── registry.py     # 规则注册表
-│       ├── format_rules.py # 4 条格式规则
-│       └── structure_rules.py # 2 条结构规则
+│   └── thesis_review/
+│       ├── cli.py              # 命令行入口
+│       ├── pipeline.py         # 三步管道串联
+│       ├── models.py           # DocumentModel / Issue / Location
+│       ├── uno_session.py      # soffice 进程管理
+│       ├── uno_traversal.py    # UNO 段落/run 定位遍历契约
+│       ├── extractor.py        # UNO 读 → DocumentModel
+│       ├── annotator.py        # Issue → marked.docx（红色底纹 + 批注）
+│       └── rules/
+│           ├── base.py         # Rule 协议
+│           ├── registry.py     # 规则注册表
+│           ├── format_rules.py # 4 条格式规则
+│           └── structure_rules.py # 2 条结构规则
 └── tests/
     ├── conftest.py
     ├── test_extractor.py

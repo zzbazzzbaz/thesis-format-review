@@ -5,9 +5,12 @@ import os
 
 import pytest
 
-from src.annotator import annotate, _paragraphs, _portions
-from src.uno_session import UnoSession
-from src.models import Issue, Location
+pytest.importorskip("uno")
+
+from thesis_review.annotator import annotate
+from thesis_review.models import Issue, Location
+from thesis_review.uno_session import UnoSession
+from thesis_review.uno_traversal import paragraphs, text_portions
 
 
 @pytest.mark.uno
@@ -83,9 +86,9 @@ def test_annotate_writes_red_backcolor(tmp_path, sample_docx):
     with UnoSession() as session:
         annotate(session, sample_docx, out, issues)
         with session.open(out) as doc:
-            paras = _paragraphs(doc)
+            paras = paragraphs(doc)
             target = paras[1]  # paragraph_index=1
-            portions = _portions(target)
+            portions = text_portions(target)
             assert len(portions) >= 1
             assert portions[0].CharBackColor == 0xFF0000
 
@@ -132,6 +135,6 @@ def test_annotate_run_level_backcolor(tmp_path, sample_docx):
     with UnoSession() as session:
         annotate(session, sample_docx, out, issues)
         with session.open(out) as doc:
-            paras = _paragraphs(doc)
-            portions = _portions(paras[1])
+            paras = paragraphs(doc)
+            portions = text_portions(paras[1])
             assert portions[0].CharBackColor == 0xFF0000

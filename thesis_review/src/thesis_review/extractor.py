@@ -5,7 +5,9 @@
 """
 from __future__ import annotations
 
-from src.models import DocumentModel, ParagraphBlock, RunSpan
+from thesis_review.models import DocumentModel, ParagraphBlock, RunSpan
+from thesis_review.uno_traversal import paragraphs as iter_paragraphs
+from thesis_review.uno_traversal import text_portions
 
 # ── 常量 ────────────────────────────────────────────────────────────
 
@@ -96,28 +98,13 @@ def extract(doc, source_path: str = "unknown.docx") -> DocumentModel:
         DocumentModel，段落按 UNO 枚举顺序排列
     """
     paragraphs: list[ParagraphBlock] = []
-    para_enum = doc.Text.createEnumeration()
-    p_idx = 0
-
-    while para_enum.hasMoreElements():
-        elem = para_enum.nextElement()
-        if not elem.supportsService("com.sun.star.text.Paragraph"):
-            continue
+    for p_idx, elem in enumerate(iter_paragraphs(doc)):
         text = elem.getString()
-        if not text:
-            continue  # 跳过空段落（含末尾空段）
 
         # 枚举 text portion
         runs: list[RunSpan] = []
-        run_enum = elem.createEnumeration()
-        r_idx = 0
-        while run_enum.hasMoreElements():
-            portion = run_enum.nextElement()
-            port_type = getattr(portion, "TextPortionType", "Text")
+        for r_idx, portion in enumerate(text_portions(elem)):
             portion_text = portion.getString()
-            # 只收集类型为 Text 且非空的 portion
-            if port_type != "Text" or not portion_text:
-                continue
 
             # 字体属性：Asian 变体优先（中文文本），fallback 到通用变体
             ch_height = _safe_float(getattr(portion, "CharHeightAsian", None))
@@ -143,7 +130,6 @@ def extract(doc, source_path: str = "unknown.docx") -> DocumentModel:
                 bold=_is_bold(ch_weight),
                 italic=_is_italic(ch_posture),
             ))
-            r_idx += 1
 
         first_run_pt = runs[0].size_pt if runs else None
         block_id = f"p-{p_idx:04d}"
@@ -158,6 +144,5 @@ def extract(doc, source_path: str = "unknown.docx") -> DocumentModel:
             first_line_indent_chars=_first_line_indent_chars(elem, first_run_pt),
             runs=runs,
         ))
-        p_idx += 1
 
     return DocumentModel(source_docx=source_path, paragraphs=paragraphs)

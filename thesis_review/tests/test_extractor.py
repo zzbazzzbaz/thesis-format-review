@@ -3,8 +3,10 @@ from __future__ import annotations
 
 import pytest
 
-from src.extractor import extract
-from src.uno_session import UnoSession
+pytest.importorskip("uno")
+
+from thesis_review.extractor import extract
+from thesis_review.uno_session import UnoSession
 
 
 @pytest.mark.uno

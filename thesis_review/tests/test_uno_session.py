@@ -10,7 +10,7 @@ import pytest
 
 pytest.importorskip("uno")  # 无 UNO 环境时跳过整个模块
 
-from src.uno_session import UnoSession
+from thesis_review.uno_session import UnoSession
 
 
 @pytest.mark.uno

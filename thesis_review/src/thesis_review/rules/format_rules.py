@@ -1,7 +1,7 @@
 """格式规则：字体、字号、行距、缩进。"""
 from __future__ import annotations
 
-from src.models import DocumentModel, Issue, Location
+from thesis_review.models import DocumentModel, Issue, Location
 
 
 class BodyFontRule:

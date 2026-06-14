@@ -1,4 +1,7 @@
-from src.models import (
+import pytest
+from pydantic import ValidationError
+
+from thesis_review.models import (
     DocumentModel,
     Issue,
     Location,
@@ -79,3 +82,30 @@ def test_location_paragraph_kind_allows_optional_run_fields():
     loc = Location(kind="paragraph", block_id="p-0001", paragraph_index=3)
     assert loc.run_id is None
     assert loc.run_index is None
+
+
+def test_run_location_requires_run_fields():
+    with pytest.raises(ValidationError):
+        Location(kind="run", block_id="p-0001", paragraph_index=0)
+
+
+def test_paragraph_location_rejects_run_fields():
+    with pytest.raises(ValidationError):
+        Location(
+            kind="paragraph",
+            block_id="p-0001",
+            paragraph_index=0,
+            run_id="p-0001-r-0000",
+            run_index=0,
+        )
+
+
+def test_issue_rejects_unknown_severity():
+    with pytest.raises(ValidationError):
+        Issue(
+            rule_id="format.body.font",
+            category="format",
+            severity="fatal",
+            message="bad severity",
+            location=Location(kind="paragraph", block_id="p-0001", paragraph_index=0),
+        )

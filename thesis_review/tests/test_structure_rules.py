@@ -1,5 +1,5 @@
-from src.rules.structure_rules import HeadingHierarchyRule
-from src.rules.structure_rules import RequiredSectionRule
+from thesis_review.rules.structure_rules import HeadingHierarchyRule
+from thesis_review.rules.structure_rules import RequiredSectionRule
 from tests.builders import make_doc, make_para
 
 

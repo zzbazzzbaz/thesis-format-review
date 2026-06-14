@@ -3,10 +3,13 @@ from __future__ import annotations
 
 import pytest
 
-from src.extractor import extract
-from src.annotator import _paragraphs, _portions, annotate
-from src.models import Issue, Location
-from src.uno_session import UnoSession
+pytest.importorskip("uno")
+
+from thesis_review.extractor import extract
+from thesis_review.annotator import annotate
+from thesis_review.models import Issue, Location
+from thesis_review.uno_session import UnoSession
+from thesis_review.uno_traversal import paragraphs, text_portions
 
 
 @pytest.mark.uno
@@ -20,14 +23,14 @@ def test_paragraph_index_roundtrip(sample_docx):
         expected_text = target_para.text
 
         with session.open(sample_docx) as doc2:
-            paras = _paragraphs(doc2)
+            paras = paragraphs(doc2)
             located = paras[target_para.paragraph_index]
             assert located.getString() == expected_text
 
 
 @pytest.mark.uno
 def test_run_index_roundtrip(sample_docx):
-    """extractor 的 run_index 能在 annotator 的 _portions 中定位同一文本。"""
+    """extractor 的 run_index 能通过共享遍历契约定位同一文本。"""
     with UnoSession() as session:
         with session.open(sample_docx) as doc:
             model = extract(doc, source_path=sample_docx)
@@ -35,9 +38,9 @@ def test_run_index_roundtrip(sample_docx):
         target_run = target_para.runs[0]
 
         with session.open(sample_docx) as doc2:
-            paras = _paragraphs(doc2)
+            paras = paragraphs(doc2)
             para = paras[target_para.paragraph_index]
-            portions = _portions(para)
+            portions = text_portions(para)
             located = portions[target_run.run_index]
             assert located.getString() == target_run.text
 
@@ -72,8 +75,8 @@ def test_full_annotate_roundtrip(tmp_path, sample_docx):
 
         # 重开 marked.docx，验证该 portion 有底纹、有批注
         with session.open(out) as doc2:
-            paras = _paragraphs(doc2)
-            portions = _portions(paras[target.paragraph_index])
+            paras = paragraphs(doc2)
+            portions = text_portions(paras[target.paragraph_index])
             located = portions[run.run_index]
             assert located.CharBackColor == 0xFF0000
             assert located.getString() == run.text

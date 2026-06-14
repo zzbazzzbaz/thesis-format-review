@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-from src.pipeline import review
+from thesis_review.pipeline import review
 
 
 @pytest.mark.uno
@@ -26,7 +26,7 @@ def test_review_marked_docx_has_annotations(tmp_path, sample_docx):
     out = str(tmp_path / "marked.docx")
     issues = review(sample_docx, out)
     assert len(issues) >= 1
-    from src.uno_session import UnoSession
+    from thesis_review.uno_session import UnoSession
     with UnoSession() as session:
         with session.open(out) as doc:
             fields = doc.getTextFields().createEnumeration()

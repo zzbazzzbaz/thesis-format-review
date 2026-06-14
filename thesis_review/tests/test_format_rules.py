@@ -1,12 +1,13 @@
-from src.rules.format_rules import BodyFontRule
-from src.rules.format_rules import BodyFontSizeRule
-from src.rules.format_rules import FirstLineIndentRule
-from src.rules.format_rules import LineSpacingRule
+from thesis_review.rules.format_rules import BodyFontRule
+from thesis_review.rules.format_rules import BodyFontSizeRule
+from thesis_review.rules.format_rules import FirstLineIndentRule
+from thesis_review.rules.format_rules import LineSpacingRule
 from tests.builders import make_doc, make_para, make_run
 
 
 def test_body_font_ok_when_songti():
     doc = make_doc([make_para(runs=[make_run(font_east_asian="宋体")])])
+    assert doc.paragraphs[0].runs[0].id.startswith(doc.paragraphs[0].id)
     assert BodyFontRule().check(doc) == []
 
 

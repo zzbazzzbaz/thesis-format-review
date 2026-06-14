@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.cli import build_parser, validate_input
+from thesis_review.cli import build_parser, validate_input
 
 
 def test_parser_requires_input_and_output():

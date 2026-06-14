@@ -8,47 +8,19 @@ marked.docx。定位失败跳过该 issue，不崩溃。
 CharBackColor，save+reload 后会丢失。
 """
 from __future__ import annotations
-import os
 
 import logging
 
 import uno
 from com.sun.star.beans import PropertyValue
 
-from src.models import Issue
+from thesis_review.models import Issue
+from thesis_review.uno_session import path_to_url
+from thesis_review.uno_traversal import paragraphs, text_portions
 
 log = logging.getLogger(__name__)
 
 _RED = 0xFF0000
-
-
-def _paragraphs(doc) -> list:
-    """枚举文档中的非空段落，与 extractor 过滤规则一致。
-
-    必须跳过非 Paragraph service 的元素和空段落，
-    以保证 paragraph_index 与 extractor 产出匹配。
-    """
-    out = []
-    enum = doc.Text.createEnumeration()
-    while enum.hasMoreElements():
-        elem = enum.nextElement()
-        if not elem.supportsService("com.sun.star.text.Paragraph"):
-            continue
-        if not elem.getString():
-            continue
-        out.append(elem)
-    return out
-
-
-def _portions(para) -> list:
-    """枚举段落中的非空 Text portion，与 extractor 过滤规则一致。"""
-    out = []
-    enum = para.createEnumeration()
-    while enum.hasMoreElements():
-        p = enum.nextElement()
-        if getattr(p, "TextPortionType", "Text") == "Text" and p.getString():
-            out.append(p)
-    return out
 
 
 def _add_comment(doc, target, message: str) -> None:
@@ -73,14 +45,32 @@ def _apply_issue(doc, paras, issue: Issue) -> None:
         log.warning("未能标注(段落越界)：%s @ paragraph_index=%s",
                     issue.rule_id, p_idx)
         return
+    expected_block_id = f"p-{p_idx:04d}"
+    if issue.location.block_id != expected_block_id:
+        log.warning(
+            "未能标注(段落 id 不匹配)：%s @ expected=%s actual=%s",
+            issue.rule_id,
+            expected_block_id,
+            issue.location.block_id,
+        )
+        return
     para = paras[p_idx]
 
     if issue.location.kind == "run" and issue.location.run_index is not None:
-        portions = _portions(para)
+        portions = text_portions(para)
         r_idx = issue.location.run_index
         if r_idx < 0 or r_idx >= len(portions):
             log.warning("未能标注(run 越界)：%s @ p=%s r=%s",
                         issue.rule_id, p_idx, r_idx)
+            return
+        expected_run_id = f"{expected_block_id}-r-{r_idx:04d}"
+        if issue.location.run_id != expected_run_id:
+            log.warning(
+                "未能标注(run id 不匹配)：%s @ expected=%s actual=%s",
+                issue.rule_id,
+                expected_run_id,
+                issue.location.run_id,
+            )
             return
         target = portions[r_idx]
         target.CharBackColor = _RED
@@ -88,7 +78,7 @@ def _apply_issue(doc, paras, issue: Issue) -> None:
         return
 
     # 段落级：对所有 portion 设底纹，批注锚在第一个 portion
-    portions = _portions(para)
+    portions = text_portions(para)
     if not portions:
         return
     for p in portions:
@@ -107,14 +97,17 @@ def annotate(session, input_docx: str, output_docx: str,
         issues: 需要标注的问题列表
     """
     with session.open(input_docx) as doc:
-        paras = _paragraphs(doc)
+        paras = paragraphs(doc)
         for issue in issues:
             try:
                 _apply_issue(doc, paras, issue)
             except Exception:  # noqa: BLE001 — 单个 issue 失败不影响其余
-                log.warning("未能标注(写入失败)：%s @ paragraph_index=%s",
-                            issue.rule_id, issue.location.paragraph_index)
+                log.exception(
+                    "未能标注(写入失败)：%s @ paragraph_index=%s",
+                    issue.rule_id,
+                    issue.location.paragraph_index,
+                )
 
-        url = "file://" + os.path.abspath(output_docx)
+        url = path_to_url(output_docx)
         doc.storeToURL(url, (
             PropertyValue(Name="FilterName", Value="MS Word 2007 XML"),))

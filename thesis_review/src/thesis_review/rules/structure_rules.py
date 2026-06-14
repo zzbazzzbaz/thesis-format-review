@@ -1,7 +1,7 @@
 """结构规则：标题层级、必备章节。"""
 from __future__ import annotations
 
-from src.models import DocumentModel, Issue, Location
+from thesis_review.models import DocumentModel, Issue, Location
 
 
 class HeadingHierarchyRule:

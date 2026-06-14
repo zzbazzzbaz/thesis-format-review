@@ -33,7 +33,7 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     validate_input(args.input)
     # 延迟导入：避免无 UNO 环境时 import 失败影响 --help
-    from src.pipeline import review
+    from thesis_review.pipeline import review
     issues = review(args.input, args.output)
     errors = sum(1 for i in issues if i.severity == "error")
     warnings = sum(1 for i in issues if i.severity == "warning")
