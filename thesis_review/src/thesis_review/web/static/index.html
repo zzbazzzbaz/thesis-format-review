@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>毕业设计格式审核系统</title>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <main class="shell">
+      <form id="review-form">
+        <label for="file">选择 Word 文档</label>
+        <input id="file" name="file" type="file" accept=".docx" required>
+        <button id="submit" type="submit">开始审核</button>
+        <p id="status" role="status" aria-live="polite"></p>
+      </form>
+    </main>
+  </body>
+</html>
