@@ -59,7 +59,23 @@ docker run --rm -v "$PWD":/workspace -w /workspace \
 检查完成：89 处错误，64 处警告 → /tmp/marked.docx
 ```
 
-### 4. 运行测试
+### 4. Web 上传下载
+
+启动 FastAPI Web 应用：
+
+```bash
+uv run uvicorn thesis_review.web.app:app --host 0.0.0.0 --port 8000
+```
+
+浏览器访问 `http://127.0.0.1:8000/`，选择 `.docx` 文件并提交。服务会同步调用现有 `pipeline.review(input_docx, output_docx)`，审核完成后直接返回 `<原文件名>.marked.docx` 下载。
+
+首版 Web 层不包含登录、数据库、任务队列、历史记录或在线预览。CLI 入口保持不变：
+
+```bash
+thesis-review input.docx -o output.marked.docx
+```
+
+### 5. 运行测试
 
 ```bash
 # 宿主机纯 Python 测试（不含 UNO）
