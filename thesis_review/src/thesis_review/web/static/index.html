@@ -9,11 +9,82 @@
   <body>
     <main class="shell">
       <form id="review-form">
-        <label for="file">选择 Word 文档</label>
-        <input id="file" name="file" type="file" accept=".docx" required>
+        <div class="field">
+          <label for="file">选择 Word 文档</label>
+          <input id="file" name="file" type="file" accept=".docx" required>
+        </div>
         <button id="submit" type="submit">开始审核</button>
-        <p id="status" role="status" aria-live="polite"></p>
+        <p id="status" class="status" role="status" aria-live="polite"></p>
       </form>
     </main>
+    <script>
+      const form = document.querySelector("#review-form");
+      const fileInput = document.querySelector("#file");
+      const submit = document.querySelector("#submit");
+      const status = document.querySelector("#status");
+
+      function setStatus(message, className) {
+        status.textContent = message;
+        status.className = className ? `status ${className}` : "status";
+      }
+
+      function downloadBlob(blob, fallbackName, response) {
+        const disposition = response.headers.get("content-disposition") || "";
+        const match = disposition.match(/filename="([^"]+)"/);
+        const filename = match ? match[1] : fallbackName;
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const file = fileInput.files[0];
+        if (!file) {
+          setStatus("请选择 .docx 文件", "error");
+          return;
+        }
+
+        const data = new FormData();
+        data.append("file", file);
+        submit.disabled = true;
+        setStatus("正在审核", "");
+
+        try {
+          const response = await fetch("/api/review", {
+            method: "POST",
+            body: data,
+          });
+
+          if (!response.ok) {
+            let message = "审核失败";
+            try {
+              const payload = await response.json();
+              if (payload.detail) {
+                message = payload.detail;
+              }
+            } catch (error) {
+              message = "审核失败";
+            }
+            setStatus(message, "error");
+            return;
+          }
+
+          const blob = await response.blob();
+          const stem = file.name.replace(/\.docx$/i, "");
+          downloadBlob(blob, `${stem}.marked.docx`, response);
+          setStatus("审核完成，已开始下载", "success");
+        } catch (error) {
+          setStatus("审核失败，请稍后重试", "error");
+        } finally {
+          submit.disabled = false;
+        }
+      });
+    </script>
   </body>
 </html>
