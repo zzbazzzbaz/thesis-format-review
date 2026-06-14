@@ -1,7 +1,15 @@
 """格式规则：字体、字号、行距、缩进。"""
 from __future__ import annotations
 
-from thesis_review.models import DocumentModel, Issue, Location
+from collections.abc import Iterable
+
+from thesis_review.models import DocumentModel, Issue, Location, ParagraphBlock
+
+
+def _paragraphs(document: DocumentModel) -> Iterable[ParagraphBlock]:
+    for block in document.blocks:
+        if block.kind == "paragraph":
+            yield block
 
 
 class BodyFontRule:
@@ -13,7 +21,7 @@ class BodyFontRule:
     def check(self, document: DocumentModel) -> list[Issue]:
         """检查正文中文字体是否为宋体（跳过标题段落，逐 run 比对）。"""
         issues: list[Issue] = []
-        for para in document.paragraphs:
+        for para in _paragraphs(document):
             if para.outline_level is not None:
                 continue
             for run in para.runs:
@@ -27,9 +35,10 @@ class BodyFontRule:
                             expected=self.EXPECTED_FONT,
                             actual=run.font_east_asian,
                             location=Location(
-                                kind="run",
+                                target="run",
                                 block_id=para.id,
-                                paragraph_index=para.paragraph_index,
+                                block_kind="paragraph",
+                                flow_index=para.flow_index,
                                 run_id=run.id,
                                 run_index=run.run_index,
                             ),
@@ -47,7 +56,7 @@ class BodyFontSizeRule:
     def check(self, document: DocumentModel) -> list[Issue]:
         """检查正文字号是否为小四(12pt)（跳过标题段落，逐 run 比对）。"""
         issues: list[Issue] = []
-        for para in document.paragraphs:
+        for para in _paragraphs(document):
             if para.outline_level is not None:
                 continue
             for run in para.runs:
@@ -61,9 +70,10 @@ class BodyFontSizeRule:
                             expected=str(self.EXPECTED_PT),
                             actual=str(run.size_pt),
                             location=Location(
-                                kind="run",
+                                target="run",
                                 block_id=para.id,
-                                paragraph_index=para.paragraph_index,
+                                block_kind="paragraph",
+                                flow_index=para.flow_index,
                                 run_id=run.id,
                                 run_index=run.run_index,
                             ),
@@ -81,7 +91,7 @@ class LineSpacingRule:
     def check(self, document: DocumentModel) -> list[Issue]:
         """检查正文行距是否为 1.5 倍（跳过标题段落，按段落比对）。"""
         issues: list[Issue] = []
-        for para in document.paragraphs:
+        for para in _paragraphs(document):
             if para.outline_level is not None:
                 continue
             if para.line_spacing is not None and para.line_spacing != self.EXPECTED:
@@ -94,9 +104,10 @@ class LineSpacingRule:
                         expected=str(self.EXPECTED),
                         actual=str(para.line_spacing),
                         location=Location(
-                            kind="paragraph",
+                            target="block",
                             block_id=para.id,
-                            paragraph_index=para.paragraph_index,
+                            block_kind="paragraph",
+                            flow_index=para.flow_index,
                         ),
                     )
                 )
@@ -112,7 +123,7 @@ class FirstLineIndentRule:
     def check(self, document: DocumentModel) -> list[Issue]:
         """检查正文首行缩进是否为 2 字符（跳过标题段落，按段落比对）。"""
         issues: list[Issue] = []
-        for para in document.paragraphs:
+        for para in _paragraphs(document):
             if para.outline_level is not None:
                 continue
             indent = para.first_line_indent_chars
@@ -126,9 +137,10 @@ class FirstLineIndentRule:
                         expected=str(self.EXPECTED_CHARS),
                         actual=str(indent),
                         location=Location(
-                            kind="paragraph",
+                            target="block",
                             block_id=para.id,
-                            paragraph_index=para.paragraph_index,
+                            block_kind="paragraph",
+                            flow_index=para.flow_index,
                         ),
                     )
                 )

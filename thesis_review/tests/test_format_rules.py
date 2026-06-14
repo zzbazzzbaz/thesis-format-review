@@ -2,23 +2,29 @@ from thesis_review.rules.format_rules import BodyFontRule
 from thesis_review.rules.format_rules import BodyFontSizeRule
 from thesis_review.rules.format_rules import FirstLineIndentRule
 from thesis_review.rules.format_rules import LineSpacingRule
-from tests.builders import make_doc, make_para, make_run
+from tests.builders import make_doc, make_image, make_para, make_run, make_table
 
 
 def test_body_font_ok_when_songti():
     doc = make_doc([make_para(runs=[make_run(font_east_asian="宋体")])])
-    assert doc.paragraphs[0].runs[0].id.startswith(doc.paragraphs[0].id)
+    assert doc.blocks[0].runs[0].id.startswith(doc.blocks[0].id)
     assert BodyFontRule().check(doc) == []
 
 
 def test_body_font_flags_wrong_font():
-    doc = make_doc([make_para(runs=[make_run(font_east_asian="楷体")])])
+    doc = make_doc([
+        make_table(flow_index=0, type_index=0),
+        make_para(flow_index=1, type_index=0, runs=[make_run(font_east_asian="楷体")]),
+        make_image(flow_index=2, type_index=0),
+    ])
     issues = BodyFontRule().check(doc)
     assert len(issues) == 1
     assert issues[0].rule_id == "format.body.font"
     assert issues[0].expected == "宋体"
     assert issues[0].actual == "楷体"
-    assert issues[0].location.kind == "run"
+    assert issues[0].location.target == "run"
+    assert issues[0].location.block_id == "b-0001"
+    assert issues[0].location.flow_index == 1
 
 
 def test_body_font_skips_headings():
@@ -34,12 +40,18 @@ def test_body_size_ok_when_xiaosi():
 
 
 def test_body_size_flags_wrong_size():
-    doc = make_doc([make_para(runs=[make_run(size_pt=14.0)])])
+    doc = make_doc([
+        make_table(flow_index=0, type_index=0),
+        make_para(flow_index=1, type_index=0, runs=[make_run(size_pt=14.0)]),
+        make_image(flow_index=2, type_index=0),
+    ])
     issues = BodyFontSizeRule().check(doc)
     assert len(issues) == 1
     assert issues[0].rule_id == "format.body.size"
     assert issues[0].expected == "12.0"
     assert issues[0].actual == "14.0"
+    assert issues[0].location.target == "run"
+    assert issues[0].location.flow_index == 1
 
 
 def test_body_size_skips_headings():
@@ -53,11 +65,17 @@ def test_line_spacing_ok_when_1_5():
 
 
 def test_line_spacing_flags_wrong_value():
-    doc = make_doc([make_para(line_spacing=1.0)])
+    doc = make_doc([
+        make_table(flow_index=0, type_index=0),
+        make_para(flow_index=1, type_index=0, line_spacing=1.0),
+        make_image(flow_index=2, type_index=0),
+    ])
     issues = LineSpacingRule().check(doc)
     assert len(issues) == 1
     assert issues[0].rule_id == "format.body.line_spacing"
-    assert issues[0].location.kind == "paragraph"
+    assert issues[0].location.target == "block"
+    assert issues[0].location.block_kind == "paragraph"
+    assert issues[0].location.flow_index == 1
 
 
 def test_line_spacing_skips_headings():
@@ -76,11 +94,17 @@ def test_indent_ok_when_2_chars():
 
 
 def test_indent_flags_wrong_value():
-    doc = make_doc([make_para(first_line_indent_chars=0.0)])
+    doc = make_doc([
+        make_table(flow_index=0, type_index=0),
+        make_para(flow_index=1, type_index=0, first_line_indent_chars=0.0),
+        make_image(flow_index=2, type_index=0),
+    ])
     issues = FirstLineIndentRule().check(doc)
     assert len(issues) == 1
     assert issues[0].rule_id == "format.body.indent"
-    assert issues[0].location.kind == "paragraph"
+    assert issues[0].location.target == "block"
+    assert issues[0].location.block_kind == "paragraph"
+    assert issues[0].location.flow_index == 1
 
 
 def test_indent_skips_headings():

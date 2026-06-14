@@ -5,8 +5,15 @@
 """
 from __future__ import annotations
 
-from thesis_review.models import DocumentModel, ParagraphBlock, RunSpan
-from thesis_review.uno_traversal import paragraphs as iter_paragraphs
+from thesis_review.models import (
+    DocumentBlock,
+    DocumentModel,
+    ParagraphBlock,
+    RunSpan,
+    TableBlock,
+)
+from thesis_review.uno_traversal import TraversedBlock
+from thesis_review.uno_traversal import blocks as iter_blocks
 from thesis_review.uno_traversal import text_portions
 
 # ── 常量 ────────────────────────────────────────────────────────────
@@ -84,6 +91,98 @@ def _first_line_indent_chars(para, first_run_pt: float | None) -> float:
     return round(indent / char_mm100, 2)
 
 
+def _page_break_before(para) -> bool:
+    """读取显式段前分页符；无法识别时按无分页处理。"""
+    break_type = getattr(para, "BreakType", None)
+    if break_type is None:
+        return False
+    return "PAGE_BEFORE" in str(break_type)
+
+
+def _safe_count(obj, accessor: str) -> int | None:
+    try:
+        return int(getattr(obj, accessor)().getCount())
+    except (AttributeError, TypeError, ValueError):
+        return None
+
+
+def _table_text(table) -> str:
+    texts: list[str] = []
+    try:
+        names = table.getCellNames()
+    except AttributeError:
+        return ""
+    for name in names:
+        try:
+            text = table.getCellByName(name).getString()
+        except AttributeError:
+            continue
+        if text:
+            texts.append(text)
+    return "\n".join(texts)
+
+
+def _extract_paragraph(block: TraversedBlock) -> ParagraphBlock:
+    elem = block.element
+    text = elem.getString()
+
+    runs: list[RunSpan] = []
+    block_id = f"b-{block.flow_index:04d}"
+    for r_idx, portion in enumerate(text_portions(elem)):
+        portion_text = portion.getString()
+
+        # 字体属性：Asian 变体优先（中文文本），fallback 到通用变体
+        ch_height = _safe_float(getattr(portion, "CharHeightAsian", None))
+        if ch_height is None:
+            ch_height = _safe_float(getattr(portion, "CharHeight", None))
+
+        ch_weight = getattr(portion, "CharWeightAsian", None)
+        if ch_weight is None:
+            ch_weight = getattr(portion, "CharWeight", None)
+
+        ch_posture = getattr(portion, "CharPostureAsian", None)
+        if ch_posture is None:
+            ch_posture = getattr(portion, "CharPosture", None)
+
+        runs.append(RunSpan(
+            id=f"{block_id}-r-{r_idx:04d}",
+            text=portion_text,
+            run_index=r_idx,
+            font_east_asian=getattr(portion, "CharFontNameAsian", None),
+            font_latin=getattr(portion, "CharFontName", None),
+            size_pt=ch_height,
+            bold=_is_bold(ch_weight),
+            italic=_is_italic(ch_posture),
+        ))
+
+    first_run_pt = runs[0].size_pt if runs else None
+    return ParagraphBlock(
+        id=block_id,
+        flow_index=block.flow_index,
+        type_index=block.type_index,
+        text=text,
+        style_name=getattr(elem, "ParaStyleName", None),
+        outline_level=_outline_level(elem),
+        alignment=_alignment(elem),
+        line_spacing=_line_spacing(elem),
+        first_line_indent_chars=_first_line_indent_chars(elem, first_run_pt),
+        page_break_before=_page_break_before(elem),
+        runs=runs,
+    )
+
+
+def _extract_table(block: TraversedBlock) -> TableBlock:
+    table = block.element
+    return TableBlock(
+        id=f"b-{block.flow_index:04d}",
+        flow_index=block.flow_index,
+        type_index=block.type_index,
+        row_count=_safe_count(table, "getRows"),
+        column_count=_safe_count(table, "getColumns"),
+        text=_table_text(table),
+    )
+
+
 # ── 主函数 ──────────────────────────────────────────────────────────
 
 
@@ -97,52 +196,11 @@ def extract(doc, source_path: str = "unknown.docx") -> DocumentModel:
     Returns:
         DocumentModel，段落按 UNO 枚举顺序排列
     """
-    paragraphs: list[ParagraphBlock] = []
-    for p_idx, elem in enumerate(iter_paragraphs(doc)):
-        text = elem.getString()
+    blocks: list[DocumentBlock] = []
+    for block in iter_blocks(doc):
+        if block.kind == "paragraph":
+            blocks.append(_extract_paragraph(block))
+        elif block.kind == "table":
+            blocks.append(_extract_table(block))
 
-        # 枚举 text portion
-        runs: list[RunSpan] = []
-        for r_idx, portion in enumerate(text_portions(elem)):
-            portion_text = portion.getString()
-
-            # 字体属性：Asian 变体优先（中文文本），fallback 到通用变体
-            ch_height = _safe_float(getattr(portion, "CharHeightAsian", None))
-            if ch_height is None:
-                ch_height = _safe_float(getattr(portion, "CharHeight", None))
-
-            ch_weight = getattr(portion, "CharWeightAsian", None)
-            if ch_weight is None:
-                ch_weight = getattr(portion, "CharWeight", None)
-
-            ch_posture = getattr(portion, "CharPostureAsian", None)
-            if ch_posture is None:
-                ch_posture = getattr(portion, "CharPosture", None)
-
-            block_id = f"p-{p_idx:04d}"
-            runs.append(RunSpan(
-                id=f"{block_id}-r-{r_idx:04d}",
-                text=portion_text,
-                run_index=r_idx,
-                font_east_asian=getattr(portion, "CharFontNameAsian", None),
-                font_latin=getattr(portion, "CharFontName", None),
-                size_pt=ch_height,
-                bold=_is_bold(ch_weight),
-                italic=_is_italic(ch_posture),
-            ))
-
-        first_run_pt = runs[0].size_pt if runs else None
-        block_id = f"p-{p_idx:04d}"
-        paragraphs.append(ParagraphBlock(
-            id=block_id,
-            text=text,
-            paragraph_index=p_idx,
-            style_name=getattr(elem, "ParaStyleName", None),
-            outline_level=_outline_level(elem),
-            alignment=_alignment(elem),
-            line_spacing=_line_spacing(elem),
-            first_line_indent_chars=_first_line_indent_chars(elem, first_run_pt),
-            runs=runs,
-        ))
-
-    return DocumentModel(source_docx=source_path, paragraphs=paragraphs)
+    return DocumentModel(source_docx=source_path, blocks=blocks)

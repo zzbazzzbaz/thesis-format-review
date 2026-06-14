@@ -13,4 +13,4 @@ def test_rule_protocol_is_satisfied_by_a_simple_rule():
 
     rule: Rule = DummyRule()
     assert rule.rule_id == "dummy"
-    assert rule.check(DocumentModel(source_docx="x", paragraphs=[])) == []
+    assert rule.check(DocumentModel(source_docx="x", blocks=[])) == []

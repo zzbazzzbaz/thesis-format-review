@@ -9,22 +9,25 @@ from thesis_review.extractor import extract
 from thesis_review.annotator import annotate
 from thesis_review.models import Issue, Location
 from thesis_review.uno_session import UnoSession
-from thesis_review.uno_traversal import paragraphs, text_portions
+from thesis_review.uno_traversal import blocks as iter_blocks
+from thesis_review.uno_traversal import text_portions
 
 
 @pytest.mark.uno
-def test_paragraph_index_roundtrip(sample_docx):
-    """extractor 的 paragraph_index 能在 annotator 中定位同一段落文本。"""
+def test_flow_index_roundtrip(sample_docx):
+    """extractor 的 flow_index 能在 annotator 中定位同一段落文本。"""
     with UnoSession() as session:
         with session.open(sample_docx) as doc:
             model = extract(doc, source_path=sample_docx)
         # 取一个有 run 的段落
-        target_para = next(p for p in model.paragraphs if p.runs)
+        target_para = next(
+            b for b in model.blocks
+            if b.kind == "paragraph" and b.runs
+        )
         expected_text = target_para.text
 
         with session.open(sample_docx) as doc2:
-            paras = paragraphs(doc2)
-            located = paras[target_para.paragraph_index]
+            located = iter_blocks(doc2)[target_para.flow_index].element
             assert located.getString() == expected_text
 
 
@@ -34,12 +37,14 @@ def test_run_index_roundtrip(sample_docx):
     with UnoSession() as session:
         with session.open(sample_docx) as doc:
             model = extract(doc, source_path=sample_docx)
-        target_para = next(p for p in model.paragraphs if p.runs)
+        target_para = next(
+            b for b in model.blocks
+            if b.kind == "paragraph" and b.runs
+        )
         target_run = target_para.runs[0]
 
         with session.open(sample_docx) as doc2:
-            paras = paragraphs(doc2)
-            para = paras[target_para.paragraph_index]
+            para = iter_blocks(doc2)[target_para.flow_index].element
             portions = text_portions(para)
             located = portions[target_run.run_index]
             assert located.getString() == target_run.text
@@ -54,7 +59,10 @@ def test_full_annotate_roundtrip(tmp_path, sample_docx):
             model = extract(doc, source_path=sample_docx)
 
         # 对第一个正文段落的第一个 run 构造 issue
-        body_paras = [p for p in model.paragraphs if p.outline_level is None and p.runs]
+        body_paras = [
+            b for b in model.blocks
+            if b.kind == "paragraph" and b.outline_level is None and b.runs
+        ]
         target = body_paras[0]
         run = target.runs[0]
         issue = Issue(
@@ -63,9 +71,10 @@ def test_full_annotate_roundtrip(tmp_path, sample_docx):
             severity="error",
             message="roundtrip 测试批注",
             location=Location(
-                kind="run",
+                target="run",
                 block_id=target.id,
-                paragraph_index=target.paragraph_index,
+                block_kind="paragraph",
+                flow_index=target.flow_index,
                 run_id=run.id,
                 run_index=run.run_index,
             ),
@@ -75,8 +84,8 @@ def test_full_annotate_roundtrip(tmp_path, sample_docx):
 
         # 重开 marked.docx，验证该 portion 有底纹、有批注
         with session.open(out) as doc2:
-            paras = paragraphs(doc2)
-            portions = text_portions(paras[target.paragraph_index])
+            para = iter_blocks(doc2)[target.flow_index].element
+            portions = text_portions(para)
             located = portions[run.run_index]
             assert located.CharBackColor == 0xFF0000
             assert located.getString() == run.text

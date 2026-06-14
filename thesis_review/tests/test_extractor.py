@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import pytest
+from docx import Document
 
 pytest.importorskip("uno")
 
@@ -16,8 +17,9 @@ def test_extract_paragraphs_from_sample(sample_docx):
         with session.open(sample_docx) as doc:
             model = extract(doc, source_path=sample_docx)
     assert model.source_docx == sample_docx
-    assert len(model.paragraphs) >= 5
-    texts = [p.text for p in model.paragraphs]
+    paragraphs = [b for b in model.blocks if b.kind == "paragraph"]
+    assert len(paragraphs) >= 5
+    texts = [p.text for p in paragraphs]
     assert any("第一章" in t for t in texts)
 
 
@@ -27,7 +29,10 @@ def test_extract_run_font_info(sample_docx):
     with UnoSession() as session:
         with session.open(sample_docx) as doc:
             model = extract(doc, source_path=sample_docx)
-    body_paras = [p for p in model.paragraphs if p.outline_level is None and p.runs]
+    body_paras = [
+        p for p in model.blocks
+        if p.kind == "paragraph" and p.outline_level is None and p.runs
+    ]
     p1 = body_paras[0]
     assert len(p1.runs) >= 1
     assert p1.runs[0].font_east_asian == "楷体"
@@ -35,15 +40,16 @@ def test_extract_run_font_info(sample_docx):
 
 
 @pytest.mark.uno
-def test_extract_run_ids_are_sequential(sample_docx):
-    """段落与 run 的 id 与索引一致。"""
+def test_extract_block_and_run_ids_are_sequential(sample_docx):
+    """块与 run 的 id 与索引一致。"""
     with UnoSession() as session:
         with session.open(sample_docx) as doc:
             model = extract(doc, source_path=sample_docx)
-    for p in model.paragraphs:
-        assert p.id == f"p-{p.paragraph_index:04d}"
-        for r in p.runs:
-            assert r.id == f"{p.id}-r-{r.run_index:04d}"
+    for block in model.blocks:
+        assert block.id == f"b-{block.flow_index:04d}"
+        if block.kind == "paragraph":
+            for r in block.runs:
+                assert r.id == f"{block.id}-r-{r.run_index:04d}"
 
 
 @pytest.mark.uno
@@ -52,7 +58,10 @@ def test_extract_outline_level_for_heading(sample_docx):
     with UnoSession() as session:
         with session.open(sample_docx) as doc:
             model = extract(doc, source_path=sample_docx)
-    headings = [p for p in model.paragraphs if p.outline_level is not None]
+    headings = [
+        p for p in model.blocks
+        if p.kind == "paragraph" and p.outline_level is not None
+    ]
     assert any(p.outline_level == 0 for p in headings), "一级标题 outline_level 应为 0"
 
 
@@ -62,7 +71,10 @@ def test_extract_line_spacing_1_5(sample_docx):
     with UnoSession() as session:
         with session.open(sample_docx) as doc:
             model = extract(doc, source_path=sample_docx)
-    body = [p for p in model.paragraphs if p.outline_level is None and p.text]
+    body = [
+        p for p in model.blocks
+        if p.kind == "paragraph" and p.outline_level is None and p.text
+    ]
     assert body[0].line_spacing == pytest.approx(1.5, abs=0.01)
 
 
@@ -72,7 +84,10 @@ def test_extract_style_name(sample_docx):
     with UnoSession() as session:
         with session.open(sample_docx) as doc:
             model = extract(doc, source_path=sample_docx)
-    heading = next(p for p in model.paragraphs if p.outline_level is not None)
+    heading = next(
+        p for p in model.blocks
+        if p.kind == "paragraph" and p.outline_level is not None
+    )
     assert heading.style_name == "Heading 1"
 
 
@@ -82,8 +97,9 @@ def test_extract_handles_wps_edited_docx(wps_docx):
     with UnoSession() as session:
         with session.open(wps_docx) as doc:
             model = extract(doc, source_path=wps_docx)
-    assert len(model.paragraphs) >= 1
-    assert any(p.text for p in model.paragraphs)
+    paragraphs = [b for b in model.blocks if b.kind == "paragraph"]
+    assert len(paragraphs) >= 1
+    assert any(p.text for p in paragraphs)
 
 
 @pytest.mark.uno
@@ -92,7 +108,7 @@ def test_extract_no_empty_tail_paragraph(sample_docx):
     with UnoSession() as session:
         with session.open(sample_docx) as doc:
             model = extract(doc, source_path=sample_docx)
-    for p in model.paragraphs:
+    for p in [b for b in model.blocks if b.kind == "paragraph"]:
         assert p.text.strip(), f"段落 {p.id} 不应为空"
 
 
@@ -102,7 +118,10 @@ def test_extract_alignment_default_left(sample_docx):
     with UnoSession() as session:
         with session.open(sample_docx) as doc:
             model = extract(doc, source_path=sample_docx)
-    body_paras = [p for p in model.paragraphs if p.outline_level is None]
+    body_paras = [
+        p for p in model.blocks
+        if p.kind == "paragraph" and p.outline_level is None
+    ]
     assert body_paras[0].alignment == "left"
 
 
@@ -112,5 +131,38 @@ def test_extract_first_line_indent_zero_when_not_set(sample_docx):
     with UnoSession() as session:
         with session.open(sample_docx) as doc:
             model = extract(doc, source_path=sample_docx)
-    p4 = model.paragraphs[4]
+    paragraphs = [b for b in model.blocks if b.kind == "paragraph"]
+    p4 = paragraphs[4]
     assert p4.first_line_indent_chars == 0.0
+
+
+@pytest.mark.uno
+def test_extract_preserves_table_in_flow(tmp_path):
+    """表格应作为独立 block 保留在段落之间的文档流位置。"""
+    path = tmp_path / "with_table.docx"
+    docx = Document()
+    docx.add_paragraph("表前段落")
+    table = docx.add_table(rows=2, cols=2)
+    table.cell(0, 0).text = "A1"
+    table.cell(0, 1).text = "A2"
+    table.cell(1, 0).text = "B1"
+    table.cell(1, 1).text = "B2"
+    docx.add_paragraph("表后段落")
+    docx.save(path)
+
+    with UnoSession() as session:
+        with session.open(str(path)) as doc:
+            model = extract(doc, source_path=str(path))
+
+    assert [block.kind for block in model.blocks] == ["paragraph", "table", "paragraph"]
+    assert model.blocks[0].flow_index == 0
+    assert model.blocks[1].flow_index == 1
+    assert model.blocks[2].flow_index == 2
+    assert model.blocks[0].type_index == 0
+    assert model.blocks[1].type_index == 0
+    assert model.blocks[2].type_index == 1
+    table_block = model.blocks[1]
+    assert table_block.row_count == 2
+    assert table_block.column_count == 2
+    assert "A1" in table_block.text
+    assert "B2" in table_block.text

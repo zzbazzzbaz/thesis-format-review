@@ -26,7 +26,10 @@ def test_annotate_produces_marked_docx(tmp_path, sample_docx):
             expected="宋体",
             actual="楷体",
             location=Location(
-                kind="paragraph", block_id="p-0001", paragraph_index=1
+                target="block",
+                block_id="b-0001",
+                block_kind="paragraph",
+                flow_index=1,
             ),
         )
     ]
@@ -48,7 +51,10 @@ def test_annotate_writes_comment_text(tmp_path, sample_docx):
             expected="宋体",
             actual="楷体",
             location=Location(
-                kind="paragraph", block_id="p-0001", paragraph_index=1
+                target="block",
+                block_id="b-0001",
+                block_kind="paragraph",
+                flow_index=1,
             ),
         )
     ]
@@ -79,7 +85,10 @@ def test_annotate_writes_red_backcolor(tmp_path, sample_docx):
             severity="error",
             message="正文中文字体应为宋体",
             location=Location(
-                kind="paragraph", block_id="p-0001", paragraph_index=1
+                target="block",
+                block_id="b-0001",
+                block_kind="paragraph",
+                flow_index=1,
             ),
         )
     ]
@@ -87,7 +96,7 @@ def test_annotate_writes_red_backcolor(tmp_path, sample_docx):
         annotate(session, sample_docx, out, issues)
         with session.open(out) as doc:
             paras = paragraphs(doc)
-            target = paras[1]  # paragraph_index=1
+            target = paras[1]  # flow_index=1
             portions = text_portions(target)
             assert len(portions) >= 1
             assert portions[0].CharBackColor == 0xFF0000
@@ -104,7 +113,10 @@ def test_annotate_skips_out_of_range_location(tmp_path, sample_docx):
             severity="error",
             message="越界",
             location=Location(
-                kind="paragraph", block_id="p-9999", paragraph_index=9999
+                target="block",
+                block_id="b-9999",
+                block_kind="paragraph",
+                flow_index=9999,
             ),
         )
     ]
@@ -124,10 +136,11 @@ def test_annotate_run_level_backcolor(tmp_path, sample_docx):
             severity="error",
             message="正文字体不对",
             location=Location(
-                kind="run",
-                block_id="p-0001",
-                paragraph_index=1,
-                run_id="p-0001-r-0000",
+                target="run",
+                block_id="b-0001",
+                block_kind="paragraph",
+                flow_index=1,
+                run_id="b-0001-r-0000",
                 run_index=0,
             ),
         )
