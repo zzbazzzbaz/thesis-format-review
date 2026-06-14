@@ -1,0 +1,8 @@
+source_editor: python-docx
+description: 基线测试文档，含已知格式与结构问题
+expected_rule_ids:
+  - format.body.font          # 正文第一段用了楷体
+  - format.body.size          # 正文第一段用了 14pt
+  - format.body.line_spacing  # 正文第三段单倍行距
+  - format.body.indent        # 正文第四段无首行缩进
+  - structure.section.required  # 缺少"参考文献"
