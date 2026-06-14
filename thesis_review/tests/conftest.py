@@ -20,3 +20,9 @@ def sample_docx() -> str:
 def wps_docx() -> str:
     """WPS macOS 手工编辑后另存的真实 docx。"""
     return str(WPS_DIR / "MACOS_WPS编辑版.docx")
+
+
+@pytest.fixture
+def clean_thesis_docx() -> str:
+    """格式无误的论文（WPS 编辑，生产级格式）。"""
+    return str(WPS_DIR / "格式无误_人工智能发展史.docx")
