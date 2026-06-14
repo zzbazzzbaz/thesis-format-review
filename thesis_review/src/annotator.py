@@ -8,6 +8,7 @@ marked.docx。定位失败跳过该 issue，不崩溃。
 CharBackColor，save+reload 后会丢失。
 """
 from __future__ import annotations
+import os
 
 import logging
 
@@ -114,6 +115,6 @@ def annotate(session, input_docx: str, output_docx: str,
                 log.warning("未能标注(写入失败)：%s @ paragraph_index=%s",
                             issue.rule_id, issue.location.paragraph_index)
 
-        url = uno.systemPathToFileUrl(output_docx)
+        url = "file://" + os.path.abspath(output_docx)
         doc.storeToURL(url, (
             PropertyValue(Name="FilterName", Value="MS Word 2007 XML"),))
