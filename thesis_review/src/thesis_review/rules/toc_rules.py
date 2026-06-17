@@ -1,6 +1,7 @@
 """目录 C 类规则。"""
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
 from math import isclose
 
@@ -11,7 +12,10 @@ from thesis_review.models import (
     ParagraphBlock,
     RunSpan,
 )
-from thesis_review.sections import is_toc_title
+from thesis_review.sections import detect_sections, is_toc_title, paragraphs_in_range
+
+_FIRST_LEVEL_RE = re.compile(r"^(第[一二三四五六七八九十\d]+章)( *)(.+)\t\d+\s*$")
+_LOWER_LEVEL_RE = re.compile(r"^(\d+(?:\.\d+){1,2})( *)(.+)\t\d+\s*$")
 
 
 def _paragraphs(document: DocumentModel) -> Iterable[ParagraphBlock]:
@@ -70,6 +74,16 @@ def _empty_count_after(document: DocumentModel, title: ParagraphBlock) -> int:
             break
         count += 1
     return count
+
+
+def _toc_paragraphs(document: DocumentModel) -> list[ParagraphBlock]:
+    toc = detect_sections(document).get("toc")
+    if toc is None:
+        return []
+    return [
+        para for para in paragraphs_in_range(document, toc)
+        if para.text.strip() and not is_toc_title(para)
+    ]
 
 
 class TocTitleRule:
@@ -205,3 +219,42 @@ class TocTitleRule:
                 "1 个空段落",
                 f"{count} 个空段落",
             )
+
+
+class TocEntrySpacingRule:
+    rule_id = "C002"
+    category = "format"
+    severity = "error"
+
+    def check(self, document: DocumentModel) -> list[Issue]:
+        issues: list[Issue] = []
+        for para in _toc_paragraphs(document):
+            self._check_para(para, issues)
+        return issues
+
+    def _check_para(
+        self,
+        para: ParagraphBlock,
+        issues: list[Issue],
+    ) -> None:
+        match = _FIRST_LEVEL_RE.match(para.text)
+        expected_count = 2
+        if match is None:
+            match = _LOWER_LEVEL_RE.match(para.text)
+            expected_count = 1
+        if match is None:
+            return
+        spaces = match.group(2)
+        if len(spaces) == expected_count:
+            return
+        issues.append(
+            Issue(
+                rule_id=self.rule_id,
+                category=self.category,
+                severity=self.severity,
+                message="目录编号与标题之间空格数量不符合规范",
+                expected=f"{expected_count} 个空格",
+                actual=f"{len(spaces)} 个空格",
+                location=_block_location(para),
+            )
+        )

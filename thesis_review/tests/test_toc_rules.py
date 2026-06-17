@@ -1,6 +1,7 @@
 """目录 C 类规则测试。"""
 from __future__ import annotations
 
+from thesis_review.rules.toc_rules import TocEntrySpacingRule
 from thesis_review.rules.toc_rules import TocTitleRule
 from tests.builders import make_doc, make_para, make_run
 
@@ -112,3 +113,39 @@ def test_c001_requires_exactly_one_blank_after_title():
         "只能空一行" in issue.message
         for issue in TocTitleRule().check(too_many)
     )
+
+
+def doc_with_entries(*entries: str):
+    blocks = [toc_title(), empty_para()]
+    for offset, text in enumerate(entries, start=2):
+        blocks.append(toc_entry(flow_index=offset, text=text))
+    blocks.append(make_para(flow_index=len(blocks), text="第一章  引言", outline_level=0))
+    return make_doc(blocks)
+
+
+def test_c002_accepts_required_spacing():
+    doc = doc_with_entries(
+        "第一章  引言\t1",
+        "2.1 线性表的定义\t2",
+        "2.2.1 三级标题名\t3",
+    )
+
+    assert TocEntrySpacingRule().check(doc) == []
+
+
+def test_c002_flags_first_level_spacing():
+    doc = doc_with_entries("第一章 引言\t1", "第二章线性表\t2", "第三章   设计\t3")
+
+    issues = TocEntrySpacingRule().check(doc)
+
+    assert len(issues) == 3
+    assert all(issue.rule_id == "C002" for issue in issues)
+
+
+def test_c002_flags_second_and_third_level_spacing():
+    doc = doc_with_entries("2.1线性表的定义\t2", "2.2  线性顺序表\t3", "2.2.1三级标题名\t4")
+
+    issues = TocEntrySpacingRule().check(doc)
+
+    assert len(issues) == 3
+    assert {issue.actual for issue in issues} >= {"0 个空格", "2 个空格"}

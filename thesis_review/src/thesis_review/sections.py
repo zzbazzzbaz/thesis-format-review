@@ -17,7 +17,7 @@ class SectionRange(BaseModel):
 
 
 _TOC_ENTRY_RE = re.compile(
-    r"^(?:第[一二三四五六七八九十\d]+章\s+.+|\d+(?:\.\d+){1,2}\s+.+)\t\d+\s*$"
+    r"^(?:第[一二三四五六七八九十\d]+章 *.+|\d+(?:\.\d+){1,2} *.+)\t\d+\s*$"
 )
 _BODY_CHAPTER_RE = re.compile(r"^(?:第[一二三四五六七八九十\d]+章).+")
 
