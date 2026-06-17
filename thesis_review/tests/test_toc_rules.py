@@ -1,6 +1,7 @@
 """目录 C 类规则测试。"""
 from __future__ import annotations
 
+from thesis_review.rules.toc_rules import TocEntryFormatRule
 from thesis_review.rules.toc_rules import TocEntrySpacingRule
 from thesis_review.rules.toc_rules import TocTitleRule
 from tests.builders import make_doc, make_para, make_run
@@ -149,3 +150,85 @@ def test_c002_flags_second_and_third_level_spacing():
 
     assert len(issues) == 3
     assert {issue.actual for issue in issues} >= {"0 个空格", "2 个空格"}
+
+
+def test_c003_accepts_valid_toc_entry_format():
+    doc = doc_with_entries("第一章  引言\t1", "2.1 线性表的定义\t2")
+
+    assert TocEntryFormatRule().check(doc) == []
+
+
+def test_c003_flags_entry_line_spacing_and_bold():
+    bad = make_para(
+        flow_index=2,
+        text="第一章  引言\t1",
+        line_spacing=1.0,
+        runs=[
+            make_run(
+                text="第一章  引言\t1",
+                font_east_asian="宋体",
+                font_latin="Times New Roman",
+                size_pt=12.0,
+                bold=True,
+            )
+        ],
+    )
+    doc = make_doc([
+        toc_title(),
+        empty_para(),
+        bad,
+        make_para(flow_index=3, text="第一章  引言", outline_level=0),
+    ])
+
+    issues = TocEntryFormatRule().check(doc)
+
+    assert any(issue.actual == "1.0" for issue in issues)
+    assert any(issue.actual == "加粗" for issue in issues)
+
+
+def test_c003_flags_entry_run_font_and_size():
+    bad = make_para(
+        flow_index=2,
+        text="第二章  线性表的基本理论知识\t2",
+        runs=[
+            make_run(
+                text="第二章  线性表",
+                font_east_asian="宋体",
+                font_latin="Times New Roman",
+                size_pt=12.0,
+            ),
+            make_run(
+                text="的基本理",
+                font_east_asian="仿宋",
+                font_latin="仿宋",
+                size_pt=12.0,
+            ),
+            make_run(
+                text="论知识\t2",
+                font_east_asian="宋体",
+                font_latin="Arial",
+                size_pt=14.0,
+            ),
+        ],
+    )
+    doc = make_doc([
+        toc_title(),
+        empty_para(),
+        bad,
+        make_para(flow_index=3, text="第一章  引言", outline_level=0),
+    ])
+
+    issues = TocEntryFormatRule().check(doc)
+
+    assert any(
+        issue.expected == "宋体" and issue.actual == "仿宋"
+        for issue in issues
+    )
+    assert any(
+        issue.expected == "Times New Roman" and issue.actual == "Arial"
+        for issue in issues
+    )
+    assert any(
+        issue.expected == "12.0" and issue.actual == "14.0"
+        for issue in issues
+    )

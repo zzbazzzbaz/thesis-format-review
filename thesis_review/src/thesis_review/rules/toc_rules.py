@@ -258,3 +258,130 @@ class TocEntrySpacingRule:
                 location=_block_location(para),
             )
         )
+
+
+class TocEntryFormatRule:
+    rule_id = "C003"
+    category = "format"
+    severity = "error"
+
+    def check(self, document: DocumentModel) -> list[Issue]:
+        issues: list[Issue] = []
+        for para in _toc_paragraphs(document):
+            self._check_para(para, issues)
+            for run in para.runs:
+                self._check_run(para, run, issues)
+        return issues
+
+    def _add_block_issue(
+        self,
+        para: ParagraphBlock,
+        issues: list[Issue],
+        message: str,
+        expected: str,
+        actual: str | None,
+    ) -> None:
+        issues.append(
+            Issue(
+                rule_id=self.rule_id,
+                category=self.category,
+                severity=self.severity,
+                message=message,
+                expected=expected,
+                actual=actual,
+                location=_block_location(para),
+            )
+        )
+
+    def _add_run_issue(
+        self,
+        para: ParagraphBlock,
+        run: RunSpan,
+        issues: list[Issue],
+        message: str,
+        expected: str,
+        actual: str | None,
+    ) -> None:
+        location = (
+            _block_location(para)
+            if not run.text.strip() or run.text == "\t"
+            else _run_location(para, run)
+        )
+        issues.append(
+            Issue(
+                rule_id=self.rule_id,
+                category=self.category,
+                severity=self.severity,
+                message=message,
+                expected=expected,
+                actual=actual,
+                location=location,
+            )
+        )
+
+    def _check_para(
+        self,
+        para: ParagraphBlock,
+        issues: list[Issue],
+    ) -> None:
+        if para.line_spacing is not None and not isclose(
+            para.line_spacing,
+            1.5,
+            abs_tol=0.01,
+        ):
+            self._add_block_issue(
+                para,
+                issues,
+                "目录条目行距应为 1.5 倍",
+                "1.5",
+                str(para.line_spacing),
+            )
+
+    def _check_run(
+        self,
+        para: ParagraphBlock,
+        run: RunSpan,
+        issues: list[Issue],
+    ) -> None:
+        if not run.text.strip() or run.text == "\t":
+            return
+        if run.font_east_asian and run.font_east_asian != "宋体":
+            self._add_run_issue(
+                para,
+                run,
+                issues,
+                "目录条目中文字体应为宋体",
+                "宋体",
+                run.font_east_asian,
+            )
+        if run.font_latin and run.font_latin != "Times New Roman":
+            self._add_run_issue(
+                para,
+                run,
+                issues,
+                "目录条目数字和西文字体应为 Times New Roman",
+                "Times New Roman",
+                run.font_latin,
+            )
+        if run.size_pt is not None and not isclose(
+            run.size_pt,
+            12.0,
+            abs_tol=0.01,
+        ):
+            self._add_run_issue(
+                para,
+                run,
+                issues,
+                "目录条目字号应为小四(12pt)",
+                "12.0",
+                str(run.size_pt),
+            )
+        if run.bold:
+            self._add_run_issue(
+                para,
+                run,
+                issues,
+                "目录条目不应加粗",
+                "不加粗",
+                "加粗",
+            )
