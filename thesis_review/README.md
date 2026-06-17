@@ -59,15 +59,43 @@ docker run --rm -v "$PWD":/workspace -w /workspace \
 检查完成：89 处错误，64 处警告 → /tmp/marked.docx
 ```
 
-### 4. Web 上传下载
+### 4. Web 上传下载（浏览器前端）
 
-启动 FastAPI Web 应用：
+Web 前端是 FastAPI 挂载的静态页面，不需要单独启动 Node.js/Vite。上传审核会调用 LibreOffice/UNO，因此推荐在 Docker 容器中启动：
 
 ```bash
-uv run uvicorn thesis_review.web.app:app --host 0.0.0.0 --port 8000
+cd thesis_review
+
+docker run --rm -p 8000:8000 -v "$PWD":/workspace -w /workspace \
+    thesis-review-uno-dev \
+    /opt/venv/bin/python -m uvicorn thesis_review.web.app:app \
+    --host 0.0.0.0 --port 8000
 ```
 
-浏览器访问 `http://127.0.0.1:8000/`，选择 `.docx` 文件并提交。服务会同步调用现有 `pipeline.review(input_docx, output_docx)`，审核完成后直接返回 `<原文件名>.marked.docx` 下载。
+启动后浏览器访问：
+
+```text
+http://127.0.0.1:8000/
+```
+
+选择 `.docx` 文件并提交。服务会同步调用现有 `pipeline.review(input_docx, output_docx)`，审核完成后直接返回 `<原文件名>.marked.docx` 下载。终端中按 `Ctrl+C` 停止服务。
+
+如果宿主机的 `8000` 端口已被占用，可以改用宿主机其他端口，例如：
+
+```bash
+docker run --rm -p 8001:8000 -v "$PWD":/workspace -w /workspace \
+    thesis-review-uno-dev \
+    /opt/venv/bin/python -m uvicorn thesis_review.web.app:app \
+    --host 0.0.0.0 --port 8000
+```
+
+此时浏览器访问 `http://127.0.0.1:8001/`。
+
+仅在宿主机已经具备可用 LibreOffice/UNO 环境时，也可以直接启动 FastAPI：
+
+```bash
+uv run uvicorn thesis_review.web.app:app --host 127.0.0.1 --port 8000
+```
 
 首版 Web 层不包含登录、数据库、任务队列、历史记录或在线预览。CLI 入口保持不变：
 
