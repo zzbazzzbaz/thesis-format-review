@@ -12,6 +12,11 @@ from thesis_review.rules.structure_rules import (
     HeadingHierarchyRule,
     RequiredSectionRule,
 )
+from thesis_review.rules.toc_rules import (
+    TocEntryFormatRule,
+    TocEntrySpacingRule,
+    TocTitleRule,
+)
 
 RULE_CLASSES: tuple[type[Rule], ...] = (
     BodyFontRule,
@@ -20,6 +25,9 @@ RULE_CLASSES: tuple[type[Rule], ...] = (
     FirstLineIndentRule,
     HeadingHierarchyRule,
     RequiredSectionRule,
+    TocTitleRule,
+    TocEntrySpacingRule,
+    TocEntryFormatRule,
 )
 
 
