@@ -130,6 +130,9 @@ docker run --rm -v "$PWD":/workspace -w /workspace \
 | `format.body.indent` | 格式 | 正文首行缩进 | 2 字符 |
 | `structure.heading.hierarchy` | 结构 | 标题层级不跳级 | 一级后不可直接三级 |
 | `structure.section.required` | 结构 | 必备章节 | 摘要 / 关键词 / 参考文献 |
+| `C001` | 目录 | 目录标题格式 | “目    录”三号黑体居中，1.5 倍行距，标题后且只能空一行 |
+| `C002` | 目录 | 目录条目空格 | 一级目录编号和标题之间 2 个空格，二/三级目录 1 个空格 |
+| `C003` | 目录 | 目录条目格式 | 宋体、小四、1.5 倍行距、不加粗，数字 Times New Roman |
 
 ## 项目结构
 
@@ -147,11 +150,13 @@ thesis_review/
 │       ├── uno_traversal.py    # UNO 段落/run 定位遍历契约
 │       ├── extractor.py        # UNO 读 → DocumentModel
 │       ├── annotator.py        # Issue → marked.docx（红色底纹 + 批注）
+│       ├── sections.py         # 文档语义分区（目录/正文/参考文献等）
 │       └── rules/
 │           ├── base.py         # Rule 协议
 │           ├── registry.py     # 规则注册表
 │           ├── format_rules.py # 4 条格式规则
-│           └── structure_rules.py # 2 条结构规则
+│           ├── structure_rules.py # 2 条结构规则
+│           └── toc_rules.py    # C001/C002/C003 目录规则
 └── tests/
     ├── conftest.py
     ├── test_extractor.py

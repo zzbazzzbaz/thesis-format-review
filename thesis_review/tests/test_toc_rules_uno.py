@@ -16,8 +16,12 @@ from thesis_review.rules.toc_rules import (
 from thesis_review.uno_session import UnoSession
 
 
-ROOT = Path(__file__).resolve().parents[2]
-DOCS = ROOT / "docs"
+def docs_dir() -> Path:
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / "docs"
+        if (candidate / "无误版.docx").exists():
+            return candidate
+    pytest.skip("未挂载 docs/无误版.docx，跳过真实 Word 规则样本测试")
 
 
 def check_doc(path: Path):
@@ -30,7 +34,7 @@ def check_doc(path: Path):
 
 @pytest.mark.uno
 def test_toc_rules_accept_clean_docx():
-    issues = check_doc(DOCS / "无误版.docx")
+    issues = check_doc(docs_dir() / "无误版.docx")
 
     assert [
         issue for issue in issues
@@ -50,6 +54,6 @@ def test_toc_rules_accept_clean_docx():
     ],
 )
 def test_toc_rules_flag_rule_samples(filename: str, expected_rule: str):
-    issues = check_doc(DOCS / "rule" / "C" / filename)
+    issues = check_doc(docs_dir() / "rule" / "C" / filename)
 
     assert expected_rule in {issue.rule_id for issue in issues}
