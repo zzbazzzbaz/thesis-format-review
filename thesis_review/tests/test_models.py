@@ -94,10 +94,10 @@ def test_document_block_discriminated_union_parses_table_and_image():
 
 def test_issue_with_location():
     issue = Issue(
-        rule_id="format.body.font",
-        category="format",
+        rule_id="C003",
+        category="structure",
         severity="error",
-        message="正文中文字体应为宋体",
+        message="目录条目中文字体应为宋体",
         expected="宋体",
         actual="楷体",
         location=Location(
@@ -161,8 +161,8 @@ def test_run_location_rejects_non_paragraph_block():
 def test_issue_rejects_unknown_severity():
     with pytest.raises(ValidationError):
         Issue(
-            rule_id="format.body.font",
-            category="format",
+            rule_id="C001",
+            category="structure",
             severity="fatal",
             message="bad severity",
             location=Location(

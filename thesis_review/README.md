@@ -56,7 +56,7 @@ docker run --rm -v "$PWD":/workspace -w /workspace \
 输出示例：
 
 ```text
-检查完成：89 处错误，64 处警告 → /tmp/marked.docx
+检查完成：N 处错误，M 处警告 → /tmp/marked.docx
 ```
 
 ### 4. Web 上传下载（浏览器前端）
@@ -124,12 +124,6 @@ docker run --rm -v "$PWD":/workspace -w /workspace \
 
 | rule_id | 类别 | 检查内容 | 期望值 |
 |---------|------|----------|--------|
-| `format.body.font` | 格式 | 正文中文字体 | 宋体 |
-| `format.body.size` | 格式 | 正文字号 | 12pt（小四） |
-| `format.body.line_spacing` | 格式 | 正文行距 | 1.5 倍 |
-| `format.body.indent` | 格式 | 正文首行缩进 | 2 字符 |
-| `structure.heading.hierarchy` | 结构 | 标题层级不跳级 | 一级后不可直接三级 |
-| `structure.section.required` | 结构 | 必备章节 | 摘要 / 关键词 / 参考文献 |
 | `C001` | 目录 | 目录标题格式 | “目    录”三号黑体居中，1.5 倍行距，标题后且只能空一行 |
 | `C002` | 目录 | 目录条目空格 | 一级目录编号和标题之间 2 个空格，二/三级目录 1 个空格 |
 | `C003` | 目录 | 目录条目格式 | 宋体、小四、1.5 倍行距、不加粗，数字 Times New Roman |
@@ -154,14 +148,12 @@ thesis_review/
 │       └── rules/
 │           ├── base.py         # Rule 协议
 │           ├── registry.py     # 规则注册表
-│           ├── format_rules.py # 4 条格式规则
-│           ├── structure_rules.py # 2 条结构规则
 │           └── toc_rules.py    # C001/C002/C003 目录规则
 └── tests/
     ├── conftest.py
     ├── test_extractor.py
-    ├── test_format_rules.py
-    ├── test_structure_rules.py
+    ├── test_toc_rules.py
+    ├── test_sections.py
     ├── test_annotator.py
     ├── test_roundtrip.py
     ├── test_pipeline.py

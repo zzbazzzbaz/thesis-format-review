@@ -19,12 +19,12 @@ def test_annotate_produces_marked_docx(tmp_path, sample_docx):
     out = str(tmp_path / "marked.docx")
     issues = [
         Issue(
-            rule_id="format.body.font",
-            category="format",
+            rule_id="C001",
+            category="structure",
             severity="error",
-            message="正文中文字体应为宋体",
-            expected="宋体",
-            actual="楷体",
+            message="目录标题格式错误",
+            expected="目    录",
+            actual="目录",
             location=Location(
                 target="block",
                 block_id="b-0001",
@@ -44,12 +44,12 @@ def test_annotate_writes_comment_text(tmp_path, sample_docx):
     out = str(tmp_path / "marked.docx")
     issues = [
         Issue(
-            rule_id="format.body.font",
-            category="format",
+            rule_id="C001",
+            category="structure",
             severity="error",
-            message="正文中文字体应为宋体",
-            expected="宋体",
-            actual="楷体",
+            message="目录标题格式错误",
+            expected="目    录",
+            actual="目录",
             location=Location(
                 target="block",
                 block_id="b-0001",
@@ -67,7 +67,7 @@ def test_annotate_writes_comment_text(tmp_path, sample_docx):
                 f = fields.nextElement()
                 if f.supportsService("com.sun.star.text.textfield.Annotation"):
                     texts.append(f.Content)
-    assert any("宋体" in t for t in texts)
+    assert any("目录标题格式错误" in t for t in texts)
 
 
 @pytest.mark.uno
@@ -80,10 +80,10 @@ def test_annotate_writes_red_backcolor(tmp_path, sample_docx):
     out = str(tmp_path / "marked.docx")
     issues = [
         Issue(
-            rule_id="format.body.font",
-            category="format",
+            rule_id="C001",
+            category="structure",
             severity="error",
-            message="正文中文字体应为宋体",
+            message="目录标题格式错误",
             location=Location(
                 target="block",
                 block_id="b-0001",
@@ -108,8 +108,8 @@ def test_annotate_skips_out_of_range_location(tmp_path, sample_docx):
     out = str(tmp_path / "marked.docx")
     issues = [
         Issue(
-            rule_id="x",
-            category="format",
+            rule_id="C001",
+            category="structure",
             severity="error",
             message="越界",
             location=Location(
@@ -131,10 +131,10 @@ def test_annotate_run_level_backcolor(tmp_path, sample_docx):
     out = str(tmp_path / "marked.docx")
     issues = [
         Issue(
-            rule_id="format.body.font",
-            category="format",
+            rule_id="C003",
+            category="structure",
             severity="error",
-            message="正文字体不对",
+            message="目录条目字体错误",
             location=Location(
                 target="run",
                 block_id="b-0001",

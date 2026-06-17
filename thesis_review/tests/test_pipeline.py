@@ -40,9 +40,7 @@ def test_review_marked_docx_has_annotations(tmp_path, sample_docx):
 def test_review_clean_thesis_produces_output(clean_thesis_docx, tmp_path):
     """格式无误的真实论文能正常跑通审核，产出 marked.docx 不崩溃。
 
-    注意：该论文封面/摘要/关键词/参考文献未使用 Heading 样式，
-    导致 RequiredSectionRule 检查标题时找不到这些章节。
-    这是真实 WPS 论文的常见现象，后续需放宽规则（如查正文前几段的文本）。
+    当前启用规则只检查目录范围；正文、参考文献等区域规则后续按业务编号重建。
     """
     out = str(tmp_path / "marked.docx")
     issues = review(clean_thesis_docx, out)
