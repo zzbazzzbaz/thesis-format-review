@@ -167,6 +167,7 @@ def _extract_paragraph(block: TraversedBlock) -> ParagraphBlock:
         line_spacing=_line_spacing(elem),
         first_line_indent_chars=_first_line_indent_chars(elem, first_run_pt),
         page_break_before=_page_break_before(elem),
+        is_empty=not text.strip(),
         runs=runs,
     )
 

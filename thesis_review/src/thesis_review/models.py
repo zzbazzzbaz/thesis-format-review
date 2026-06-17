@@ -38,6 +38,7 @@ class ParagraphBlock(BlockBase):
     line_spacing: float | None
     first_line_indent_chars: float | None
     page_break_before: bool = False
+    is_empty: bool = False
     runs: list[RunSpan]
 
 

@@ -20,14 +20,12 @@ class TraversedBlock:
 
 
 def paragraphs(doc) -> list:
-    """按模型定位契约枚举非空正文段落。"""
+    """按模型定位契约枚举正文段落，包含空段落。"""
     out = []
     enum = doc.Text.createEnumeration()
     while enum.hasMoreElements():
         elem = enum.nextElement()
         if not elem.supportsService("com.sun.star.text.Paragraph"):
-            continue
-        if not elem.getString():
             continue
         out.append(elem)
     return out
@@ -46,8 +44,6 @@ def blocks(doc) -> list[TraversedBlock]:
         elem = enum.nextElement()
         kind: TraversedBlockKind | None = None
         if elem.supportsService("com.sun.star.text.Paragraph"):
-            if not elem.getString():
-                continue
             kind = "paragraph"
         elif elem.supportsService("com.sun.star.text.TextTable"):
             kind = "table"

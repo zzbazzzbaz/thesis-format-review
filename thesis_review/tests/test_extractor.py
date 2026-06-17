@@ -103,13 +103,24 @@ def test_extract_handles_wps_edited_docx(wps_docx):
 
 
 @pytest.mark.uno
-def test_extract_no_empty_tail_paragraph(sample_docx):
-    """所有段落应有非空文本（末尾空段被跳过）。"""
+def test_extract_preserves_empty_paragraphs(tmp_path):
+    """空段落应保留在文档流中，用于 C001 判断标题后空一行。"""
+    path = tmp_path / "with_empty.docx"
+    docx = Document()
+    docx.add_paragraph("目    录")
+    docx.add_paragraph("")
+    docx.add_paragraph("第一章  引言\t1")
+    docx.save(path)
+
     with UnoSession() as session:
-        with session.open(sample_docx) as doc:
-            model = extract(doc, source_path=sample_docx)
-    for p in [b for b in model.blocks if b.kind == "paragraph"]:
-        assert p.text.strip(), f"段落 {p.id} 不应为空"
+        with session.open(str(path)) as doc:
+            model = extract(doc, source_path=str(path))
+
+    paragraphs = [block for block in model.blocks if block.kind == "paragraph"]
+    assert [p.text for p in paragraphs] == ["目    录", "", "第一章  引言\t1"]
+    assert paragraphs[1].is_empty is True
+    assert paragraphs[1].runs == []
+    assert [p.flow_index for p in paragraphs] == [0, 1, 2]
 
 
 @pytest.mark.uno

@@ -40,12 +40,15 @@ def make_para(
     line_spacing=1.5,
     first_line_indent_chars=2.0,
     runs=None,
+    is_empty=None,
 ):
     if type_index is None:
         type_index = flow_index
     block_id = f"b-{flow_index:04d}"
+    if is_empty is None:
+        is_empty = not text.strip()
     if runs is None:
-        runs = [make_run(text=text, block_id=block_id)]
+        runs = [] if is_empty else [make_run(text=text, block_id=block_id)]
     else:
         runs = [
             run.model_copy(update={"id": f"{block_id}-r-{idx:04d}", "run_index": idx})
@@ -61,6 +64,7 @@ def make_para(
         alignment=alignment,
         line_spacing=line_spacing,
         first_line_indent_chars=first_line_indent_chars,
+        is_empty=is_empty,
         runs=runs,
     )
 
