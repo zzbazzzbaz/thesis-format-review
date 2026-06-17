@@ -19,7 +19,7 @@ class BodyFontRule:
     EXPECTED_FONT = "宋体"
 
     def check(self, document: DocumentModel) -> list[Issue]:
-        """检查正文中文字体是否为宋体（跳过标题段落，逐 run 比对）。"""
+        """开发阶段规则：检查正文中文字体是否为宋体（跳过标题段落，逐 run 比对）。"""
         issues: list[Issue] = []
         for para in _paragraphs(document):
             if para.outline_level is not None:
@@ -54,7 +54,7 @@ class BodyFontSizeRule:
     EXPECTED_PT = 12.0
 
     def check(self, document: DocumentModel) -> list[Issue]:
-        """检查正文字号是否为小四(12pt)（跳过标题段落，逐 run 比对）。"""
+        """开发阶段规则：检查正文字号是否为小四(12pt)（跳过标题段落，逐 run 比对）。"""
         issues: list[Issue] = []
         for para in _paragraphs(document):
             if para.outline_level is not None:
@@ -89,7 +89,7 @@ class LineSpacingRule:
     EXPECTED = 1.5
 
     def check(self, document: DocumentModel) -> list[Issue]:
-        """检查正文行距是否为 1.5 倍（跳过标题段落，按段落比对）。"""
+        """开发阶段规则：检查正文行距是否为 1.5 倍（跳过标题段落，按段落比对）。"""
         issues: list[Issue] = []
         for para in _paragraphs(document):
             if para.outline_level is not None:
@@ -121,7 +121,7 @@ class FirstLineIndentRule:
     EXPECTED_CHARS = 2.0
 
     def check(self, document: DocumentModel) -> list[Issue]:
-        """检查正文首行缩进是否为 2 字符（跳过标题段落，按段落比对）。"""
+        """开发阶段规则：检查正文首行缩进是否为 2 字符（跳过标题段落，按段落比对）。"""
         issues: list[Issue] = []
         for para in _paragraphs(document):
             if para.outline_level is not None:

@@ -10,14 +10,12 @@ from thesis_review.pipeline import review
 
 @pytest.mark.uno
 def test_review_returns_issues_and_writes_output(tmp_path, sample_docx):
-    """对 sample.docx 运行完整审核，产出 marked.docx 且含已知问题。"""
+    """对 sample.docx 运行完整审核，产出 marked.docx 且含当前启用规则问题。"""
     out = str(tmp_path / "marked.docx")
     issues = review(sample_docx, out)
     assert os.path.exists(out)
     ids = {i.rule_id for i in issues}
-    assert "format.body.font" in ids
-    assert "format.body.size" in ids
-    assert "structure.section.required" in ids
+    assert "C001" in ids
 
 
 @pytest.mark.uno

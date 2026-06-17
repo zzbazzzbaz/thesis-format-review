@@ -2,16 +2,17 @@
 from __future__ import annotations
 
 from thesis_review.rules.base import Rule
-from thesis_review.rules.format_rules import (
-    BodyFontRule,
-    BodyFontSizeRule,
-    FirstLineIndentRule,
-    LineSpacingRule,
-)
-from thesis_review.rules.structure_rules import (
-    HeadingHierarchyRule,
-    RequiredSectionRule,
-)
+# 以下 6 条是框架开发阶段规则，暂不启用；保留代码用于测试和参考。
+# from thesis_review.rules.format_rules import (
+#     BodyFontRule,
+#     BodyFontSizeRule,
+#     FirstLineIndentRule,
+#     LineSpacingRule,
+# )
+# from thesis_review.rules.structure_rules import (
+#     HeadingHierarchyRule,
+#     RequiredSectionRule,
+# )
 from thesis_review.rules.toc_rules import (
     TocEntryFormatRule,
     TocEntrySpacingRule,
@@ -19,12 +20,12 @@ from thesis_review.rules.toc_rules import (
 )
 
 RULE_CLASSES: tuple[type[Rule], ...] = (
-    BodyFontRule,
-    BodyFontSizeRule,
-    LineSpacingRule,
-    FirstLineIndentRule,
-    HeadingHierarchyRule,
-    RequiredSectionRule,
+    # BodyFontRule,
+    # BodyFontSizeRule,
+    # LineSpacingRule,
+    # FirstLineIndentRule,
+    # HeadingHierarchyRule,
+    # RequiredSectionRule,
     TocTitleRule,
     TocEntrySpacingRule,
     TocEntryFormatRule,
