@@ -17,6 +17,19 @@
 - `*/case.yml`：测试样本清单，只用于测试和规则资产校验，不参与生产审核。
 - `*/samples/`：真实 Word 样本。
 
+## 模块命名
+
+| 中文模块 | 模块目录名 / `module` | `module_name` |
+|---|---|---|
+| 封面 | `cover` | `封面` |
+| 中文摘要 | `chinese-abstract` | `中文摘要` |
+| 英文摘要 | `english-abstract` | `英文摘要` |
+| 目录 | `table-of-contents` | `目录` |
+| 正文 | `main-text` | `正文` |
+| 致谢 | `acknowledgements` | `致谢` |
+| 参考文献 | `references` | `参考文献` |
+| 附录 | `appendix` | `附录` |
+
 ## 维护要求
 
 - 规则编号使用小写英文全词和三位数字，例如 `table-of-contents-title-006`。
