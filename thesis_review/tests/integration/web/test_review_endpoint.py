@@ -28,7 +28,7 @@ def test_web_review_endpoint_runs_engine_and_returns_docx(sample_docx, tmp_path)
     out.write_bytes(response.content)
     assert zipfile.is_zipfile(out)
 
-    from thesis_review.uno_session import UnoSession
+    from thesis_review.adapters.uno.session import UnoSession
 
     with UnoSession() as session:
         with session.open(str(out)) as doc:

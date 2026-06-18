@@ -26,11 +26,11 @@ class ReviewDependencies:
 
 
 def default_dependencies() -> ReviewDependencies:
-    from thesis_review.annotator import annotate
-    from thesis_review.extractor import extract
+    from thesis_review.adapters.uno.annotator import annotate
+    from thesis_review.adapters.uno.extractor import extract
     from thesis_review.rules.context import build_rule_context
     from thesis_review.rules.registry import get_checkers
-    from thesis_review.uno_session import UnoSession
+    from thesis_review.adapters.uno.session import UnoSession
 
     return ReviewDependencies(
         session_factory=UnoSession,

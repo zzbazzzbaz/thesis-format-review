@@ -16,9 +16,9 @@ def review(input_docx: str, output_docx: str) -> list[Issue]:
     Returns:
         list[Issue]: 所有规则检测到的问题
     """
-    from thesis_review.annotator import annotate
-    from thesis_review.extractor import extract
-    from thesis_review.uno_session import UnoSession
+    from thesis_review.adapters.uno.annotator import annotate
+    from thesis_review.adapters.uno.extractor import extract
+    from thesis_review.adapters.uno.session import UnoSession
 
     with UnoSession() as session:
         with session.open(input_docx) as doc:

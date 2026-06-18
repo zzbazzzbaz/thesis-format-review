@@ -5,12 +5,12 @@ import pytest
 
 pytest.importorskip("uno")
 
-from thesis_review.extractor import extract
-from thesis_review.annotator import annotate
+from thesis_review.adapters.uno.extractor import extract
+from thesis_review.adapters.uno.annotator import annotate
 from thesis_review.core.models import Issue, Location
-from thesis_review.uno_session import UnoSession
-from thesis_review.uno_traversal import blocks as iter_blocks
-from thesis_review.uno_traversal import text_portions
+from thesis_review.adapters.uno.session import UnoSession
+from thesis_review.adapters.uno.traversal import blocks as iter_blocks
+from thesis_review.adapters.uno.traversal import text_portions
 
 
 @pytest.mark.uno

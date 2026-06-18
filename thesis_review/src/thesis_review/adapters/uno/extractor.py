@@ -12,9 +12,9 @@ from thesis_review.core.models import (
     RunSpan,
     TableBlock,
 )
-from thesis_review.uno_traversal import TraversedBlock
-from thesis_review.uno_traversal import blocks as iter_blocks
-from thesis_review.uno_traversal import text_portions
+from thesis_review.adapters.uno.traversal import TraversedBlock
+from thesis_review.adapters.uno.traversal import blocks as iter_blocks
+from thesis_review.adapters.uno.traversal import text_portions
 
 # ── 常量 ────────────────────────────────────────────────────────────
 

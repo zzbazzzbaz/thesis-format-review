@@ -7,10 +7,10 @@ import pytest
 
 pytest.importorskip("uno")
 
-from thesis_review.annotator import annotate
+from thesis_review.adapters.uno.annotator import annotate
 from thesis_review.core.models import Issue, Location
-from thesis_review.uno_session import UnoSession
-from thesis_review.uno_traversal import paragraphs, text_portions
+from thesis_review.adapters.uno.session import UnoSession
+from thesis_review.adapters.uno.traversal import paragraphs, text_portions
 
 
 @pytest.mark.uno

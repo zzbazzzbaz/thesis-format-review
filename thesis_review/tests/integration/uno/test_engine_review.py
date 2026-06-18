@@ -39,7 +39,7 @@ def test_review_marked_docx_has_annotations(tmp_path, sample_docx):
     result = review(sample_docx, tmp_path / "out")
     issues = result.issues
     assert len(issues) >= 1
-    from thesis_review.uno_session import UnoSession
+    from thesis_review.adapters.uno.session import UnoSession
 
     with UnoSession() as session:
         with session.open(str(result.marked_docx)) as doc:

@@ -7,7 +7,7 @@ import pytest
 
 pytest.importorskip("uno")
 
-from thesis_review.extractor import extract
+from thesis_review.adapters.uno.extractor import extract
 from thesis_review.rules.catalog import (
     RuleCatalogError,
     load_rule_catalog,
@@ -15,7 +15,7 @@ from thesis_review.rules.catalog import (
 )
 from thesis_review.rules.context import build_rule_context
 from thesis_review.rules.registry import get_checkers
-from thesis_review.uno_session import UnoSession
+from thesis_review.adapters.uno.session import UnoSession
 
 
 def repo_root() -> Path:

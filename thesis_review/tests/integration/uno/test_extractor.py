@@ -6,8 +6,8 @@ from docx import Document
 
 pytest.importorskip("uno")
 
-from thesis_review.extractor import extract
-from thesis_review.uno_session import UnoSession
+from thesis_review.adapters.uno.extractor import extract
+from thesis_review.adapters.uno.session import UnoSession
 
 
 @pytest.mark.uno
