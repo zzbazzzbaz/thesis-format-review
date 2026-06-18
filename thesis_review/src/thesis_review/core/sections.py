@@ -6,7 +6,7 @@ from collections.abc import Iterable
 
 from pydantic import BaseModel
 
-from thesis_review.models import DocumentBlock, DocumentModel, ParagraphBlock
+from thesis_review.core.models import DocumentBlock, DocumentModel, ParagraphBlock
 
 
 class SectionRange(BaseModel):

@@ -5,7 +5,7 @@ import re
 from collections.abc import Iterable
 from math import isclose
 
-from thesis_review.models import (
+from thesis_review.core.models import (
     DocumentModel,
     Issue,
     Location,
@@ -13,7 +13,7 @@ from thesis_review.models import (
     RunSpan,
 )
 from thesis_review.rules.context import RuleContext
-from thesis_review.sections import is_toc_title, paragraphs_in_range
+from thesis_review.core.sections import is_toc_title, paragraphs_in_range
 
 _FIRST_LEVEL_RE = re.compile(r"^(第[一二三四五六七八九十\d]+章)( *)(.+)\t\d+\s*$")
 _LOWER_LEVEL_RE = re.compile(r"^(\d+(?:\.\d+){1,2})( *)(.+)\t\d+\s*$")

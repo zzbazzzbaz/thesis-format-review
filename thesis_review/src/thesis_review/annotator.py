@@ -14,7 +14,7 @@ import logging
 import uno
 from com.sun.star.beans import PropertyValue
 
-from thesis_review.models import Issue
+from thesis_review.core.models import Issue
 from thesis_review.uno_session import path_to_url
 from thesis_review.uno_traversal import TraversedBlock
 from thesis_review.uno_traversal import blocks as iter_blocks

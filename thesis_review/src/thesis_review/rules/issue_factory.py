@@ -1,7 +1,7 @@
 """统一 Issue 创建。"""
 from __future__ import annotations
 
-from thesis_review.models import Issue, Location
+from thesis_review.core.models import Issue, Location
 from thesis_review.rules.catalog import RuleCatalog
 
 

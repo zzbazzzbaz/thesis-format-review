@@ -1,6 +1,6 @@
 import pytest
 
-from thesis_review.models import Location
+from thesis_review.core.models import Location
 from thesis_review.rules.catalog import RuleCatalog, RuleSpec
 from thesis_review.rules.issue_factory import IssueFactory, UnknownRuleIdError
 

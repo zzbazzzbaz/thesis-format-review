@@ -4,10 +4,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from thesis_review.models import DocumentModel
+from thesis_review.core.models import DocumentModel
 from thesis_review.rules.catalog import RuleCatalog, load_rule_catalog
 from thesis_review.rules.issue_factory import IssueFactory
-from thesis_review.sections import SectionRange, detect_sections
+from thesis_review.core.sections import SectionRange, detect_sections
 
 
 def _default_rules_root() -> Path:

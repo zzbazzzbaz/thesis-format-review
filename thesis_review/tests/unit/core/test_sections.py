@@ -1,9 +1,9 @@
 """文档分区测试。"""
 from __future__ import annotations
 
-from thesis_review.sections import detect_sections
-from thesis_review.sections import norm_text
-from thesis_review.sections import paragraphs_in_range
+from thesis_review.core.sections import detect_sections
+from thesis_review.core.sections import norm_text
+from thesis_review.core.sections import paragraphs_in_range
 from tests.support.model_builders import make_doc, make_para
 
 

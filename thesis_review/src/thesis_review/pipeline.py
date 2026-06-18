@@ -1,7 +1,7 @@
 """串联三步：extract → rules → annotate。"""
 from __future__ import annotations
 
-from thesis_review.models import Issue
+from thesis_review.core.models import Issue
 from thesis_review.rules.context import build_rule_context
 from thesis_review.rules.registry import get_checkers
 

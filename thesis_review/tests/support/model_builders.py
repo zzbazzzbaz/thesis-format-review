@@ -1,5 +1,5 @@
 """测试用 DocumentModel 构造助手。"""
-from thesis_review.models import (
+from thesis_review.core.models import (
     DocumentModel,
     ImageBlock,
     ParagraphBlock,

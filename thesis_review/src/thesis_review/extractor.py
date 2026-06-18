@@ -5,7 +5,7 @@
 """
 from __future__ import annotations
 
-from thesis_review.models import (
+from thesis_review.core.models import (
     DocumentBlock,
     DocumentModel,
     ParagraphBlock,

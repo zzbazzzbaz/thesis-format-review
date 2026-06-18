@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from thesis_review.models import (
+from thesis_review.core.models import (
     DocumentModel,
     ImageBlock,
     Issue,
