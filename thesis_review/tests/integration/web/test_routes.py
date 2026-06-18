@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from thesis_review.web import services
-from thesis_review.web.app import app
+from thesis_review.interfaces.web import services
+from thesis_review.interfaces.web.app import app
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -34,8 +34,9 @@ def test_post_review_returns_file_response(monkeypatch, tmp_path):
 
     async def fake_review_upload(upload):
         assert upload.filename == "paper.docx"
-        return services.ReviewResult(
+        return services.WebReviewResult(
             output_path=output,
+            issues_json=tmp_path / "issues.json",
             download_name="paper.marked.docx",
             cleanup=lambda: cleaned.append(True),
         )

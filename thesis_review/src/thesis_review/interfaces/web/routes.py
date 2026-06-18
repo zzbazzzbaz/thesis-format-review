@@ -7,7 +7,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from starlette.background import BackgroundTask
 from starlette.responses import FileResponse, Response
 
-from thesis_review.web import services
+from thesis_review.interfaces.web import services
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 STATIC_DIR = Path(__file__).parent / "static"

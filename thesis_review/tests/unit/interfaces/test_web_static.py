@@ -4,7 +4,14 @@ from __future__ import annotations
 from pathlib import Path
 
 
-STATIC_DIR = Path(__file__).parents[1] / "src" / "thesis_review" / "web" / "static"
+STATIC_DIR = (
+    Path(__file__).parents[3]
+    / "src"
+    / "thesis_review"
+    / "interfaces"
+    / "web"
+    / "static"
+)
 
 
 def test_index_has_docx_upload_form_and_fetch_logic():

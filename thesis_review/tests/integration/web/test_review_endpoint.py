@@ -1,4 +1,4 @@
-"""Web + pipeline 端到端测试。"""
+"""Web + engine 端到端测试。"""
 from __future__ import annotations
 
 import zipfile
@@ -6,13 +6,13 @@ import zipfile
 import pytest
 from fastapi.testclient import TestClient
 
-from thesis_review.web.app import app
+from thesis_review.interfaces.web.app import app
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 
 @pytest.mark.uno
-def test_web_review_endpoint_runs_pipeline_and_returns_docx(sample_docx, tmp_path):
+def test_web_review_endpoint_runs_engine_and_returns_docx(sample_docx, tmp_path):
     client = TestClient(app)
 
     with open(sample_docx, "rb") as f:

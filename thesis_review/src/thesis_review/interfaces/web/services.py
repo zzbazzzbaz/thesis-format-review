@@ -9,7 +9,7 @@ import tempfile
 
 from fastapi import UploadFile
 
-from thesis_review import pipeline
+from thesis_review.engine import review
 
 CHUNK_SIZE = 1024 * 1024
 
@@ -19,8 +19,9 @@ class InvalidUpload(ValueError):
 
 
 @dataclass(frozen=True)
-class ReviewResult:
+class WebReviewResult:
     output_path: Path
+    issues_json: Path
     download_name: str
     cleanup: Callable[[], None]
 
@@ -50,24 +51,25 @@ async def _save_upload(upload: UploadFile, target: Path) -> None:
             f.write(chunk)
 
 
-async def review_upload(upload: UploadFile) -> ReviewResult:
+async def review_upload(upload: UploadFile) -> WebReviewResult:
     filename = _client_filename(upload.filename)
     workdir = Path(tempfile.mkdtemp(prefix="thesis-review-"))
     input_path = workdir / "input.docx"
-    output_path = workdir / "output.marked.docx"
+    out_dir = workdir / "review"
 
     def cleanup() -> None:
         shutil.rmtree(workdir, ignore_errors=True)
 
     try:
         await _save_upload(upload, input_path)
-        pipeline.review(str(input_path), str(output_path))
+        result = review(str(input_path), out_dir)
     except Exception:
         cleanup()
         raise
 
-    return ReviewResult(
-        output_path=output_path,
+    return WebReviewResult(
+        output_path=result.marked_docx,
+        issues_json=result.issues_json,
         download_name=_download_name(filename),
         cleanup=cleanup,
     )

@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from starlette.datastructures import UploadFile
 
-from thesis_review.web import services
+from thesis_review.interfaces.web import services
 
 
 def make_upload(filename: str | None, content: bytes) -> UploadFile:
@@ -29,28 +29,37 @@ def test_review_upload_rejects_non_docx():
         asyncio.run(services.review_upload(upload))
 
 
-def test_review_upload_saves_file_calls_pipeline_and_returns_download(monkeypatch):
-    calls: list[tuple[str, str]] = []
+def test_review_upload_saves_file_calls_engine_and_returns_download(monkeypatch):
+    calls: list[tuple[str, Path]] = []
 
-    def fake_review(input_docx: str, output_docx: str):
-        calls.append((input_docx, output_docx))
-        Path(output_docx).write_bytes(b"marked docx bytes")
-        return []
+    class FakeEngineResult:
+        def __init__(self, out_dir: Path):
+            self.marked_docx = out_dir / "marked.docx"
+            self.issues_json = out_dir / "issues.json"
 
-    monkeypatch.setattr(services.pipeline, "review", fake_review)
+    def fake_review(input_docx: str, out_dir: Path):
+        calls.append((input_docx, out_dir))
+        out_dir.mkdir(parents=True)
+        result = FakeEngineResult(out_dir)
+        result.marked_docx.write_bytes(b"marked docx bytes")
+        result.issues_json.write_text('{"issues": []}', encoding="utf-8")
+        return result
+
+    monkeypatch.setattr(services, "review", fake_review)
     upload = make_upload("论文初稿.docx", b"input docx bytes")
 
     result = asyncio.run(services.review_upload(upload))
 
     assert result.output_path.exists()
     assert result.output_path.read_bytes() == b"marked docx bytes"
+    assert result.issues_json.exists()
     assert result.download_name == "论文初稿.marked.docx"
     assert len(calls) == 1
-    input_docx, output_docx = calls[0]
+    input_docx, out_dir = calls[0]
     assert Path(input_docx).read_bytes() == b"input docx bytes"
-    assert Path(output_docx) == result.output_path
+    assert out_dir == result.output_path.parent
 
-    workdir = result.output_path.parent
+    workdir = result.output_path.parent.parent
     result.cleanup()
     assert not workdir.exists()
 
@@ -58,11 +67,11 @@ def test_review_upload_saves_file_calls_pipeline_and_returns_download(monkeypatc
 def test_review_upload_cleans_workdir_when_pipeline_fails(monkeypatch):
     seen_input_dirs: list[Path] = []
 
-    def fake_review(input_docx: str, output_docx: str):
+    def fake_review(input_docx: str, out_dir: Path):
         seen_input_dirs.append(Path(input_docx).parent)
         raise RuntimeError("pipeline failed")
 
-    monkeypatch.setattr(services.pipeline, "review", fake_review)
+    monkeypatch.setattr(services, "review", fake_review)
     upload = make_upload("paper.docx", b"input")
 
     with pytest.raises(RuntimeError, match="pipeline failed"):
