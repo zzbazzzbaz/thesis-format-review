@@ -6,7 +6,7 @@ from pathlib import Path
 from thesis_review.rules.context import build_rule_context
 from thesis_review.rules.toc_rules import TableOfContentsEntryChecker
 from thesis_review.rules.toc_rules import TableOfContentsTitleChecker
-from tests.builders import make_doc, make_para, make_run
+from tests.support.model_builders import make_doc, make_para, make_run
 
 
 def context_for(doc):

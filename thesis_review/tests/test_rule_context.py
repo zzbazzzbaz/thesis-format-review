@@ -3,7 +3,7 @@ from pathlib import Path
 from thesis_review.rules.catalog import load_rule_catalog
 from thesis_review.rules.context import RuleContext, build_rule_context
 from thesis_review.rules.issue_factory import IssueFactory
-from tests.builders import make_doc, make_para
+from tests.support.model_builders import make_doc, make_para
 
 
 def rules_root() -> Path:

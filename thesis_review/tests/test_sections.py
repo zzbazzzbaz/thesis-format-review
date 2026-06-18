@@ -4,7 +4,7 @@ from __future__ import annotations
 from thesis_review.sections import detect_sections
 from thesis_review.sections import norm_text
 from thesis_review.sections import paragraphs_in_range
-from tests.builders import make_doc, make_para
+from tests.support.model_builders import make_doc, make_para
 
 
 def test_norm_text_removes_spaces_tabs_and_colons():
