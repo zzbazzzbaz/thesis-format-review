@@ -15,6 +15,7 @@ import uno
 from com.sun.star.beans import PropertyValue
 
 from thesis_review.core.models import Issue
+from thesis_review.adapters.ooxml.font_assets import restore_font_assets
 from thesis_review.adapters.uno.session import path_to_url
 from thesis_review.adapters.uno.traversal import TraversedBlock
 from thesis_review.adapters.uno.traversal import blocks as iter_blocks
@@ -130,3 +131,4 @@ def annotate(session, input_docx: str, output_docx: str,
         url = path_to_url(output_docx)
         doc.storeToURL(url, (
             PropertyValue(Name="FilterName", Value="MS Word 2007 XML"),))
+    restore_font_assets(input_docx, output_docx)
