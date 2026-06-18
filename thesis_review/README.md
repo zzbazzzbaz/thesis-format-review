@@ -1,25 +1,32 @@
 # 毕业设计论文格式审核系统
 
-自动检测 `.docx` 格式的毕业设计论文中的格式与结构问题，并在文档中以**红色底纹 + 批注**标注，输出 `marked.docx` 供学生/导师查看修改。
+自动检测 `.docx` 格式的毕业设计论文中的格式与结构问题，并在文档中以**红色底纹 + 批注**标注，输出 `marked.docx` 和 `issues.json` 供人工查看与自动化测试使用。
 
 ## 架构
 
-三步管道，层间靠数据模型解耦：
+审核链路按边界分层：
 
 ```text
-input.docx → extractor → DocumentModel → rules → list[Issue] → annotator → marked.docx
+input.docx
+  -> adapters.uno.extractor
+  -> core.DocumentModel
+  -> rules
+  -> list[Issue]
+  -> adapters.uno.annotator
+  -> engine.ReviewResult
+  -> marked.docx + issues.json
 ```
 
 | 模块 | 职责 | 依赖 |
 |------|------|------|
-| `uno_session` | 管理 soffice 进程/连接，单实例串行 | pyuno |
-| `extractor` | UNO 读取文档属性 → `DocumentModel` | `uno_session` |
-| `models` | 定义 `DocumentModel` / `Issue` / `Location` | pydantic |
-| `rules` | catalog + context + 检查器，读 `DocumentModel` → `Issue` | 仅 `models`/`sections` |
-| `annotator` | 按 `Issue.location` 写红色底纹 + 批注 | `uno_session` |
-| `pipeline` + `cli` | 串联调用，命令行入口 | 以上全部 |
+| `core` | `DocumentModel` / `Issue` / `Location` 与文档分区 | pydantic |
+| `adapters.uno` | LibreOffice/UNO 读取、标注、定位遍历契约 | pyuno |
+| `rules` | catalog + context + 检查器，读 `DocumentModel` -> `Issue` | `core` |
+| `engine` | 串联抽取、规则、标注，产出 `marked.docx` 和 `issues.json` | `core` / `rules` / `adapters.uno` |
+| `interfaces.cli` | 命令行入口 | `engine` |
+| `interfaces.web` | FastAPI 上传下载 | `engine` |
 
-规则层完全不依赖 UNO/LibreOffice。规则元数据集中在 `thesis_review/docs/rules/**/rule.yml`，代码只负责定位、判断、生成实际值和位置。
+规则层完全不依赖 UNO/LibreOffice。规则元数据集中在 `thesis_review/docs/rules/**/rule.yml`，样本契约集中在同目录的 `case.yml` 与 `samples/`。
 
 ## 环境要求
 
@@ -49,15 +56,29 @@ docker build -f Dockerfile.uno-dev -t thesis-review-uno-dev .
 cd thesis_review
 docker run --rm -v "$PWD":/workspace -w /workspace \
     thesis-review-uno-dev \
-    /opt/venv/bin/python -m thesis_review.cli \
-    tests/word/111.docx \
-    -o /tmp/marked.docx
+    /opt/venv/bin/python -m thesis_review.interfaces.cli review \
+    docs/rules/table-of-contents/samples/table-of-contents-clean.docx \
+    --out-dir outputs/review
 ```
 
 输出示例：
 
 ```text
-检查完成：N 处错误，M 处警告 → /tmp/marked.docx
+检查完成：N 处错误，M 处警告 -> outputs/review/marked.docx，outputs/review/issues.json
+```
+
+固定产物：
+
+```text
+outputs/review/
+  marked.docx
+  issues.json
+```
+
+安装为命令后也可以使用：
+
+```bash
+thesis-review review input.docx --out-dir outputs/review
 ```
 
 ### 4. Web 上传下载（浏览器前端）
@@ -70,7 +91,7 @@ cd thesis_review
 docker run --rm -p 8000:8000 \
     -v "$PWD":/workspace -w /workspace \
     thesis-review-uno-dev \
-    /opt/venv/bin/python -m uvicorn thesis_review.web.app:app \
+    /opt/venv/bin/python -m uvicorn thesis_review.interfaces.web.app:app \
     --host 0.0.0.0 --port 8000
 ```
 
@@ -80,7 +101,7 @@ docker run --rm -p 8000:8000 \
 http://127.0.0.1:8000/
 ```
 
-选择 `.docx` 文件并提交。服务会同步调用现有 `pipeline.review(input_docx, output_docx)`，审核完成后直接返回 `<原文件名>.marked.docx` 下载。终端中按 `Ctrl+C` 停止服务。
+选择 `.docx` 文件并提交。Web service 调用 `engine.review(input_docx, out_dir)`，并返回 `marked.docx` 下载。终端中按 `Ctrl+C` 停止服务。
 
 如果宿主机的 `8000` 端口已被占用，可以改用宿主机其他端口，例如：
 
@@ -88,7 +109,7 @@ http://127.0.0.1:8000/
 docker run --rm -p 8001:8000 \
     -v "$PWD":/workspace -w /workspace \
     thesis-review-uno-dev \
-    /opt/venv/bin/python -m uvicorn thesis_review.web.app:app \
+    /opt/venv/bin/python -m uvicorn thesis_review.interfaces.web.app:app \
     --host 0.0.0.0 --port 8000
 ```
 
@@ -97,14 +118,10 @@ docker run --rm -p 8001:8000 \
 仅在宿主机已经具备可用 LibreOffice/UNO 环境时，也可以直接启动 FastAPI：
 
 ```bash
-uv run uvicorn thesis_review.web.app:app --host 127.0.0.1 --port 8000
+uv run uvicorn thesis_review.interfaces.web.app:app --host 127.0.0.1 --port 8000
 ```
 
-首版 Web 层不包含登录、数据库、任务队列、历史记录或在线预览。CLI 入口保持不变：
-
-```bash
-thesis-review input.docx -o output.marked.docx
-```
+首版 Web 层不包含登录、数据库、任务队列、历史记录或在线预览。
 
 ### 5. 运行测试
 
@@ -146,42 +163,59 @@ docker run --rm -v "$PWD":/workspace -w /workspace \
 
 ```text
 thesis_review/
-├── pyproject.toml          # 项目配置（pydantic + pytest）
-├── Dockerfile.uno-dev      # UNO 开发镜像
+├── pyproject.toml
+├── Dockerfile.uno-dev
 ├── README.md
 ├── docs/
 │   └── rules/
 │       └── table-of-contents/
-│           ├── rule.yml          # 目录模块规则元数据
-│           ├── case.yml          # 目录模块 Word 样本预期
-│           └── samples/          # 用户手动维护的真实 Word 样本
+│           ├── README.md
+│           ├── rule.yml
+│           ├── case.yml
+│           └── samples/
 ├── src/
 │   └── thesis_review/
-│       ├── cli.py              # 命令行入口
-│       ├── pipeline.py         # 三步管道串联
-│       ├── models.py           # DocumentModel / Issue / Location
-│       ├── uno_session.py      # soffice 进程管理
-│       ├── uno_traversal.py    # UNO 段落/run 定位遍历契约
-│       ├── extractor.py        # UNO 读 → DocumentModel
-│       ├── annotator.py        # Issue → marked.docx（红色底纹 + 批注）
-│       ├── sections.py         # 文档语义分区（目录/正文/参考文献等）
-│       └── rules/
-│           ├── base.py         # RuleChecker 协议
-│           ├── context.py      # RuleContext 共享上下文
-│           ├── issue_factory.py # 统一 Issue 创建
-│           ├── registry.py     # 检查器注册表
-│           ├── catalog/        # rule.yml / case.yml 加载
-│           └── toc_rules.py    # 目录模块检查器
+│       ├── core/
+│       │   ├── models.py
+│       │   └── sections.py
+│       ├── adapters/
+│       │   └── uno/
+│       │       ├── annotator.py
+│       │       ├── extractor.py
+│       │       ├── session.py
+│       │       └── traversal.py
+│       ├── rules/
+│       │   ├── base.py
+│       │   ├── context.py
+│       │   ├── issue_factory.py
+│       │   ├── registry.py
+│       │   ├── catalog/
+│       │   └── toc_rules.py
+│       ├── engine/
+│       │   ├── report.py
+│       │   ├── result.py
+│       │   └── review.py
+│       └── interfaces/
+│           ├── cli.py
+│           └── web/
 └── tests/
     ├── conftest.py
-    ├── test_extractor.py
-    ├── test_toc_rules.py
-    ├── test_sections.py
-    ├── test_annotator.py
-    ├── test_roundtrip.py
-    ├── test_pipeline.py
-    └── word/               # 测试用 .docx 文档
+    ├── support/
+    ├── unit/
+    │   ├── core/
+    │   ├── engine/
+    │   ├── interfaces/
+    │   └── rules/
+    ├── integration/
+    │   ├── uno/
+    │   └── web/
+    ├── e2e/
+    │   └── cli/
+    └── contracts/
+        └── rules/
 ```
+
+Word 样本只存放在 `thesis_review/docs/rules/<module>/samples/`，测试目录不维护第二份 `.docx` 样本库。
 
 ## 设计决策
 

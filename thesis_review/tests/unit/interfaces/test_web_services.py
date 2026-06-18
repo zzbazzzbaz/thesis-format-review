@@ -64,17 +64,17 @@ def test_review_upload_saves_file_calls_engine_and_returns_download(monkeypatch)
     assert not workdir.exists()
 
 
-def test_review_upload_cleans_workdir_when_pipeline_fails(monkeypatch):
+def test_review_upload_cleans_workdir_when_engine_fails(monkeypatch):
     seen_input_dirs: list[Path] = []
 
     def fake_review(input_docx: str, out_dir: Path):
         seen_input_dirs.append(Path(input_docx).parent)
-        raise RuntimeError("pipeline failed")
+        raise RuntimeError("engine failed")
 
     monkeypatch.setattr(services, "review", fake_review)
     upload = make_upload("paper.docx", b"input")
 
-    with pytest.raises(RuntimeError, match="pipeline failed"):
+    with pytest.raises(RuntimeError, match="engine failed"):
         asyncio.run(services.review_upload(upload))
 
     assert seen_input_dirs
