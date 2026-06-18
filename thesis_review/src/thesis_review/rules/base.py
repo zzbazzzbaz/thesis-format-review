@@ -1,16 +1,18 @@
-"""Rule 协议：所有规则的统一接口。"""
+"""RuleChecker 协议：所有规则检查器的统一接口。"""
 from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from thesis_review.models import DocumentModel, Issue, IssueCategory, IssueSeverity
+from thesis_review.models import Issue
 
 
 @runtime_checkable
-class Rule(Protocol):
-    rule_id: str
-    category: IssueCategory
-    severity: IssueSeverity
+class RuleChecker(Protocol):
+    checker_id: str
+    rule_ids: tuple[str, ...]
 
-    def check(self, document: DocumentModel) -> list[Issue]:
+    def check(self, context) -> list[Issue]:
         ...
+
+
+Rule = RuleChecker

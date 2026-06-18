@@ -1,4 +1,4 @@
 source_editor: python-docx
-description: 基线测试文档，当前启用规则只期望命中目录 C 类问题
+description: 基线测试文档，当前启用规则只期望命中目录模块问题
 expected_rule_ids:
-  - C001
+  - table-of-contents-title-001

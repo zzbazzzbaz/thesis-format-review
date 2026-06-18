@@ -94,7 +94,7 @@ def test_document_block_discriminated_union_parses_table_and_image():
 
 def test_issue_with_location():
     issue = Issue(
-        rule_id="C003",
+        rule_id="table-of-contents-entry-004",
         category="structure",
         severity="error",
         message="目录条目中文字体应为宋体",
@@ -161,7 +161,7 @@ def test_run_location_rejects_non_paragraph_block():
 def test_issue_rejects_unknown_severity():
     with pytest.raises(ValidationError):
         Issue(
-            rule_id="C001",
+            rule_id="table-of-contents-title-001",
             category="structure",
             severity="fatal",
             message="bad severity",

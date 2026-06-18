@@ -169,7 +169,12 @@ def detect_sections(document: DocumentModel) -> dict[str, SectionRange]:
             "abstract_en", blocks, abstract_en_start, toc_start or doc_end
         )
     if toc_start is not None and toc_end is not None:
-        sections["toc"] = _range("toc", blocks, toc_start, toc_end)
+        sections["table-of-contents"] = _range(
+            "table-of-contents",
+            blocks,
+            toc_start,
+            toc_end,
+        )
     if body_start is not None:
         sections["body"] = _range(
             "body", blocks, body_start, ref_start or doc_end

@@ -1,4 +1,4 @@
-"""目录 C 类规则。"""
+"""目录模块规则检查器。"""
 from __future__ import annotations
 
 import re
@@ -12,7 +12,8 @@ from thesis_review.models import (
     ParagraphBlock,
     RunSpan,
 )
-from thesis_review.sections import detect_sections, is_toc_title, paragraphs_in_range
+from thesis_review.rules.context import RuleContext
+from thesis_review.sections import is_toc_title, paragraphs_in_range
 
 _FIRST_LEVEL_RE = re.compile(r"^(第[一二三四五六七八九十\d]+章)( *)(.+)\t\d+\s*$")
 _LOWER_LEVEL_RE = re.compile(r"^(\d+(?:\.\d+){1,2})( *)(.+)\t\d+\s*$")
@@ -76,251 +77,188 @@ def _empty_count_after(document: DocumentModel, title: ParagraphBlock) -> int:
     return count
 
 
-def _toc_paragraphs(document: DocumentModel) -> list[ParagraphBlock]:
-    toc = detect_sections(document).get("toc")
-    if toc is None:
+def _display_alignment(alignment: str | None) -> str | None:
+    if alignment == "center":
+        return "居中"
+    if alignment == "left":
+        return "左对齐"
+    return alignment or "未识别"
+
+
+def _display_line_spacing(line_spacing: float | None) -> str | None:
+    if line_spacing is None:
+        return None
+    return f"{line_spacing:g} 倍"
+
+
+def _display_size(size_pt: float | None) -> str | None:
+    if size_pt is None:
+        return None
+    return f"{size_pt:g}pt"
+
+
+def _entry_paragraphs(context: RuleContext) -> list[ParagraphBlock]:
+    section = context.sections.get("table-of-contents")
+    if section is None:
         return []
     return [
-        para for para in paragraphs_in_range(document, toc)
+        para
+        for para in paragraphs_in_range(context.document, section)
         if para.text.strip() and not is_toc_title(para)
     ]
 
 
-class TocTitleRule:
-    rule_id = "C001"
-    category = "format"
-    severity = "error"
+class TableOfContentsTitleChecker:
+    checker_id = "table-of-contents-title"
+    rule_ids = (
+        "table-of-contents-title-001",
+        "table-of-contents-title-002",
+        "table-of-contents-title-003",
+        "table-of-contents-title-004",
+        "table-of-contents-title-005",
+        "table-of-contents-title-006",
+    )
 
-    def check(self, document: DocumentModel) -> list[Issue]:
-        title = _toc_title(document)
+    def check(self, context: RuleContext) -> list[Issue]:
+        title = _toc_title(context.document)
         if title is None:
             return [
-                Issue(
-                    rule_id=self.rule_id,
-                    category=self.category,
-                    severity=self.severity,
-                    message="缺少目录标题：目    录",
-                    expected="目    录",
-                    actual=None,
-                    location=_document_start_location(document),
+                context.issue_factory.create(
+                    rule_id="table-of-contents-title-001",
+                    actual="未找到目录",
+                    location=_document_start_location(context.document),
                 )
             ]
 
         issues: list[Issue] = []
-        self._check_text(title, issues)
-        self._check_paragraph_format(title, issues)
-        self._check_runs(title, issues)
-        self._check_blank_after(document, title, issues)
-        return issues
-
-    def _add(
-        self,
-        para: ParagraphBlock,
-        issues: list[Issue],
-        message: str,
-        expected: str,
-        actual: str | None,
-    ) -> None:
-        issues.append(
-            Issue(
-                rule_id=self.rule_id,
-                category=self.category,
-                severity=self.severity,
-                message=message,
-                expected=expected,
-                actual=actual,
-                location=_block_location(para),
-            )
-        )
-
-    def _check_text(
-        self,
-        title: ParagraphBlock,
-        issues: list[Issue],
-    ) -> None:
         if title.text != "目    录":
-            self._add(
-                title,
-                issues,
-                "目录标题应为“目    录”，中间 4 个普通空格",
-                "目    录",
-                title.text,
+            issues.append(
+                context.issue_factory.create(
+                    rule_id="table-of-contents-title-001",
+                    actual=title.text,
+                    location=_block_location(title),
+                )
             )
-
-    def _check_paragraph_format(
-        self,
-        title: ParagraphBlock,
-        issues: list[Issue],
-    ) -> None:
         if title.alignment != "center":
-            self._add(title, issues, "目录标题应居中", "center", title.alignment)
+            issues.append(
+                context.issue_factory.create(
+                    rule_id="table-of-contents-title-004",
+                    actual=_display_alignment(title.alignment),
+                    location=_block_location(title),
+                )
+            )
         if title.line_spacing is not None and not isclose(
             title.line_spacing,
             1.5,
             abs_tol=0.01,
         ):
-            self._add(
-                title,
-                issues,
-                "目录标题行距应为 1.5 倍",
-                "1.5",
-                str(title.line_spacing),
+            issues.append(
+                context.issue_factory.create(
+                    rule_id="table-of-contents-title-005",
+                    actual=_display_line_spacing(title.line_spacing),
+                    location=_block_location(title),
+                )
             )
-
-    def _check_runs(
-        self,
-        title: ParagraphBlock,
-        issues: list[Issue],
-    ) -> None:
         for run in title.runs:
             if not run.text.strip():
                 continue
             if run.font_east_asian and run.font_east_asian != "黑体":
-                self._add(
-                    title,
-                    issues,
-                    "目录标题中文字体应为黑体",
-                    "黑体",
-                    run.font_east_asian,
+                issues.append(
+                    context.issue_factory.create(
+                        rule_id="table-of-contents-title-003",
+                        actual=run.font_east_asian,
+                        location=_block_location(title),
+                    )
                 )
             if run.size_pt is not None and not isclose(
                 run.size_pt,
                 16.0,
                 abs_tol=0.01,
             ):
-                self._add(
-                    title,
-                    issues,
-                    "目录标题字号应为三号(16pt)",
-                    "16.0",
-                    str(run.size_pt),
+                issues.append(
+                    context.issue_factory.create(
+                        rule_id="table-of-contents-title-002",
+                        actual=_display_size(run.size_pt),
+                        location=_block_location(title),
+                    )
                 )
-
-    def _check_blank_after(
-        self,
-        document: DocumentModel,
-        title: ParagraphBlock,
-        issues: list[Issue],
-    ) -> None:
-        count = _empty_count_after(document, title)
-        if count == 0:
-            self._add(
-                title,
-                issues,
-                "目录标题后应空一行",
-                "1 个空段落",
-                "0 个空段落",
+        blank_count = _empty_count_after(context.document, title)
+        if blank_count != 1:
+            issues.append(
+                context.issue_factory.create(
+                    rule_id="table-of-contents-title-006",
+                    actual=f"{blank_count} 个空段落",
+                    location=_block_location(title),
+                )
             )
-        elif count > 1:
-            self._add(
-                title,
-                issues,
-                "目录标题后只能空一行",
-                "1 个空段落",
-                f"{count} 个空段落",
-            )
-
-
-class TocEntrySpacingRule:
-    rule_id = "C002"
-    category = "format"
-    severity = "error"
-
-    def check(self, document: DocumentModel) -> list[Issue]:
-        issues: list[Issue] = []
-        for para in _toc_paragraphs(document):
-            self._check_para(para, issues)
         return issues
 
-    def _check_para(
+
+class TableOfContentsEntryChecker:
+    checker_id = "table-of-contents-entry"
+    rule_ids = (
+        "table-of-contents-entry-001",
+        "table-of-contents-entry-002",
+        "table-of-contents-entry-003",
+        "table-of-contents-entry-004",
+        "table-of-contents-entry-005",
+        "table-of-contents-entry-006",
+        "table-of-contents-entry-007",
+        "table-of-contents-entry-008",
+    )
+
+    def check(self, context: RuleContext) -> list[Issue]:
+        if "table-of-contents" not in context.sections:
+            return []
+        issues: list[Issue] = []
+        for para in _entry_paragraphs(context):
+            self._check_spacing(context, para, issues)
+            self._check_paragraph_format(context, para, issues)
+            for run in para.runs:
+                self._check_run(context, para, run, issues)
+        return issues
+
+    def _check_spacing(
         self,
+        context: RuleContext,
         para: ParagraphBlock,
         issues: list[Issue],
     ) -> None:
         match = _FIRST_LEVEL_RE.match(para.text)
-        expected_count = 2
-        if match is None:
-            match = _LOWER_LEVEL_RE.match(para.text)
-            expected_count = 1
+        if match is not None:
+            spaces = match.group(2)
+            if len(spaces) != 2:
+                issues.append(
+                    context.issue_factory.create(
+                        rule_id="table-of-contents-entry-001",
+                        actual=f"{len(spaces)} 个空格",
+                        location=_block_location(para),
+                    )
+                )
+            return
+
+        match = _LOWER_LEVEL_RE.match(para.text)
         if match is None:
             return
         spaces = match.group(2)
-        if len(spaces) == expected_count:
-            return
-        issues.append(
-            Issue(
-                rule_id=self.rule_id,
-                category=self.category,
-                severity=self.severity,
-                message="目录编号与标题之间空格数量不符合规范",
-                expected=f"{expected_count} 个空格",
-                actual=f"{len(spaces)} 个空格",
-                location=_block_location(para),
+        level = match.group(1).count(".") + 1
+        rule_id = (
+            "table-of-contents-entry-002"
+            if level == 2
+            else "table-of-contents-entry-003"
+        )
+        if len(spaces) != 1:
+            issues.append(
+                context.issue_factory.create(
+                    rule_id=rule_id,
+                    actual=f"{len(spaces)} 个空格",
+                    location=_block_location(para),
+                )
             )
-        )
 
-
-class TocEntryFormatRule:
-    rule_id = "C003"
-    category = "format"
-    severity = "error"
-
-    def check(self, document: DocumentModel) -> list[Issue]:
-        issues: list[Issue] = []
-        for para in _toc_paragraphs(document):
-            self._check_para(para, issues)
-            for run in para.runs:
-                self._check_run(para, run, issues)
-        return issues
-
-    def _add_block_issue(
+    def _check_paragraph_format(
         self,
-        para: ParagraphBlock,
-        issues: list[Issue],
-        message: str,
-        expected: str,
-        actual: str | None,
-    ) -> None:
-        issues.append(
-            Issue(
-                rule_id=self.rule_id,
-                category=self.category,
-                severity=self.severity,
-                message=message,
-                expected=expected,
-                actual=actual,
-                location=_block_location(para),
-            )
-        )
-
-    def _add_run_issue(
-        self,
-        para: ParagraphBlock,
-        run: RunSpan,
-        issues: list[Issue],
-        message: str,
-        expected: str,
-        actual: str | None,
-    ) -> None:
-        location = (
-            _block_location(para)
-            if not run.text.strip() or run.text == "\t"
-            else _run_location(para, run)
-        )
-        issues.append(
-            Issue(
-                rule_id=self.rule_id,
-                category=self.category,
-                severity=self.severity,
-                message=message,
-                expected=expected,
-                actual=actual,
-                location=location,
-            )
-        )
-
-    def _check_para(
-        self,
+        context: RuleContext,
         para: ParagraphBlock,
         issues: list[Issue],
     ) -> None:
@@ -329,59 +267,57 @@ class TocEntryFormatRule:
             1.5,
             abs_tol=0.01,
         ):
-            self._add_block_issue(
-                para,
-                issues,
-                "目录条目行距应为 1.5 倍",
-                "1.5",
-                str(para.line_spacing),
+            issues.append(
+                context.issue_factory.create(
+                    rule_id="table-of-contents-entry-007",
+                    actual=_display_line_spacing(para.line_spacing),
+                    location=_block_location(para),
+                )
             )
 
     def _check_run(
         self,
+        context: RuleContext,
         para: ParagraphBlock,
         run: RunSpan,
         issues: list[Issue],
     ) -> None:
         if not run.text.strip() or run.text == "\t":
             return
+        location = _run_location(para, run)
         if run.font_east_asian and run.font_east_asian != "宋体":
-            self._add_run_issue(
-                para,
-                run,
-                issues,
-                "目录条目中文字体应为宋体",
-                "宋体",
-                run.font_east_asian,
+            issues.append(
+                context.issue_factory.create(
+                    rule_id="table-of-contents-entry-004",
+                    actual=run.font_east_asian,
+                    location=location,
+                )
             )
         if run.font_latin and run.font_latin != "Times New Roman":
-            self._add_run_issue(
-                para,
-                run,
-                issues,
-                "目录条目数字和西文字体应为 Times New Roman",
-                "Times New Roman",
-                run.font_latin,
+            issues.append(
+                context.issue_factory.create(
+                    rule_id="table-of-contents-entry-005",
+                    actual=run.font_latin,
+                    location=location,
+                )
             )
         if run.size_pt is not None and not isclose(
             run.size_pt,
             12.0,
             abs_tol=0.01,
         ):
-            self._add_run_issue(
-                para,
-                run,
-                issues,
-                "目录条目字号应为小四(12pt)",
-                "12.0",
-                str(run.size_pt),
+            issues.append(
+                context.issue_factory.create(
+                    rule_id="table-of-contents-entry-006",
+                    actual=_display_size(run.size_pt),
+                    location=location,
+                )
             )
         if run.bold:
-            self._add_run_issue(
-                para,
-                run,
-                issues,
-                "目录条目不应加粗",
-                "不加粗",
-                "加粗",
+            issues.append(
+                context.issue_factory.create(
+                    rule_id="table-of-contents-entry-008",
+                    actual="加粗",
+                    location=location,
+                )
             )

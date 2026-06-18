@@ -104,7 +104,7 @@ def test_extract_handles_wps_edited_docx(wps_docx):
 
 @pytest.mark.uno
 def test_extract_preserves_empty_paragraphs(tmp_path):
-    """空段落应保留在文档流中，用于 C001 判断标题后空一行。"""
+    """空段落应保留在文档流中，用于判断目录标题后空一行。"""
     path = tmp_path / "with_empty.docx"
     docx = Document()
     docx.add_paragraph("目    录")

@@ -1,4 +1,4 @@
-"""目录 C 类规则真实 Word 样本测试。"""
+"""目录规则真实 Word 样本测试。"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,52 +8,76 @@ import pytest
 pytest.importorskip("uno")
 
 from thesis_review.extractor import extract
-from thesis_review.rules.toc_rules import (
-    TocEntryFormatRule,
-    TocEntrySpacingRule,
-    TocTitleRule,
+from thesis_review.rules.catalog import (
+    RuleCatalogError,
+    load_rule_catalog,
+    load_rule_cases,
 )
+from thesis_review.rules.context import build_rule_context
+from thesis_review.rules.registry import get_checkers
 from thesis_review.uno_session import UnoSession
 
 
-def docs_dir() -> Path:
-    for parent in Path(__file__).resolve().parents:
-        candidate = parent / "docs"
-        if (candidate / "无误版.docx").exists():
-            return candidate
-    pytest.skip("未挂载 docs/无误版.docx，跳过真实 Word 规则样本测试")
+def repo_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def rules_root() -> Path:
+    return repo_root() / "docs" / "rules"
+
+
+def rule_cases():
+    try:
+        catalog = load_rule_catalog(rules_root())
+        return load_rule_cases(rules_root(), catalog)
+    except RuleCatalogError as exc:
+        pytest.skip(f"目录规则 Word 样本未准备完整：{exc}", allow_module_level=True)
 
 
 def check_doc(path: Path):
     with UnoSession() as session:
         with session.open(str(path)) as doc:
             model = extract(doc, source_path=str(path))
-    rules = [TocTitleRule(), TocEntrySpacingRule(), TocEntryFormatRule()]
-    return [issue for rule in rules for issue in rule.check(model)]
-
-
-@pytest.mark.uno
-def test_toc_rules_accept_clean_docx():
-    issues = check_doc(docs_dir() / "无误版.docx")
-
-    assert [
-        issue for issue in issues
-        if issue.rule_id in {"C001", "C002", "C003"}
-    ] == []
+    context = build_rule_context(model, rules_root=rules_root())
+    return [
+        issue
+        for checker in get_checkers()
+        for issue in checker.check(context)
+    ]
 
 
 @pytest.mark.uno
 @pytest.mark.parametrize(
-    ("filename", "expected_rule"),
-    [
-        ("C001-1.docx", "C001"),
-        ("C001-2.docx", "C001"),
-        ("C002-1.docx", "C002"),
-        ("C002-2.docx", "C002"),
-        ("C003.docx", "C003"),
-    ],
+    "case",
+    rule_cases(),
+    ids=lambda case: case.id,
 )
-def test_toc_rules_flag_rule_samples(filename: str, expected_rule: str):
-    issues = check_doc(docs_dir() / "rule" / "C" / filename)
+def test_table_of_contents_rule_cases(case):
+    module_dir = rules_root() / "table-of-contents"
+    sample_path = module_dir / case.file
+    if not sample_path.exists():
+        pytest.skip(f"目录规则 Word 样本未准备：{sample_path}")
 
-    assert expected_rule in {issue.rule_id for issue in issues}
+    issues = check_doc(sample_path)
+    actual_rule_ids = {issue.rule_id for issue in issues}
+
+    assert set(case.expected_rule_ids) <= actual_rule_ids
+    if not case.expected_rule_ids:
+        assert actual_rule_ids.isdisjoint(
+            {
+                "table-of-contents-title-001",
+                "table-of-contents-title-002",
+                "table-of-contents-title-003",
+                "table-of-contents-title-004",
+                "table-of-contents-title-005",
+                "table-of-contents-title-006",
+                "table-of-contents-entry-001",
+                "table-of-contents-entry-002",
+                "table-of-contents-entry-003",
+                "table-of-contents-entry-004",
+                "table-of-contents-entry-005",
+                "table-of-contents-entry-006",
+                "table-of-contents-entry-007",
+                "table-of-contents-entry-008",
+            }
+        )

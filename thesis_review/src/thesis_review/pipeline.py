@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from thesis_review.models import Issue
-from thesis_review.rules.registry import get_rules
+from thesis_review.rules.context import build_rule_context
+from thesis_review.rules.registry import get_checkers
 
 
 def review(input_docx: str, output_docx: str) -> list[Issue]:
@@ -22,8 +23,9 @@ def review(input_docx: str, output_docx: str) -> list[Issue]:
     with UnoSession() as session:
         with session.open(input_docx) as doc:
             document = extract(doc, source_path=input_docx)
+        context = build_rule_context(document)
         issues: list[Issue] = []
-        for rule in get_rules():
-            issues.extend(rule.check(document))
+        for checker in get_checkers():
+            issues.extend(checker.check(context))
         annotate(session, input_docx, output_docx, issues)
     return issues

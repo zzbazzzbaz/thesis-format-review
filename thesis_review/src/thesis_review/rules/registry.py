@@ -1,19 +1,17 @@
-"""规则注册表：按配置决定启用哪些规则。"""
+"""规则检查器注册表。"""
 from __future__ import annotations
 
-from thesis_review.rules.base import Rule
+from thesis_review.rules.base import RuleChecker
 from thesis_review.rules.toc_rules import (
-    TocEntryFormatRule,
-    TocEntrySpacingRule,
-    TocTitleRule,
+    TableOfContentsEntryChecker,
+    TableOfContentsTitleChecker,
 )
 
-RULE_CLASSES: tuple[type[Rule], ...] = (
-    TocTitleRule,
-    TocEntrySpacingRule,
-    TocEntryFormatRule,
+CHECKER_CLASSES: tuple[type[RuleChecker], ...] = (
+    TableOfContentsTitleChecker,
+    TableOfContentsEntryChecker,
 )
 
 
-def get_rules() -> list[Rule]:
-    return [rule_class() for rule_class in RULE_CLASSES]
+def get_checkers() -> list[RuleChecker]:
+    return [checker_class() for checker_class in CHECKER_CLASSES]

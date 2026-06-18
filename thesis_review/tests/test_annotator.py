@@ -19,7 +19,7 @@ def test_annotate_produces_marked_docx(tmp_path, sample_docx):
     out = str(tmp_path / "marked.docx")
     issues = [
         Issue(
-            rule_id="C001",
+            rule_id="table-of-contents-title-001",
             category="structure",
             severity="error",
             message="目录标题格式错误",
@@ -44,7 +44,7 @@ def test_annotate_writes_comment_text(tmp_path, sample_docx):
     out = str(tmp_path / "marked.docx")
     issues = [
         Issue(
-            rule_id="C001",
+            rule_id="table-of-contents-title-001",
             category="structure",
             severity="error",
             message="目录标题格式错误",
@@ -80,7 +80,7 @@ def test_annotate_writes_red_backcolor(tmp_path, sample_docx):
     out = str(tmp_path / "marked.docx")
     issues = [
         Issue(
-            rule_id="C001",
+            rule_id="table-of-contents-title-001",
             category="structure",
             severity="error",
             message="目录标题格式错误",
@@ -108,7 +108,7 @@ def test_annotate_skips_out_of_range_location(tmp_path, sample_docx):
     out = str(tmp_path / "marked.docx")
     issues = [
         Issue(
-            rule_id="C001",
+            rule_id="table-of-contents-title-001",
             category="structure",
             severity="error",
             message="越界",
@@ -131,7 +131,7 @@ def test_annotate_run_level_backcolor(tmp_path, sample_docx):
     out = str(tmp_path / "marked.docx")
     issues = [
         Issue(
-            rule_id="C003",
+            rule_id="table-of-contents-entry-004",
             category="structure",
             severity="error",
             message="目录条目字体错误",

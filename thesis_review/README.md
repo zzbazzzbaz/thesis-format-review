@@ -15,11 +15,11 @@ input.docx → extractor → DocumentModel → rules → list[Issue] → annotat
 | `uno_session` | 管理 soffice 进程/连接，单实例串行 | pyuno |
 | `extractor` | UNO 读取文档属性 → `DocumentModel` | `uno_session` |
 | `models` | 定义 `DocumentModel` / `Issue` / `Location` | pydantic |
-| `rules` | 注册表 + 各规则，读 `DocumentModel` → `Issue` | 仅 `models` |
+| `rules` | catalog + context + 检查器，读 `DocumentModel` → `Issue` | 仅 `models`/`sections` |
 | `annotator` | 按 `Issue.location` 写红色底纹 + 批注 | `uno_session` |
 | `pipeline` + `cli` | 串联调用，命令行入口 | 以上全部 |
 
-规则层完全不依赖 UNO/LibreOffice，新增一条规则只需写一个类然后注册。
+规则层完全不依赖 UNO/LibreOffice。规则元数据集中在仓库根目录 `docs/rules/**/rule.yml`，代码只负责定位、判断、生成实际值和位置。
 
 ## 环境要求
 
@@ -46,7 +46,8 @@ docker build -f Dockerfile.uno-dev -t thesis-review-uno-dev .
 ### 3. 运行格式审核
 
 ```bash
-docker run --rm -v "$PWD":/workspace -w /workspace \
+cd thesis_review
+docker run --rm -v "$PWD/..":/workspace -w /workspace/thesis_review \
     thesis-review-uno-dev \
     /opt/venv/bin/python -m thesis_review.cli \
     tests/word/111.docx \
@@ -66,7 +67,7 @@ Web 前端是 FastAPI 挂载的静态页面，不需要单独启动 Node.js/Vite
 ```bash
 cd thesis_review
 
-docker run --rm -p 8000:8000 -v "$PWD":/workspace -w /workspace \
+docker run --rm -p 8000:8000 -v "$PWD/..":/workspace -w /workspace/thesis_review \
     thesis-review-uno-dev \
     /opt/venv/bin/python -m uvicorn thesis_review.web.app:app \
     --host 0.0.0.0 --port 8000
@@ -83,7 +84,7 @@ http://127.0.0.1:8000/
 如果宿主机的 `8000` 端口已被占用，可以改用宿主机其他端口，例如：
 
 ```bash
-docker run --rm -p 8001:8000 -v "$PWD":/workspace -w /workspace \
+docker run --rm -p 8001:8000 -v "$PWD/..":/workspace -w /workspace/thesis_review \
     thesis-review-uno-dev \
     /opt/venv/bin/python -m uvicorn thesis_review.web.app:app \
     --host 0.0.0.0 --port 8000
@@ -110,27 +111,45 @@ thesis-review input.docx -o output.marked.docx
 uv run pytest -m "not uno" -q
 
 # 容器内全量测试
-docker run --rm -v "$PWD":/workspace -w /workspace \
+docker run --rm -v "$PWD/..":/workspace -w /workspace/thesis_review \
     thesis-review-uno-dev \
     /opt/venv/bin/python -m pytest -q
 
 # 仅 UNO 测试
-docker run --rm -v "$PWD":/workspace -w /workspace \
+docker run --rm -v "$PWD/..":/workspace -w /workspace/thesis_review \
     thesis-review-uno-dev \
     /opt/venv/bin/python -m pytest -m uno -v
 ```
 
 ## 规则清单
 
-| rule_id | 类别 | 检查内容 | 期望值 |
-|---------|------|----------|--------|
-| `C001` | 目录 | 目录标题格式 | “目    录”三号黑体居中，1.5 倍行距，标题后且只能空一行 |
-| `C002` | 目录 | 目录条目空格 | 一级目录编号和标题之间 2 个空格，二/三级目录 1 个空格 |
-| `C003` | 目录 | 目录条目格式 | 宋体、小四、1.5 倍行距、不加粗，数字 Times New Roman |
+| rule_id | 检查内容 | 期望值 |
+|---------|----------|--------|
+| `table-of-contents-title-001` | 目录标题文本 | 目    录 |
+| `table-of-contents-title-002` | 目录标题字号 | 三号（16pt） |
+| `table-of-contents-title-003` | 目录标题中文字体 | 黑体 |
+| `table-of-contents-title-004` | 目录标题居中 | 居中 |
+| `table-of-contents-title-005` | 目录标题行距 | 1.5 倍 |
+| `table-of-contents-title-006` | 目录标题后空行 | 1 个空段落 |
+| `table-of-contents-entry-001` | 一级目录空格 | 2 个空格 |
+| `table-of-contents-entry-002` | 二级目录空格 | 1 个空格 |
+| `table-of-contents-entry-003` | 三级目录空格 | 1 个空格 |
+| `table-of-contents-entry-004` | 目录条目中文字体 | 宋体 |
+| `table-of-contents-entry-005` | 目录条目数字和西文字体 | Times New Roman |
+| `table-of-contents-entry-006` | 目录条目字号 | 小四（12pt） |
+| `table-of-contents-entry-007` | 目录条目行距 | 1.5 倍 |
+| `table-of-contents-entry-008` | 目录条目不加粗 | 不加粗 |
 
 ## 项目结构
 
 ```text
+docs/
+└── rules/
+    └── table-of-contents/
+        ├── rule.yml          # 目录模块规则元数据
+        ├── case.yml          # 目录模块 Word 样本预期
+        └── samples/          # 用户手动维护的真实 Word 样本
+
 thesis_review/
 ├── pyproject.toml          # 项目配置（pydantic + pytest）
 ├── Dockerfile.uno-dev      # UNO 开发镜像
@@ -146,9 +165,12 @@ thesis_review/
 │       ├── annotator.py        # Issue → marked.docx（红色底纹 + 批注）
 │       ├── sections.py         # 文档语义分区（目录/正文/参考文献等）
 │       └── rules/
-│           ├── base.py         # Rule 协议
-│           ├── registry.py     # 规则注册表
-│           └── toc_rules.py    # C001/C002/C003 目录规则
+│           ├── base.py         # RuleChecker 协议
+│           ├── context.py      # RuleContext 共享上下文
+│           ├── issue_factory.py # 统一 Issue 创建
+│           ├── registry.py     # 检查器注册表
+│           ├── catalog/        # rule.yml / case.yml 加载
+│           └── toc_rules.py    # 目录模块检查器
 └── tests/
     ├── conftest.py
     ├── test_extractor.py

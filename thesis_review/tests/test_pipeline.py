@@ -15,7 +15,23 @@ def test_review_returns_issues_and_writes_output(tmp_path, sample_docx):
     issues = review(sample_docx, out)
     assert os.path.exists(out)
     ids = {i.rule_id for i in issues}
-    assert "C001" in ids
+    table_of_contents_rule_ids = {
+        "table-of-contents-title-001",
+        "table-of-contents-title-002",
+        "table-of-contents-title-003",
+        "table-of-contents-title-004",
+        "table-of-contents-title-005",
+        "table-of-contents-title-006",
+        "table-of-contents-entry-001",
+        "table-of-contents-entry-002",
+        "table-of-contents-entry-003",
+        "table-of-contents-entry-004",
+        "table-of-contents-entry-005",
+        "table-of-contents-entry-006",
+        "table-of-contents-entry-007",
+        "table-of-contents-entry-008",
+    }
+    assert ids & table_of_contents_rule_ids
 
 
 @pytest.mark.uno

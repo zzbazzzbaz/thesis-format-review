@@ -1,16 +1,13 @@
-from thesis_review.models import DocumentModel
-from thesis_review.rules.base import Rule
+from thesis_review.rules.base import RuleChecker
 
 
-def test_rule_protocol_is_satisfied_by_a_simple_rule():
-    class DummyRule:
-        rule_id = "dummy"
-        category = "format"
-        severity = "info"
+class DummyChecker:
+    checker_id = "dummy"
+    rule_ids = ("table-of-contents-title-006",)
 
-        def check(self, document: DocumentModel):
-            return []
+    def check(self, context):
+        return []
 
-    rule: Rule = DummyRule()
-    assert rule.rule_id == "dummy"
-    assert rule.check(DocumentModel(source_docx="x", blocks=[])) == []
+
+def test_checker_protocol_accepts_duck_type():
+    assert isinstance(DummyChecker(), RuleChecker)

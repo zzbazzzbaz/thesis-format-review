@@ -1,30 +1,30 @@
-from thesis_review.rules.base import Rule
-from thesis_review.rules.registry import get_rules
+from thesis_review.rules.base import RuleChecker
+from thesis_review.rules.registry import get_checkers
 
 
-def test_registry_returns_all_rules():
-    rules = get_rules()
-    ids = {rule.rule_id for rule in rules}
+def test_registry_returns_all_checkers():
+    checkers = get_checkers()
+    ids = {checker.checker_id for checker in checkers}
     assert ids == {
-        "C001",
-        "C002",
-        "C003",
+        "table-of-contents-title",
+        "table-of-contents-entry",
     }
 
 
-def test_registry_rules_satisfy_protocol():
-    for rule in get_rules():
-        assert isinstance(rule, Rule)
+def test_registry_checkers_satisfy_protocol():
+    for checker in get_checkers():
+        assert isinstance(checker, RuleChecker)
 
 
-def test_registry_returns_fresh_rule_list():
-    rules = get_rules()
-    rules.clear()
+def test_registry_returns_fresh_checker_list():
+    checkers = get_checkers()
+    checkers.clear()
 
-    assert len(get_rules()) == 3
+    assert len(get_checkers()) == 2
 
 
-def test_registry_includes_toc_business_rules():
-    rule_ids = {rule.rule_id for rule in get_rules()}
+def test_registry_includes_table_of_contents_rule_ids():
+    rule_ids = {rule_id for checker in get_checkers() for rule_id in checker.rule_ids}
 
-    assert {"C001", "C002", "C003"} <= rule_ids
+    assert "table-of-contents-title-006" in rule_ids
+    assert "table-of-contents-entry-008" in rule_ids

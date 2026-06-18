@@ -29,8 +29,8 @@ def test_detect_toc_does_not_treat_toc_first_chapter_as_body_start():
 
     sections = detect_sections(doc)
 
-    assert sections["toc"].start == 2
-    assert sections["toc"].end == 6
+    assert sections["table-of-contents"].start == 2
+    assert sections["table-of-contents"].end == 6
     assert sections["body"].start == 6
     assert sections["body"].end == 8
     assert sections["references"].start == 8
@@ -59,7 +59,7 @@ def test_detect_sections_uses_text_anchors_without_h1():
 
     assert sections["abstract_cn"].start == 1
     assert sections["abstract_en"].start == 3
-    assert sections["toc"].start == 5
+    assert sections["table-of-contents"].start == 5
     assert sections["body"].start == 8
     assert sections["references"].start == 10
     assert sections["thanks"].start == 12
@@ -73,7 +73,7 @@ def test_paragraphs_in_range_returns_only_paragraph_blocks():
         make_para(flow_index=2, text="第一章  引言\t1"),
         make_para(flow_index=3, text="第一章  引言", outline_level=0),
     ])
-    toc = detect_sections(doc)["toc"]
+    toc = detect_sections(doc)["table-of-contents"]
 
     assert [p.text for p in paragraphs_in_range(doc, toc)] == [
         "目    录",
