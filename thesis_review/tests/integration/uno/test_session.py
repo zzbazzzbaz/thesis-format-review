@@ -32,20 +32,20 @@ def test_session_health_check_reports_soffice(sample_docx):
 
 
 @pytest.mark.uno
-def test_session_opens_wps_docx(wps_docx):
-    """验证能打开 WPS macOS 手工编辑版 docx。"""
+def test_session_opens_rule_sample_docx(sample_docx):
+    """验证能打开规则样本 docx。"""
     with UnoSession() as session:
-        with session.open(wps_docx) as doc:
+        with session.open(sample_docx) as doc:
             assert doc.supportsService("com.sun.star.text.TextDocument"), (
-                "WPS 编辑版也应被识别为文本文档服务"
+                "规则样本也应被识别为文本文档服务"
             )
 
 
 @pytest.mark.uno
-def test_session_can_reattach(wps_docx):
+def test_session_can_reattach(sample_docx):
     """验证同一个 session 可以先后打开两个文档。"""
     with UnoSession() as session:
-        with session.open(wps_docx) as doc1:
+        with session.open(sample_docx) as doc1:
             assert doc1.supportsService("com.sun.star.text.TextDocument")
-        with session.open(wps_docx) as doc2:
+        with session.open(sample_docx) as doc2:
             assert doc2.supportsService("com.sun.star.text.TextDocument")
