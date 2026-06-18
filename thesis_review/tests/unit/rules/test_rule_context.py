@@ -7,7 +7,7 @@ from tests.support.model_builders import make_doc, make_para
 
 
 def rules_root() -> Path:
-    return Path(__file__).resolve().parents[1] / "docs" / "rules"
+    return Path(__file__).resolve().parents[3] / "docs" / "rules"
 
 
 def test_build_rule_context_contains_shared_dependencies():

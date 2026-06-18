@@ -8,7 +8,7 @@ from thesis_review.rules.catalog import load_rule_cases
 
 
 def rules_root() -> Path:
-    return Path(__file__).resolve().parents[1] / "docs" / "rules"
+    return Path(__file__).resolve().parents[3] / "docs" / "rules"
 
 
 def test_table_of_contents_rule_asset_files_exist():
