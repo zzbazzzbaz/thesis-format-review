@@ -19,7 +19,7 @@ from thesis_review.uno_session import UnoSession
 
 
 def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
+    return Path(__file__).resolve().parents[1]
 
 
 def rules_root() -> Path:

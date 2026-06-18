@@ -19,7 +19,7 @@ input.docx → extractor → DocumentModel → rules → list[Issue] → annotat
 | `annotator` | 按 `Issue.location` 写红色底纹 + 批注 | `uno_session` |
 | `pipeline` + `cli` | 串联调用，命令行入口 | 以上全部 |
 
-规则层完全不依赖 UNO/LibreOffice。规则元数据集中在仓库根目录 `docs/rules/**/rule.yml`，代码只负责定位、判断、生成实际值和位置。
+规则层完全不依赖 UNO/LibreOffice。规则元数据集中在 `thesis_review/docs/rules/**/rule.yml`，代码只负责定位、判断、生成实际值和位置。
 
 ## 环境要求
 
@@ -47,7 +47,7 @@ docker build -f Dockerfile.uno-dev -t thesis-review-uno-dev .
 
 ```bash
 cd thesis_review
-docker run --rm -v "$PWD/..":/workspace -w /workspace/thesis_review \
+docker run --rm -v "$PWD":/workspace -w /workspace \
     thesis-review-uno-dev \
     /opt/venv/bin/python -m thesis_review.cli \
     tests/word/111.docx \
@@ -67,7 +67,8 @@ Web 前端是 FastAPI 挂载的静态页面，不需要单独启动 Node.js/Vite
 ```bash
 cd thesis_review
 
-docker run --rm -p 8000:8000 -v "$PWD/..":/workspace -w /workspace/thesis_review \
+docker run --rm -p 8000:8000 \
+    -v "$PWD":/workspace -w /workspace \
     thesis-review-uno-dev \
     /opt/venv/bin/python -m uvicorn thesis_review.web.app:app \
     --host 0.0.0.0 --port 8000
@@ -84,7 +85,8 @@ http://127.0.0.1:8000/
 如果宿主机的 `8000` 端口已被占用，可以改用宿主机其他端口，例如：
 
 ```bash
-docker run --rm -p 8001:8000 -v "$PWD/..":/workspace -w /workspace/thesis_review \
+docker run --rm -p 8001:8000 \
+    -v "$PWD":/workspace -w /workspace \
     thesis-review-uno-dev \
     /opt/venv/bin/python -m uvicorn thesis_review.web.app:app \
     --host 0.0.0.0 --port 8000
@@ -111,12 +113,12 @@ thesis-review input.docx -o output.marked.docx
 uv run pytest -m "not uno" -q
 
 # 容器内全量测试
-docker run --rm -v "$PWD/..":/workspace -w /workspace/thesis_review \
+docker run --rm -v "$PWD":/workspace -w /workspace \
     thesis-review-uno-dev \
     /opt/venv/bin/python -m pytest -q
 
 # 仅 UNO 测试
-docker run --rm -v "$PWD/..":/workspace -w /workspace/thesis_review \
+docker run --rm -v "$PWD":/workspace -w /workspace \
     thesis-review-uno-dev \
     /opt/venv/bin/python -m pytest -m uno -v
 ```
@@ -143,17 +145,16 @@ docker run --rm -v "$PWD/..":/workspace -w /workspace/thesis_review \
 ## 项目结构
 
 ```text
-docs/
-└── rules/
-    └── table-of-contents/
-        ├── rule.yml          # 目录模块规则元数据
-        ├── case.yml          # 目录模块 Word 样本预期
-        └── samples/          # 用户手动维护的真实 Word 样本
-
 thesis_review/
 ├── pyproject.toml          # 项目配置（pydantic + pytest）
 ├── Dockerfile.uno-dev      # UNO 开发镜像
 ├── README.md
+├── docs/
+│   └── rules/
+│       └── table-of-contents/
+│           ├── rule.yml          # 目录模块规则元数据
+│           ├── case.yml          # 目录模块 Word 样本预期
+│           └── samples/          # 用户手动维护的真实 Word 样本
 ├── src/
 │   └── thesis_review/
 │       ├── cli.py              # 命令行入口

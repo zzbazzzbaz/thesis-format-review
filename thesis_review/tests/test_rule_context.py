@@ -6,8 +6,8 @@ from thesis_review.rules.issue_factory import IssueFactory
 from tests.builders import make_doc, make_para
 
 
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
+def rules_root() -> Path:
+    return Path(__file__).resolve().parents[1] / "docs" / "rules"
 
 
 def test_build_rule_context_contains_shared_dependencies():
@@ -18,7 +18,7 @@ def test_build_rule_context_contains_shared_dependencies():
     ])
     context = build_rule_context(
         document,
-        rules_root=repo_root() / "docs" / "rules",
+        rules_root=rules_root(),
     )
 
     assert isinstance(context, RuleContext)
@@ -29,7 +29,7 @@ def test_build_rule_context_contains_shared_dependencies():
 
 def test_rule_context_can_be_constructed_for_unit_tests():
     document = make_doc([])
-    catalog = load_rule_catalog(repo_root() / "docs" / "rules")
+    catalog = load_rule_catalog(rules_root())
     factory = IssueFactory(catalog)
     context = RuleContext(
         document=document,

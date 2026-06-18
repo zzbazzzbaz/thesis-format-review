@@ -7,12 +7,12 @@ from thesis_review.rules.catalog import RuleCatalogError, load_rule_catalog
 from thesis_review.rules.catalog import load_rule_cases
 
 
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
+def rules_root() -> Path:
+    return Path(__file__).resolve().parents[1] / "docs" / "rules"
 
 
 def test_table_of_contents_rule_asset_files_exist():
-    base = repo_root() / "docs" / "rules" / "table-of-contents"
+    base = rules_root() / "table-of-contents"
 
     assert (base / "README.md").exists()
     assert (base / "rule.yml").exists()
@@ -21,7 +21,7 @@ def test_table_of_contents_rule_asset_files_exist():
 
 
 def test_table_of_contents_rule_yml_has_expected_ids():
-    path = repo_root() / "docs" / "rules" / "table-of-contents" / "rule.yml"
+    path = rules_root() / "table-of-contents" / "rule.yml"
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
     rule_ids = {rule["id"] for rule in data["rules"]}
 
@@ -46,7 +46,7 @@ def test_table_of_contents_rule_yml_has_expected_ids():
 
 
 def test_table_of_contents_cases_have_required_descriptions():
-    base = repo_root() / "docs" / "rules" / "table-of-contents"
+    base = rules_root() / "table-of-contents"
     cases = yaml.safe_load((base / "case.yml").read_text(encoding="utf-8"))["cases"]
 
     assert cases
@@ -57,7 +57,7 @@ def test_table_of_contents_cases_have_required_descriptions():
 
 
 def test_load_rule_catalog_returns_rule_metadata():
-    catalog = load_rule_catalog(repo_root() / "docs" / "rules")
+    catalog = load_rule_catalog(rules_root())
     rule = catalog.get("table-of-contents-title-006")
 
     assert rule.id == "table-of-contents-title-006"
@@ -69,7 +69,7 @@ def test_load_rule_catalog_returns_rule_metadata():
 
 
 def test_rule_catalog_unknown_rule_id_raises_key_error():
-    catalog = load_rule_catalog(repo_root() / "docs" / "rules")
+    catalog = load_rule_catalog(rules_root())
 
     with pytest.raises(KeyError, match="unknown-rule-id"):
         catalog.get("unknown-rule-id")
@@ -152,8 +152,8 @@ rules:
 
 
 def test_load_rule_cases_returns_cases_and_validates_rule_ids():
-    catalog = load_rule_catalog(repo_root() / "docs" / "rules")
-    cases = load_rule_cases(repo_root() / "docs" / "rules", catalog)
+    catalog = load_rule_catalog(rules_root())
+    cases = load_rule_cases(rules_root(), catalog)
 
     case_by_id = {case.id: case for case in cases}
     clean = case_by_id["table-of-contents-clean"]

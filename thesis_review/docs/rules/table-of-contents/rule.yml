@@ -1,0 +1,102 @@
+module: table-of-contents
+module_name: 目录
+
+rules:
+  - id: table-of-contents-title-001
+    title: 目录标题文本
+    severity: error
+    status: active
+    description: 检查目录标题段落文本是否为“目    录”，中间为 4 个普通空格。
+    message: 目录标题文本应为“目    录”
+    expected: 目    录
+  - id: table-of-contents-title-002
+    title: 目录标题字号
+    severity: error
+    status: active
+    description: 检查目录标题字号是否为三号，即 16pt。
+    message: 目录标题字号应为三号
+    expected: 三号（16pt）
+  - id: table-of-contents-title-003
+    title: 目录标题中文字体
+    severity: error
+    status: active
+    description: 检查目录标题中文字体是否为黑体。
+    message: 目录标题中文字体应为黑体
+    expected: 黑体
+  - id: table-of-contents-title-004
+    title: 目录标题居中
+    severity: error
+    status: active
+    description: 检查目录标题段落是否居中。
+    message: 目录标题应居中
+    expected: 居中
+  - id: table-of-contents-title-005
+    title: 目录标题行距
+    severity: error
+    status: active
+    description: 检查目录标题段落行距是否为 1.5 倍。
+    message: 目录标题行距应为 1.5 倍
+    expected: 1.5 倍
+  - id: table-of-contents-title-006
+    title: 目录标题后空行
+    severity: error
+    status: active
+    description: 检查“目    录”标题段落之后是否正好有一个空段落。
+    message: 目录标题后必须且只能空一行
+    expected: 1 个空段落
+  - id: table-of-contents-entry-001
+    title: 一级目录空格
+    severity: error
+    status: active
+    description: 检查一级目录编号“第X章”和标题之间是否正好有 2 个普通空格。
+    message: 一级目录编号与标题之间应空 2 个普通空格
+    expected: 2 个空格
+  - id: table-of-contents-entry-002
+    title: 二级目录空格
+    severity: error
+    status: active
+    description: 检查二级目录编号和标题之间是否正好有 1 个普通空格。
+    message: 二级目录编号与标题之间应空 1 个普通空格
+    expected: 1 个空格
+  - id: table-of-contents-entry-003
+    title: 三级目录空格
+    severity: error
+    status: active
+    description: 检查三级目录编号和标题之间是否正好有 1 个普通空格。
+    message: 三级目录编号与标题之间应空 1 个普通空格
+    expected: 1 个空格
+  - id: table-of-contents-entry-004
+    title: 目录条目中文字体
+    severity: error
+    status: active
+    description: 检查目录条目中文字体是否为宋体。
+    message: 目录条目中文字体应为宋体
+    expected: 宋体
+  - id: table-of-contents-entry-005
+    title: 目录条目数字和西文字体
+    severity: error
+    status: active
+    description: 检查目录条目数字和西文字体是否为 Times New Roman。
+    message: 目录条目数字和西文字体应为 Times New Roman
+    expected: Times New Roman
+  - id: table-of-contents-entry-006
+    title: 目录条目字号
+    severity: error
+    status: active
+    description: 检查目录条目字号是否为小四，即 12pt。
+    message: 目录条目字号应为小四
+    expected: 小四（12pt）
+  - id: table-of-contents-entry-007
+    title: 目录条目行距
+    severity: error
+    status: active
+    description: 检查目录条目段落行距是否为 1.5 倍。
+    message: 目录条目行距应为 1.5 倍
+    expected: 1.5 倍
+  - id: table-of-contents-entry-008
+    title: 目录条目不加粗
+    severity: error
+    status: active
+    description: 检查目录条目是否未加粗。
+    message: 目录条目不应加粗
+    expected: 不加粗

@@ -15,7 +15,7 @@ def _default_rules_root() -> Path:
         candidate = parent / "docs" / "rules"
         if candidate.exists():
             return candidate
-    raise FileNotFoundError("Cannot find docs/rules from package location")
+    raise FileNotFoundError("Cannot find thesis_review/docs/rules from package location")
 
 
 @dataclass(frozen=True)

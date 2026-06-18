@@ -1,0 +1,45 @@
+cases:
+  - id: table-of-contents-clean
+    file: samples/table-of-contents-clean.docx
+    description: 目录规则无误样本。
+    error_description: 无错误，用于验证目录规则不误报。
+    expected_rule_ids: []
+  - id: table-of-contents-title-format
+    file: samples/table-of-contents-title-format.docx
+    description: 目录标题字体、字号、居中或行距存在格式错误。
+    error_description: 目录标题没有同时满足三号、黑体、居中、1.5 倍行距要求。
+    expected_rule_ids:
+      - table-of-contents-title-002
+      - table-of-contents-title-003
+      - table-of-contents-title-004
+      - table-of-contents-title-005
+  - id: table-of-contents-title-text-and-blank
+    file: samples/table-of-contents-title-text-and-blank.docx
+    description: 目录标题文本空格或标题后空行存在错误。
+    error_description: 目录标题文本不是“目    录”，或目录标题后没有且只有一个空段落。
+    expected_rule_ids:
+      - table-of-contents-title-001
+      - table-of-contents-title-006
+  - id: table-of-contents-entry-first-level-spacing
+    file: samples/table-of-contents-entry-first-level-spacing.docx
+    description: 一级目录编号和标题之间空格错误。
+    error_description: 一级目录编号“第X章”和标题之间不是 2 个普通空格。
+    expected_rule_ids:
+      - table-of-contents-entry-001
+  - id: table-of-contents-entry-lower-level-spacing
+    file: samples/table-of-contents-entry-lower-level-spacing.docx
+    description: 二级或三级目录编号和标题之间空格错误。
+    error_description: 二级或三级目录编号和标题之间不是 1 个普通空格。
+    expected_rule_ids:
+      - table-of-contents-entry-002
+      - table-of-contents-entry-003
+  - id: table-of-contents-entry-format
+    file: samples/table-of-contents-entry-format.docx
+    description: 目录条目字体、字号、行距或加粗存在错误。
+    error_description: 目录条目没有同时满足宋体、小四、1.5 倍行距、不加粗，或数字和西文字体不是 Times New Roman。
+    expected_rule_ids:
+      - table-of-contents-entry-004
+      - table-of-contents-entry-005
+      - table-of-contents-entry-006
+      - table-of-contents-entry-007
+      - table-of-contents-entry-008

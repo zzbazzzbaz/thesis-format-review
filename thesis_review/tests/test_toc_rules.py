@@ -12,7 +12,7 @@ from tests.builders import make_doc, make_para, make_run
 def context_for(doc):
     return build_rule_context(
         doc,
-        rules_root=Path(__file__).resolve().parents[2] / "docs" / "rules",
+        rules_root=Path(__file__).resolve().parents[1] / "docs" / "rules",
     )
 
 
