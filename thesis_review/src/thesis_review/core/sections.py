@@ -60,11 +60,15 @@ def _find_first(
     paragraphs: list[ParagraphBlock],
     names: set[str],
     start: int = 0,
+    case_sensitive: bool = True,
 ) -> int | None:
+    expected = names if case_sensitive else {name.lower() for name in names}
     for idx, para in enumerate(paragraphs):
         if para.flow_index < start:
             continue
-        if norm_text(para.text) in names:
+        text = norm_text(para.text)
+        candidate = text if case_sensitive else text.lower()
+        if candidate in expected:
             return idx
     return None
 
@@ -127,7 +131,7 @@ def detect_sections(document: DocumentModel) -> dict[str, SectionRange]:
     thanks_flow = paragraphs[thanks_idx].flow_index if thanks_idx is not None else 0
     appendix_idx = _find_first(paragraphs, {"附录"}, start=thanks_flow)
     abstract_cn_idx = _find_first(paragraphs, {"摘要"})
-    abstract_en_idx = _find_first(paragraphs, {"ABSTRACT"})
+    abstract_en_idx = _find_first(paragraphs, {"ABSTRACT"}, case_sensitive=False)
 
     doc_start = blocks[0].flow_index
     doc_end = blocks[-1].flow_index + 1
@@ -154,19 +158,29 @@ def detect_sections(document: DocumentModel) -> dict[str, SectionRange]:
         else None
     )
 
-    if abstract_cn_start is not None:
+    abstract_start = abstract_cn_start or abstract_en_start
+    abstract_end = toc_start or doc_end
+
+    if abstract_start is not None:
         sections["cover"] = _range(
-            "cover", blocks, doc_start, abstract_cn_start
+            "cover", blocks, doc_start, abstract_start
         )
-        sections["abstract_cn"] = _range(
-            "abstract_cn",
+        sections["abstract"] = _range(
+            "abstract",
+            blocks,
+            abstract_start,
+            abstract_end,
+        )
+    if abstract_cn_start is not None:
+        sections["abstract-chinese"] = _range(
+            "abstract-chinese",
             blocks,
             abstract_cn_start,
             abstract_en_start or toc_start or doc_end,
         )
     if abstract_en_start is not None:
-        sections["abstract_en"] = _range(
-            "abstract_en", blocks, abstract_en_start, toc_start or doc_end
+        sections["abstract-english"] = _range(
+            "abstract-english", blocks, abstract_en_start, toc_start or doc_end
         )
     if toc_start is not None and toc_end is not None:
         sections["table-of-contents"] = _range(
@@ -176,8 +190,8 @@ def detect_sections(document: DocumentModel) -> dict[str, SectionRange]:
             toc_end,
         )
     if body_start is not None:
-        sections["body"] = _range(
-            "body", blocks, body_start, ref_start or doc_end
+        sections["main-text"] = _range(
+            "main-text", blocks, body_start, ref_start or doc_end
         )
     if ref_start is not None:
         sections["references"] = _range(
@@ -187,8 +201,8 @@ def detect_sections(document: DocumentModel) -> dict[str, SectionRange]:
             thanks_start or appendix_start or doc_end,
         )
     if thanks_start is not None:
-        sections["thanks"] = _range(
-            "thanks", blocks, thanks_start, appendix_start or doc_end
+        sections["acknowledgements"] = _range(
+            "acknowledgements", blocks, thanks_start, appendix_start or doc_end
         )
     if appendix_start is not None:
         sections["appendix"] = _range("appendix", blocks, appendix_start, doc_end)

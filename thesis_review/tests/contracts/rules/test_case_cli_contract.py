@@ -52,12 +52,12 @@ def test_rule_case_expected_ids_match_cli_output_for_all_modules(resolved, tmp_p
     actual_rule_ids = {issue["rule_id"] for issue in data["issues"]}
     actual_module_rule_ids = filter_module_rule_ids(
         actual_rule_ids,
-        resolved.active_rule_ids,
+        resolved.module_rule_ids,
     )
 
     expected_module_rule_ids = filter_module_rule_ids(
         set(resolved.case.expected_rule_ids),
-        resolved.active_rule_ids,
+        resolved.module_rule_ids,
     )
 
     assert actual_module_rule_ids == expected_module_rule_ids

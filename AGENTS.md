@@ -133,7 +133,7 @@ soffice --version
 - 规则样本契约测试统一使用 `tests/contracts/rules/test_case_cli_contract.py`
 - 该测试会遍历所有模块的 `case.yml`，读取对应模块下 `samples/*.docx`，通过 CLI 生成 `issues.json`，再与 `case.yml` 的 `expected_rule_ids` 对比
 - 未制作的样本会跳过；已经制作样本的 case 应该通过该契约测试验证
-- 当前契约测试只严格比较 `rule.yml` 中 `status: active` 的规则；开发中规则先保持 `draft`，实现并验证后再改为 `active`
+- 样本存在时，契约测试会按该模块 `case.yml` 中的 `expected_rule_ids` 严格比对命中的模块规则；开发中规则可以先保持 `draft`，实现并验证后再改为 `active`
 
 ## 实现方式
 

@@ -31,9 +31,10 @@ def test_detect_toc_does_not_treat_toc_first_chapter_as_body_start():
 
     assert sections["table-of-contents"].start == 2
     assert sections["table-of-contents"].end == 6
-    assert sections["body"].start == 6
-    assert sections["body"].end == 8
+    assert sections["main-text"].start == 6
+    assert sections["main-text"].end == 8
     assert sections["references"].start == 8
+    assert "body" not in sections
 
 
 def test_detect_sections_uses_text_anchors_without_h1():
@@ -57,13 +58,38 @@ def test_detect_sections_uses_text_anchors_without_h1():
 
     sections = detect_sections(doc)
 
-    assert sections["abstract_cn"].start == 1
-    assert sections["abstract_en"].start == 3
+    assert sections["abstract"].start == 1
+    assert sections["abstract"].end == 5
+    assert sections["abstract-chinese"].start == 1
+    assert sections["abstract-chinese"].end == 3
+    assert sections["abstract-english"].start == 3
+    assert sections["abstract-english"].end == 5
     assert sections["table-of-contents"].start == 5
-    assert sections["body"].start == 8
+    assert sections["main-text"].start == 8
     assert sections["references"].start == 10
-    assert sections["thanks"].start == 12
+    assert sections["acknowledgements"].start == 12
     assert sections["appendix"].start == 14
+    assert "abstract_cn" not in sections
+    assert "abstract_en" not in sections
+    assert "body" not in sections
+    assert "thanks" not in sections
+
+
+def test_detect_english_abstract_anchor_is_case_insensitive_for_rule_checks():
+    doc = make_doc([
+        make_para(flow_index=0, text="摘    要"),
+        make_para(flow_index=1, text="中文摘要正文"),
+        make_para(flow_index=2, text="ABSTRAcT"),
+        make_para(flow_index=3, text="English abstract"),
+        make_para(flow_index=4, text="目    录"),
+    ])
+
+    sections = detect_sections(doc)
+
+    assert sections["abstract-chinese"].start == 0
+    assert sections["abstract-chinese"].end == 2
+    assert sections["abstract-english"].start == 2
+    assert sections["abstract-english"].end == 4
 
 
 def test_paragraphs_in_range_returns_only_paragraph_blocks():

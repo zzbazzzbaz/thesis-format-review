@@ -15,7 +15,7 @@ class ResolvedRuleCase:
     case: RuleCaseSpec
     module_dir: Path
     sample_path: Path
-    active_rule_ids: set[str]
+    module_rule_ids: set[str]
 
 
 def resolve_rule_cases(rules_root: Path, catalog: RuleCatalog) -> list[ResolvedRuleCase]:
@@ -28,10 +28,7 @@ def resolve_rule_cases(rules_root: Path, catalog: RuleCatalog) -> list[ResolvedR
             yaml.safe_load(case_path.read_text(encoding="utf-8"))
         )
         module_spec = catalog.modules_by_name[module_dir.name]
-        active_rule_ids = {
-            rule.id for rule in module_spec.rules
-            if rule.status == "active"
-        }
+        module_rule_ids = {rule.id for rule in module_spec.rules}
         for case in case_file.cases:
             for rule_id in case.expected_rule_ids:
                 if rule_id not in catalog.rules_by_id:
@@ -42,11 +39,11 @@ def resolve_rule_cases(rules_root: Path, catalog: RuleCatalog) -> list[ResolvedR
                     case=case,
                     module_dir=module_dir,
                     sample_path=module_dir / case.file,
-                    active_rule_ids=active_rule_ids,
+                    module_rule_ids=module_rule_ids,
                 )
             )
     return resolved
 
 
-def filter_module_rule_ids(rule_ids: set[str], active_rule_ids: set[str]) -> set[str]:
-    return rule_ids & active_rule_ids
+def filter_module_rule_ids(rule_ids: set[str], module_rule_ids: set[str]) -> set[str]:
+    return rule_ids & module_rule_ids

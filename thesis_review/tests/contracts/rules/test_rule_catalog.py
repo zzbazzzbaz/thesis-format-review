@@ -5,6 +5,7 @@ import yaml
 
 from thesis_review.rules.catalog import RuleCatalogError, load_rule_catalog
 from thesis_review.rules.catalog import load_rule_cases
+from thesis_review.rules.registry import get_checkers
 
 
 def rules_root() -> Path:
@@ -43,15 +44,31 @@ def test_rule_modules_match_expected_names():
         assert spec.module_name == module_name
 
 
-def test_new_rule_modules_are_draft_until_checkers_exist():
+def test_unimplemented_rule_modules_remain_draft():
     catalog = load_rule_catalog(rules_root())
 
     for module, spec in catalog.modules_by_name.items():
-        if module == "table-of-contents":
+        if module in {"abstract", "table-of-contents"}:
             continue
         assert spec.rules
         assert {rule.status for rule in spec.rules} == {"draft"}
         assert {rule.severity for rule in spec.rules} == {"error"}
+
+
+def test_active_rules_are_declared_by_registered_checkers():
+    catalog = load_rule_catalog(rules_root())
+    checker_rule_ids = {
+        rule_id for checker in get_checkers() for rule_id in checker.rule_ids
+    }
+
+    active_rule_ids = {
+        rule.id
+        for spec in catalog.modules_by_name.values()
+        for rule in spec.rules
+        if rule.status == "active"
+    }
+
+    assert active_rule_ids <= checker_rule_ids
 
 
 def test_table_of_contents_rule_yml_has_expected_ids():
