@@ -90,19 +90,19 @@ def test_table_of_contents_cases_have_required_descriptions():
         assert case["file"].startswith("samples/")
 
 
-def test_new_modules_have_one_manual_case_each():
+def test_new_modules_have_compact_manual_cases():
     for module in EXPECTED_MODULES:
         if module == "table-of-contents":
             continue
         base = rules_root() / module
         cases = yaml.safe_load((base / "case.yml").read_text(encoding="utf-8"))["cases"]
 
-        assert len(cases) == 1
-        case = cases[0]
-        assert case["description"]
-        assert case["error_description"]
-        assert case["file"].startswith("samples/")
-        assert case["expected_rule_ids"]
+        assert 1 <= len(cases) <= 4
+        for case in cases:
+            assert case["description"]
+            assert case["error_description"]
+            assert case["file"].startswith("samples/")
+            assert case["expected_rule_ids"]
 
 
 def test_load_rule_catalog_returns_rule_metadata():

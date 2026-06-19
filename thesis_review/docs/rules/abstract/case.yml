@@ -1,12 +1,55 @@
 cases:
-  - id: abstract-format
-    file: samples/abstract-format.docx
-    description: 摘要格式代表性错误样本。
-    error_description: 样本应包含中文摘要标题、摘要正文、中文关键词、英文摘要标题和英文关键词的代表性格式错误。
+  - id: abstract-chinese-title-body-format
+    file: samples/abstract-chinese-title-body-format.docx
+    description: 中文摘要标题和中文摘要正文格式错误样本。
+    error_description: 样本应将中文摘要标题文本、字号、字体、居中或标题后空行做错，并将中文摘要正文的字体、字号、行距、首行缩进或正文后空行做错。
     expected_rule_ids:
       - abstract-chinese-title-001
+      - abstract-chinese-title-002
+      - abstract-chinese-title-003
       - abstract-chinese-title-005
+      - abstract-chinese-body-001
       - abstract-chinese-body-002
+      - abstract-chinese-body-004
+      - abstract-chinese-body-005
+      - abstract-chinese-body-006
+  - id: abstract-chinese-keywords-format
+    file: samples/abstract-chinese-keywords-format.docx
+    description: 中文关键词格式错误样本。
+    error_description: 样本应将中文关键词前缀、前缀加粗、分隔符、末尾标点、字体、字号、行距、首行缩进或两端对齐做错。
+    expected_rule_ids:
       - abstract-chinese-keywords-001
+      - abstract-chinese-keywords-002
+      - abstract-chinese-keywords-003
+      - abstract-chinese-keywords-004
+      - abstract-chinese-keywords-005
+      - abstract-chinese-keywords-006
+  - id: abstract-english-title-body-format
+    file: samples/abstract-english-title-body-format.docx
+    description: 英文摘要标题和英文摘要正文格式错误样本。
+    error_description: 样本应将英文摘要标题文本、字号、字体、加粗、居中或标题后空行做错，并将英文摘要正文的字体、字号、行距、首行缩进或正文后空行做错。
+    expected_rule_ids:
       - abstract-english-title-001
+      - abstract-english-title-002
+      - abstract-english-title-003
+      - abstract-english-title-004
+      - abstract-english-title-005
+      - abstract-english-title-006
+      - abstract-english-body-001
+      - abstract-english-body-002
+      - abstract-english-body-003
+      - abstract-english-body-004
+      - abstract-english-body-005
+  - id: abstract-english-keywords-format
+    file: samples/abstract-english-keywords-format.docx
+    description: 英文关键词格式错误样本。
+    error_description: 样本应将英文关键词前缀、前缀加粗、分隔符、末尾标点、关键词内容字体、字号、行距或首行缩进做错；关键词内容应为 Times New Roman，中文标点按宋体处理。
+    expected_rule_ids:
+      - abstract-english-keywords-001
+      - abstract-english-keywords-002
+      - abstract-english-keywords-003
+      - abstract-english-keywords-004
+      - abstract-english-keywords-005
       - abstract-english-keywords-006
+      - abstract-english-keywords-007
+      - abstract-english-keywords-008

@@ -262,12 +262,12 @@ rules:
     message: 英文关键词字号应为小四
     expected: 小四（12pt）
   - id: abstract-english-keywords-006
-    title: 英文关键词字体
+    title: 英文关键词内容字体
     severity: error
     status: draft
-    description: 检查英文关键词行字体是否为宋体。
-    message: 英文关键词字体应为宋体
-    expected: 宋体
+    description: 检查英文关键词内容字体是否为 Times New Roman；中文全角冒号和中文分号等标点符号按宋体处理。
+    message: 英文关键词内容字体应为 Times New Roman
+    expected: Times New Roman
   - id: abstract-english-keywords-007
     title: 英文关键词行距
     severity: error
