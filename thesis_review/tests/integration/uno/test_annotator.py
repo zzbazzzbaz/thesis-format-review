@@ -74,12 +74,16 @@ def test_annotate_writes_comment_text(tmp_path, sample_docx):
         annotate(session, sample_docx, out, issues)
         with session.open(out) as doc:
             fields = doc.getTextFields().createEnumeration()
-            texts = []
+            comments = []
             while fields.hasMoreElements():
                 f = fields.nextElement()
                 if f.supportsService("com.sun.star.text.textfield.Annotation"):
-                    texts.append(f.Content)
-    assert any("目录标题格式错误" in t for t in texts)
+                    comments.append((f.Author, f.Content))
+    assert any(
+        author == "table-of-contents-title-001"
+        and "目录标题格式错误" in text
+        for author, text in comments
+    )
 
 
 @pytest.mark.uno

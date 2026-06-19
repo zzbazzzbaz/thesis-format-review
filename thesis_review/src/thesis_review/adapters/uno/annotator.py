@@ -26,11 +26,11 @@ log = logging.getLogger(__name__)
 _RED = 0xFF0000
 
 
-def _add_comment(doc, target, message: str) -> None:
+def _add_comment(doc, target, author: str, message: str) -> None:
     """在目标 text range 起点插入批注。"""
     ann = doc.createInstance("com.sun.star.text.textfield.Annotation")
     ann.Content = message
-    ann.Author = "审核系统"
+    ann.Author = author
     cursor = doc.Text.createTextCursorByRange(target.getStart())
     doc.Text.insertTextContent(cursor, ann, False)
 
@@ -54,7 +54,7 @@ def _apply_paragraph_issue(doc, para, issue: Issue) -> None:
             return
         target = portions[r_idx]
         target.CharBackColor = _RED
-        _add_comment(doc, target, issue.message)
+        _add_comment(doc, target, issue.rule_id, issue.message)
         return
 
     # 段落块级：对所有 portion 设底纹，批注锚在第一个 portion
@@ -63,7 +63,7 @@ def _apply_paragraph_issue(doc, para, issue: Issue) -> None:
         return
     for p in portions:
         p.CharBackColor = _RED
-    _add_comment(doc, portions[0], issue.message)
+    _add_comment(doc, portions[0], issue.rule_id, issue.message)
 
 
 def _apply_issue(doc, doc_blocks: list[TraversedBlock], issue: Issue) -> None:
