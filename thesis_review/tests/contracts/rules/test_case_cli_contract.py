@@ -1,4 +1,8 @@
-"""case.yml 通过 CLI 驱动的规则契约测试。"""
+"""规则样本通用契约测试。
+
+测试会遍历 docs/rules/*/case.yml，按每个模块自己的 samples/*.docx
+调用 CLI 审核，并将 issues.json 中的规则命中结果与 case.yml 对齐。
+"""
 from __future__ import annotations
 
 import json
@@ -23,7 +27,7 @@ def resolved_cases():
 
 @pytest.mark.uno
 @pytest.mark.parametrize("resolved", resolved_cases(), ids=lambda item: item.case.id)
-def test_rule_case_expected_ids_match_cli_output(resolved, tmp_path):
+def test_rule_case_expected_ids_match_cli_output_for_all_modules(resolved, tmp_path):
     if not resolved.sample_path.exists():
         pytest.skip(f"规则样本未准备：{resolved.sample_path}")
 

@@ -51,6 +51,12 @@ docker build -f Dockerfile.uno-dev -t thesis-review-uno-dev .
 uv run pytest -m "not uno" -q
 ```
 
+规则资产契约测试：
+
+```bash
+uv run pytest tests/contracts/rules/test_rule_catalog.py -q
+```
+
 容器内全量当前测试：
 
 ```bash
@@ -83,6 +89,14 @@ docker run --rm -v "$PWD":/workspace -w /workspace \
   /opt/venv/bin/python -m pytest tests/test_uno_session.py -m uno -v
 ```
 
+容器内规则样本契约测试：
+
+```bash
+docker run --rm -v "$PWD":/workspace -w /workspace \
+  thesis-review-uno-dev \
+  /opt/venv/bin/python -m pytest tests/contracts/rules/test_case_cli_contract.py -m uno -v
+```
+
 容器内生成 fixture 示例：
 
 ```bash
@@ -111,6 +125,15 @@ docker run --rm -it -v "$PWD":/workspace -w /workspace thesis-review-uno-dev bas
 /opt/venv/bin/python -c "import uno; print('uno ok')"
 soffice --version
 ```
+
+## 规则开发流程
+
+- 规则资产入口是 `thesis_review/docs/rules/**`
+- `rule.yml` 描述规则元数据，`case.yml` 描述人工 Word 样本期望命中的规则
+- 规则样本契约测试统一使用 `tests/contracts/rules/test_case_cli_contract.py`
+- 该测试会遍历所有模块的 `case.yml`，读取对应模块下 `samples/*.docx`，通过 CLI 生成 `issues.json`，再与 `case.yml` 的 `expected_rule_ids` 对比
+- 未制作的样本会跳过；已经制作样本的 case 应该通过该契约测试验证
+- 当前契约测试只严格比较 `rule.yml` 中 `status: active` 的规则；开发中规则先保持 `draft`，实现并验证后再改为 `active`
 
 ## 实现方式
 
