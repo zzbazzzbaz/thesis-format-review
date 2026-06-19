@@ -1,0 +1,11 @@
+cases:
+  - id: appendix-format
+    file: samples/appendix-format.docx
+    description: 附录格式代表性错误样本。
+    error_description: 样本应包含附录标题文本、标题样式、标题后空行和附录正文基础格式的代表性错误。
+    expected_rule_ids:
+      - appendix-title-001
+      - appendix-title-003
+      - appendix-title-005
+      - appendix-body-002
+      - appendix-body-006

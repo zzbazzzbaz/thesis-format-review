@@ -11,13 +11,47 @@ def rules_root() -> Path:
     return Path(__file__).resolve().parents[3] / "docs" / "rules"
 
 
-def test_table_of_contents_rule_asset_files_exist():
-    base = rules_root() / "table-of-contents"
+EXPECTED_MODULES = {
+    "global": "整体",
+    "cover": "封面",
+    "abstract": "摘要",
+    "table-of-contents": "目录",
+    "main-text": "正文",
+    "references": "参考文献",
+    "acknowledgements": "致谢",
+    "appendix": "附录",
+}
 
-    assert (base / "README.md").exists()
-    assert (base / "rule.yml").exists()
-    assert (base / "case.yml").exists()
-    assert (base / "samples").is_dir()
+
+def test_rule_asset_files_exist_for_all_modules():
+    for module in EXPECTED_MODULES:
+        base = rules_root() / module
+
+        assert (base / "README.md").exists()
+        assert (base / "rule.yml").exists()
+        assert (base / "case.yml").exists()
+        assert (base / "samples").is_dir()
+
+
+def test_rule_modules_match_expected_names():
+    catalog = load_rule_catalog(rules_root())
+
+    assert set(catalog.modules_by_name) == set(EXPECTED_MODULES)
+    for module, module_name in EXPECTED_MODULES.items():
+        spec = catalog.modules_by_name[module]
+        assert spec.module == module
+        assert spec.module_name == module_name
+
+
+def test_new_rule_modules_are_draft_until_checkers_exist():
+    catalog = load_rule_catalog(rules_root())
+
+    for module, spec in catalog.modules_by_name.items():
+        if module == "table-of-contents":
+            continue
+        assert spec.rules
+        assert {rule.status for rule in spec.rules} == {"draft"}
+        assert {rule.severity for rule in spec.rules} == {"error"}
 
 
 def test_table_of_contents_rule_yml_has_expected_ids():
@@ -54,6 +88,21 @@ def test_table_of_contents_cases_have_required_descriptions():
         assert case["description"]
         assert case["error_description"]
         assert case["file"].startswith("samples/")
+
+
+def test_new_modules_have_one_manual_case_each():
+    for module in EXPECTED_MODULES:
+        if module == "table-of-contents":
+            continue
+        base = rules_root() / module
+        cases = yaml.safe_load((base / "case.yml").read_text(encoding="utf-8"))["cases"]
+
+        assert len(cases) == 1
+        case = cases[0]
+        assert case["description"]
+        assert case["error_description"]
+        assert case["file"].startswith("samples/")
+        assert case["expected_rule_ids"]
 
 
 def test_load_rule_catalog_returns_rule_metadata():

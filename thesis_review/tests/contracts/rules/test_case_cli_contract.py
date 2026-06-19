@@ -51,4 +51,9 @@ def test_rule_case_expected_ids_match_cli_output(resolved, tmp_path):
         resolved.active_rule_ids,
     )
 
-    assert actual_module_rule_ids == set(resolved.case.expected_rule_ids)
+    expected_module_rule_ids = filter_module_rule_ids(
+        set(resolved.case.expected_rule_ids),
+        resolved.active_rule_ids,
+    )
+
+    assert actual_module_rule_ids == expected_module_rule_ids

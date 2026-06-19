@@ -1,0 +1,11 @@
+cases:
+  - id: cover-format
+    file: samples/cover-format.docx
+    description: 封面格式代表性错误样本。
+    error_description: 样本应包含封面题目、封面信息行和封面日期的代表性样式错误，不需要修改姓名、学号等具体值。
+    expected_rule_ids:
+      - cover-title-001
+      - cover-title-002
+      - cover-info-001
+      - cover-info-003
+      - cover-date-002

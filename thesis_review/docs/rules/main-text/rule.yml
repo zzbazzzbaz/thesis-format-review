@@ -1,0 +1,347 @@
+module: main-text
+module_name: 正文
+
+rules:
+  - id: main-text-heading-level-one-001
+    title: 一级标题编号形态
+    severity: error
+    status: draft
+    description: 检查一级标题编号是否为“第X章”，其中 X 只允许中文数字。
+    message: 一级标题编号应使用“第X章”中文数字形式
+    expected: 第X章
+  - id: main-text-heading-level-one-002
+    title: 一级标题编号后空格
+    severity: error
+    status: draft
+    description: 检查一级标题编号后是否正好有 2 个普通半角空格再接标题。
+    message: 一级标题编号与标题之间应空 2 个普通半角空格
+    expected: 2 个普通半角空格
+  - id: main-text-heading-level-one-003
+    title: 一级标题中文字体
+    severity: error
+    status: draft
+    description: 检查一级标题中文字体是否为黑体。
+    message: 一级标题中文字体应为黑体
+    expected: 黑体
+  - id: main-text-heading-level-one-004
+    title: 一级标题字号
+    severity: error
+    status: draft
+    description: 检查一级标题字号是否为三号，即 16pt。
+    message: 一级标题字号应为三号
+    expected: 三号（16pt）
+  - id: main-text-heading-level-one-005
+    title: 一级标题后空行
+    severity: error
+    status: draft
+    description: 检查一级标题和后续正文之间是否正好有 1 个空段落。
+    message: 一级标题后必须且只能空一行
+    expected: 1 个空段落
+  - id: main-text-heading-level-one-006
+    title: 一级标题另起一页
+    severity: error
+    status: draft
+    description: 检查每一章一级标题是否另起一页。
+    message: 每一章一级标题应另起一页
+    expected: 另起一页
+  - id: main-text-heading-level-two-001
+    title: 二级标题编号形态
+    severity: error
+    status: draft
+    description: 检查二级标题编号是否为阿拉伯数字点号形式 N.N。
+    message: 二级标题编号应为 N.N 形式
+    expected: N.N
+  - id: main-text-heading-level-two-002
+    title: 二级标题编号后空格
+    severity: error
+    status: draft
+    description: 检查二级标题编号和标题之间是否正好有 1 个普通半角空格。
+    message: 二级标题编号与标题之间应空 1 个普通半角空格
+    expected: 1 个普通半角空格
+  - id: main-text-heading-level-two-003
+    title: 二级标题中文字体
+    severity: error
+    status: draft
+    description: 检查二级标题中文字体是否为黑体。
+    message: 二级标题中文字体应为黑体
+    expected: 黑体
+  - id: main-text-heading-level-two-004
+    title: 二级标题字号
+    severity: error
+    status: draft
+    description: 检查二级标题字号是否为四号，即 14pt。
+    message: 二级标题字号应为四号
+    expected: 四号（14pt）
+  - id: main-text-heading-level-two-005
+    title: 二级标题行距
+    severity: error
+    status: draft
+    description: 检查二级标题行距是否为 1.5 倍。
+    message: 二级标题行距应为 1.5 倍
+    expected: 1.5 倍
+  - id: main-text-heading-level-two-006
+    title: 二级标题数字和西文字体
+    severity: error
+    status: draft
+    description: 检查二级标题编号、数字和西文字体是否为 Times New Roman。
+    message: 二级标题数字和西文字体应为 Times New Roman
+    expected: Times New Roman
+  - id: main-text-heading-level-three-001
+    title: 三级标题编号形态
+    severity: error
+    status: draft
+    description: 检查三级标题编号是否为阿拉伯数字点号形式 N.N.N。
+    message: 三级标题编号应为 N.N.N 形式
+    expected: N.N.N
+  - id: main-text-heading-level-three-002
+    title: 三级标题编号后空格
+    severity: error
+    status: draft
+    description: 检查三级标题编号和标题之间是否正好有 1 个普通半角空格。
+    message: 三级标题编号与标题之间应空 1 个普通半角空格
+    expected: 1 个普通半角空格
+  - id: main-text-heading-level-three-003
+    title: 三级标题首行缩进
+    severity: error
+    status: draft
+    description: 检查三级标题首行缩进是否为 2 字符。
+    message: 三级标题首行应缩进 2 字符
+    expected: 首行缩进 2 字符
+  - id: main-text-heading-level-three-004
+    title: 三级标题中文字体
+    severity: error
+    status: draft
+    description: 检查三级标题中文字体是否为黑体。
+    message: 三级标题中文字体应为黑体
+    expected: 黑体
+  - id: main-text-heading-level-three-005
+    title: 三级标题字号
+    severity: error
+    status: draft
+    description: 检查三级标题字号是否为小四，即 12pt。
+    message: 三级标题字号应为小四
+    expected: 小四（12pt）
+  - id: main-text-heading-level-three-006
+    title: 三级标题行距
+    severity: error
+    status: draft
+    description: 检查三级标题行距是否为 1.5 倍。
+    message: 三级标题行距应为 1.5 倍
+    expected: 1.5 倍
+  - id: main-text-heading-level-three-007
+    title: 三级标题数字和西文字体
+    severity: error
+    status: draft
+    description: 检查三级标题编号、数字和西文字体是否为 Times New Roman。
+    message: 三级标题数字和西文字体应为 Times New Roman
+    expected: Times New Roman
+  - id: main-text-paragraph-001
+    title: 正文段落字号
+    severity: error
+    status: draft
+    description: 检查正文普通段落字号是否为小四，即 12pt。
+    message: 正文普通段落字号应为小四
+    expected: 小四（12pt）
+  - id: main-text-paragraph-002
+    title: 正文段落中文字体
+    severity: error
+    status: draft
+    description: 检查正文普通段落中文字体是否为宋体。
+    message: 正文普通段落中文字体应为宋体
+    expected: 宋体
+  - id: main-text-paragraph-003
+    title: 正文段落西文和数字字体
+    severity: error
+    status: draft
+    description: 检查正文普通段落西文和数字字体是否为 Times New Roman。
+    message: 正文普通段落西文和数字字体应为 Times New Roman
+    expected: Times New Roman
+  - id: main-text-paragraph-004
+    title: 正文段落首行缩进
+    severity: error
+    status: draft
+    description: 检查正文普通段落首行缩进是否为 2 字符，包括以“（1）”开头的段落。
+    message: 正文普通段落首行应缩进 2 字符
+    expected: 首行缩进 2 字符
+  - id: main-text-paragraph-005
+    title: 正文段落行距
+    severity: error
+    status: draft
+    description: 检查正文普通段落行距是否为 1.5 倍。
+    message: 正文普通段落行距应为 1.5 倍
+    expected: 1.5 倍
+  - id: main-text-paragraph-006
+    title: 正文段落两端对齐
+    severity: error
+    status: draft
+    description: 检查正文普通段落是否两端对齐。
+    message: 正文普通段落应两端对齐
+    expected: 两端对齐
+  - id: main-text-reference-citation-001
+    title: 正文引用编号格式
+    severity: error
+    status: draft
+    description: 检查正文参考文献引用编号是否为方括号数字形式，例如 [1]。
+    message: 正文参考文献引用应使用方括号数字格式
+    expected: "[1]"
+  - id: main-text-reference-citation-002
+    title: 正文引用编号上标
+    severity: error
+    status: draft
+    description: 检查正文参考文献引用编号是否为上标。
+    message: 正文参考文献引用编号应为上标
+    expected: 上标
+  - id: main-text-reference-citation-003
+    title: 正文引用编号字号
+    severity: error
+    status: draft
+    description: 检查正文参考文献引用编号字号是否为小四，即 12pt。
+    message: 正文参考文献引用编号字号应为小四
+    expected: 小四（12pt）
+  - id: main-text-reference-citation-004
+    title: 正文引用编号字体
+    severity: error
+    status: draft
+    description: 检查正文参考文献引用编号字体是否为 Times New Roman。
+    message: 正文参考文献引用编号字体应为 Times New Roman
+    expected: Times New Roman
+  - id: main-text-formula-001
+    title: 公式编号存在
+    severity: error
+    status: draft
+    description: 检查正文中出现的公式是否有公式号。
+    message: 正文公式应有公式号
+    expected: 有公式号
+  - id: main-text-formula-002
+    title: 公式编号章内序号
+    severity: error
+    status: draft
+    description: 检查公式号是否按章编号，例如第 3 章第 1 个公式为 (3-1)。
+    message: 公式号应按章编号
+    expected: (章号-序号)
+  - id: main-text-formula-003
+    title: 公式整体居中
+    severity: error
+    status: draft
+    description: 检查公式和编号整体是否居中对齐。
+    message: 公式和编号整体应居中对齐
+    expected: 居中对齐
+  - id: main-text-formula-004
+    title: 公式编号居右
+    severity: error
+    status: draft
+    description: 检查公式编号是否居右放置。
+    message: 公式编号应居右放置
+    expected: 居右
+  - id: main-text-formula-005
+    title: 公式编号字号
+    severity: error
+    status: draft
+    description: 检查公式编号字号是否为五号，即 10.5pt。
+    message: 公式编号字号应为五号
+    expected: 五号（10.5pt）
+  - id: main-text-formula-006
+    title: 公式编号字体
+    severity: error
+    status: draft
+    description: 检查公式编号字体是否为 Times New Roman。
+    message: 公式编号字体应为 Times New Roman
+    expected: Times New Roman
+  - id: main-text-figure-caption-001
+    title: 图片图题存在
+    severity: error
+    status: draft
+    description: 检查所有图片是否有图题。
+    message: 图片应有图题
+    expected: 有图题
+  - id: main-text-figure-caption-002
+    title: 图片图题位置
+    severity: error
+    status: draft
+    description: 检查图题是否位于图片下方。
+    message: 图题应位于图片下方
+    expected: 图片下方
+  - id: main-text-figure-caption-003
+    title: 图片图号格式
+    severity: error
+    status: draft
+    description: 检查图号是否按章编号，例如图3-1。
+    message: 图号应按章编号
+    expected: 图章号-序号
+  - id: main-text-figure-caption-004
+    title: 图片图号后空格
+    severity: error
+    status: draft
+    description: 检查图号和图题之间是否正好有 1 个普通半角空格。
+    message: 图号与图题之间应空 1 个普通半角空格
+    expected: 1 个普通半角空格
+  - id: main-text-figure-caption-005
+    title: 图片图题居中
+    severity: error
+    status: draft
+    description: 检查图题是否居中。
+    message: 图题应居中
+    expected: 居中
+  - id: main-text-figure-caption-006
+    title: 图片图题字号
+    severity: error
+    status: draft
+    description: 检查图题字号是否为五号，即 10.5pt。
+    message: 图题字号应为五号
+    expected: 五号（10.5pt）
+  - id: main-text-figure-caption-007
+    title: 图片图题中文字体
+    severity: error
+    status: draft
+    description: 检查图题中文字体是否为宋体。
+    message: 图题中文字体应为宋体
+    expected: 宋体
+  - id: main-text-table-caption-001
+    title: 表格表题存在
+    severity: error
+    status: draft
+    description: 检查所有表格是否有表题。
+    message: 表格应有表题
+    expected: 有表题
+  - id: main-text-table-caption-002
+    title: 表格表题位置
+    severity: error
+    status: draft
+    description: 检查表题是否位于表格上方。
+    message: 表题应位于表格上方
+    expected: 表格上方
+  - id: main-text-table-caption-003
+    title: 表格表号格式
+    severity: error
+    status: draft
+    description: 检查表号是否按章编号，例如表4-1。
+    message: 表号应按章编号
+    expected: 表章号-序号
+  - id: main-text-table-caption-004
+    title: 表格表号后空格
+    severity: error
+    status: draft
+    description: 检查表号和表题之间是否正好有 1 个普通半角空格。
+    message: 表号与表题之间应空 1 个普通半角空格
+    expected: 1 个普通半角空格
+  - id: main-text-table-caption-005
+    title: 表格表题居中
+    severity: error
+    status: draft
+    description: 检查表题是否居中。
+    message: 表题应居中
+    expected: 居中
+  - id: main-text-table-caption-006
+    title: 表格表题字号
+    severity: error
+    status: draft
+    description: 检查表题字号是否为五号，即 10.5pt。
+    message: 表题字号应为五号
+    expected: 五号（10.5pt）
+  - id: main-text-table-caption-007
+    title: 表格表题中文字体
+    severity: error
+    status: draft
+    description: 检查表题中文字体是否为宋体。
+    message: 表题中文字体应为宋体
+    expected: 宋体

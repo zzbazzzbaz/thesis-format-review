@@ -1,0 +1,12 @@
+cases:
+  - id: abstract-format
+    file: samples/abstract-format.docx
+    description: 摘要格式代表性错误样本。
+    error_description: 样本应包含中文摘要标题、摘要正文、中文关键词、英文摘要标题和英文关键词的代表性格式错误。
+    expected_rule_ids:
+      - abstract-chinese-title-001
+      - abstract-chinese-title-005
+      - abstract-chinese-body-002
+      - abstract-chinese-keywords-001
+      - abstract-english-title-001
+      - abstract-english-keywords-006

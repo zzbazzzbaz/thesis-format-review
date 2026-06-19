@@ -1,0 +1,12 @@
+cases:
+  - id: main-text-format
+    file: samples/main-text-format.docx
+    description: 正文格式代表性错误样本。
+    error_description: 样本应包含正文一级标题、普通段落、参考文献引用、公式、图片题注和表格题注的代表性格式错误。
+    expected_rule_ids:
+      - main-text-heading-level-one-001
+      - main-text-paragraph-002
+      - main-text-paragraph-006
+      - main-text-reference-citation-002
+      - main-text-figure-caption-003
+      - main-text-table-caption-002

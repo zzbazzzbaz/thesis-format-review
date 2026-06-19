@@ -1,0 +1,60 @@
+module: references
+module_name: 参考文献
+
+rules:
+  - id: references-title-001
+    title: 参考文献标题文本
+    severity: error
+    status: draft
+    description: 检查参考文献标题文本是否严格为“参考文献”。
+    message: 参考文献标题文本应为“参考文献”
+    expected: 参考文献
+  - id: references-title-002
+    title: 参考文献标题后空行
+    severity: error
+    status: draft
+    description: 检查参考文献标题和参考文献条目之间是否正好有 1 个空段落。
+    message: 参考文献标题后必须且只能空一行
+    expected: 1 个空段落
+  - id: references-entry-001
+    title: 参考文献条目编号格式
+    severity: error
+    status: draft
+    description: 检查参考文献条目编号是否为方括号数字形式，例如 [1]。
+    message: 参考文献条目编号应使用方括号数字格式
+    expected: "[1]"
+  - id: references-entry-002
+    title: 参考文献条目编号后空格
+    severity: error
+    status: draft
+    description: 检查参考文献条目编号和正文内容之间是否正好有 1 个普通半角空格。
+    message: 参考文献条目编号与正文内容之间应空 1 个普通半角空格
+    expected: 1 个普通半角空格
+  - id: references-entry-003
+    title: 参考文献条目中文字体
+    severity: error
+    status: draft
+    description: 检查参考文献条目中文字体是否为宋体。
+    message: 参考文献条目中文字体应为宋体
+    expected: 宋体
+  - id: references-entry-004
+    title: 参考文献条目西文和数字字体
+    severity: error
+    status: draft
+    description: 检查参考文献条目西文和数字字体是否为 Times New Roman。
+    message: 参考文献条目西文和数字字体应为 Times New Roman
+    expected: Times New Roman
+  - id: references-entry-005
+    title: 参考文献条目字号
+    severity: error
+    status: draft
+    description: 检查参考文献条目字号是否为小四，即 12pt。
+    message: 参考文献条目字号应为小四
+    expected: 小四（12pt）
+  - id: references-entry-006
+    title: 参考文献条目行距
+    severity: error
+    status: draft
+    description: 检查参考文献条目行距是否为 1.5 倍。
+    message: 参考文献条目行距应为 1.5 倍
+    expected: 1.5 倍

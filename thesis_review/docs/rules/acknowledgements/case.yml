@@ -1,0 +1,11 @@
+cases:
+  - id: acknowledgements-format
+    file: samples/acknowledgements-format.docx
+    description: 致谢格式代表性错误样本。
+    error_description: 样本应包含致谢标题文本、标题样式、标题后空行和致谢正文基础格式的代表性错误。
+    expected_rule_ids:
+      - acknowledgements-title-001
+      - acknowledgements-title-003
+      - acknowledgements-title-005
+      - acknowledgements-body-002
+      - acknowledgements-body-006

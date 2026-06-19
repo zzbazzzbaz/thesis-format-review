@@ -1,0 +1,284 @@
+module: abstract
+module_name: 摘要
+
+rules:
+  - id: abstract-chinese-title-001
+    title: 中文摘要标题文本
+    severity: error
+    status: draft
+    description: 检查中文摘要标题文本是否为“摘    要”，中间为 4 个普通半角空格。
+    message: 中文摘要标题文本应为“摘    要”
+    expected: 摘    要
+  - id: abstract-chinese-title-002
+    title: 中文摘要标题字号
+    severity: error
+    status: draft
+    description: 检查中文摘要标题字号是否为三号，即 16pt。
+    message: 中文摘要标题字号应为三号
+    expected: 三号（16pt）
+  - id: abstract-chinese-title-003
+    title: 中文摘要标题中文字体
+    severity: error
+    status: draft
+    description: 检查中文摘要标题中文字体是否为黑体。
+    message: 中文摘要标题中文字体应为黑体
+    expected: 黑体
+  - id: abstract-chinese-title-004
+    title: 中文摘要标题居中
+    severity: error
+    status: draft
+    description: 检查中文摘要标题段落是否居中。
+    message: 中文摘要标题应居中
+    expected: 居中
+  - id: abstract-chinese-title-005
+    title: 中文摘要标题后空行
+    severity: error
+    status: draft
+    description: 检查中文摘要标题和摘要正文之间是否正好有 1 个空段落。
+    message: 中文摘要标题后必须且只能空一行
+    expected: 1 个空段落
+  - id: abstract-chinese-body-001
+    title: 中文摘要正文字号
+    severity: error
+    status: draft
+    description: 检查中文摘要正文字号是否为小四，即 12pt。
+    message: 中文摘要正文字号应为小四
+    expected: 小四（12pt）
+  - id: abstract-chinese-body-002
+    title: 中文摘要正文中文字体
+    severity: error
+    status: draft
+    description: 检查中文摘要正文中文字体是否为宋体。
+    message: 中文摘要正文中文字体应为宋体
+    expected: 宋体
+  - id: abstract-chinese-body-003
+    title: 中文摘要正文西文和数字字体
+    severity: error
+    status: draft
+    description: 检查中文摘要正文中的西文和数字字体是否为 Times New Roman。
+    message: 中文摘要正文西文和数字字体应为 Times New Roman
+    expected: Times New Roman
+  - id: abstract-chinese-body-004
+    title: 中文摘要正文行距
+    severity: error
+    status: draft
+    description: 检查中文摘要正文行距是否为 1.5 倍。
+    message: 中文摘要正文行距应为 1.5 倍
+    expected: 1.5 倍
+  - id: abstract-chinese-body-005
+    title: 中文摘要正文首行缩进
+    severity: error
+    status: draft
+    description: 检查中文摘要正文首行缩进是否为 2 字符。
+    message: 中文摘要正文首行应缩进 2 字符
+    expected: 首行缩进 2 字符
+  - id: abstract-chinese-body-006
+    title: 中文摘要正文后空行
+    severity: error
+    status: draft
+    description: 检查中文摘要正文和中文关键词之间是否正好有 1 个空段落。
+    message: 中文摘要正文和关键词之间必须且只能空一行
+    expected: 1 个空段落
+  - id: abstract-chinese-keywords-001
+    title: 中文关键词前缀
+    severity: error
+    status: draft
+    description: 检查中文关键词行是否以“关键词：”开头，冒号为中文全角冒号。
+    message: 中文关键词行应以“关键词：”开头
+    expected: 关键词：
+  - id: abstract-chinese-keywords-002
+    title: 中文关键词前缀加粗
+    severity: error
+    status: draft
+    description: 检查中文关键词行中的“关键词：”是否加粗。
+    message: 中文关键词行“关键词：”应加粗
+    expected: 关键词：加粗
+  - id: abstract-chinese-keywords-003
+    title: 中文关键词分隔符
+    severity: error
+    status: draft
+    description: 检查中文关键词之间是否使用中文分号“；”分隔。
+    message: 中文关键词之间应使用中文分号“；”分隔
+    expected: 中文分号“；”
+  - id: abstract-chinese-keywords-004
+    title: 中文关键词末尾标点
+    severity: error
+    status: draft
+    description: 检查最后一个中文关键词之后是否没有标点。
+    message: 最后一个中文关键词之后不应有标点
+    expected: 末尾无标点
+  - id: abstract-chinese-keywords-005
+    title: 中文关键词字号
+    severity: error
+    status: draft
+    description: 检查中文关键词行字号是否为小四，即 12pt。
+    message: 中文关键词字号应为小四
+    expected: 小四（12pt）
+  - id: abstract-chinese-keywords-006
+    title: 中文关键词中文字体
+    severity: error
+    status: draft
+    description: 检查中文关键词行中文字体是否为宋体。
+    message: 中文关键词中文字体应为宋体
+    expected: 宋体
+  - id: abstract-chinese-keywords-007
+    title: 中文关键词西文和数字字体
+    severity: error
+    status: draft
+    description: 检查中文关键词行西文和数字字体是否为 Times New Roman。
+    message: 中文关键词西文和数字字体应为 Times New Roman
+    expected: Times New Roman
+  - id: abstract-chinese-keywords-008
+    title: 中文关键词行距
+    severity: error
+    status: draft
+    description: 检查中文关键词行距是否为 1.5 倍。
+    message: 中文关键词行距应为 1.5 倍
+    expected: 1.5 倍
+  - id: abstract-chinese-keywords-009
+    title: 中文关键词首行缩进
+    severity: error
+    status: draft
+    description: 检查中文关键词行首行缩进是否为 2 字符。
+    message: 中文关键词行首行应缩进 2 字符
+    expected: 首行缩进 2 字符
+  - id: abstract-chinese-keywords-010
+    title: 中文关键词两端对齐
+    severity: error
+    status: draft
+    description: 检查中文关键词行是否两端对齐。
+    message: 中文关键词行应两端对齐
+    expected: 两端对齐
+  - id: abstract-english-title-001
+    title: 英文摘要标题文本
+    severity: error
+    status: draft
+    description: 检查英文摘要标题文本是否严格为“ABSTRACT”。
+    message: 英文摘要标题文本应为“ABSTRACT”
+    expected: ABSTRACT
+  - id: abstract-english-title-002
+    title: 英文摘要标题字号
+    severity: error
+    status: draft
+    description: 检查英文摘要标题字号是否为三号，即 16pt。
+    message: 英文摘要标题字号应为三号
+    expected: 三号（16pt）
+  - id: abstract-english-title-003
+    title: 英文摘要标题字体
+    severity: error
+    status: draft
+    description: 检查英文摘要标题字体是否为 Times New Roman。
+    message: 英文摘要标题字体应为 Times New Roman
+    expected: Times New Roman
+  - id: abstract-english-title-004
+    title: 英文摘要标题加粗
+    severity: error
+    status: draft
+    description: 检查英文摘要标题是否加粗。
+    message: 英文摘要标题应加粗
+    expected: 加粗
+  - id: abstract-english-title-005
+    title: 英文摘要标题居中
+    severity: error
+    status: draft
+    description: 检查英文摘要标题段落是否居中。
+    message: 英文摘要标题应居中
+    expected: 居中
+  - id: abstract-english-title-006
+    title: 英文摘要标题后空行
+    severity: error
+    status: draft
+    description: 检查英文摘要标题和英文摘要正文之间是否正好有 1 个空段落。
+    message: 英文摘要标题后必须且只能空一行
+    expected: 1 个空段落
+  - id: abstract-english-body-001
+    title: 英文摘要正文字体
+    severity: error
+    status: draft
+    description: 检查英文摘要正文字体是否为 Times New Roman。
+    message: 英文摘要正文字体应为 Times New Roman
+    expected: Times New Roman
+  - id: abstract-english-body-002
+    title: 英文摘要正文字号
+    severity: error
+    status: draft
+    description: 检查英文摘要正文字号是否为小四，即 12pt。
+    message: 英文摘要正文字号应为小四
+    expected: 小四（12pt）
+  - id: abstract-english-body-003
+    title: 英文摘要正文行距
+    severity: error
+    status: draft
+    description: 检查英文摘要正文行距是否为 1.5 倍。
+    message: 英文摘要正文行距应为 1.5 倍
+    expected: 1.5 倍
+  - id: abstract-english-body-004
+    title: 英文摘要正文首行缩进
+    severity: error
+    status: draft
+    description: 检查英文摘要正文首行缩进是否为 2 字符。
+    message: 英文摘要正文首行应缩进 2 字符
+    expected: 首行缩进 2 字符
+  - id: abstract-english-body-005
+    title: 英文摘要正文后空行
+    severity: error
+    status: draft
+    description: 检查英文摘要正文和英文关键词之间是否正好有 1 个空段落。
+    message: 英文摘要正文和关键词之间必须且只能空一行
+    expected: 1 个空段落
+  - id: abstract-english-keywords-001
+    title: 英文关键词前缀
+    severity: error
+    status: draft
+    description: 检查英文关键词行是否以“Keywords：”开头，冒号为中文全角冒号。
+    message: 英文关键词行应以“Keywords：”开头
+    expected: Keywords：
+  - id: abstract-english-keywords-002
+    title: 英文关键词前缀加粗
+    severity: error
+    status: draft
+    description: 检查英文关键词行中的“Keywords：”是否加粗。
+    message: 英文关键词行“Keywords：”应加粗
+    expected: Keywords：加粗
+  - id: abstract-english-keywords-003
+    title: 英文关键词分隔符
+    severity: error
+    status: draft
+    description: 检查英文关键词之间是否使用中文分号“；”分隔。
+    message: 英文关键词之间应使用中文分号“；”分隔
+    expected: 中文分号“；”
+  - id: abstract-english-keywords-004
+    title: 英文关键词末尾标点
+    severity: error
+    status: draft
+    description: 检查最后一个英文关键词之后是否没有标点。
+    message: 最后一个英文关键词之后不应有标点
+    expected: 末尾无标点
+  - id: abstract-english-keywords-005
+    title: 英文关键词字号
+    severity: error
+    status: draft
+    description: 检查英文关键词行字号是否为小四，即 12pt。
+    message: 英文关键词字号应为小四
+    expected: 小四（12pt）
+  - id: abstract-english-keywords-006
+    title: 英文关键词字体
+    severity: error
+    status: draft
+    description: 检查英文关键词行字体是否为宋体。
+    message: 英文关键词字体应为宋体
+    expected: 宋体
+  - id: abstract-english-keywords-007
+    title: 英文关键词行距
+    severity: error
+    status: draft
+    description: 检查英文关键词行距是否为 1.5 倍。
+    message: 英文关键词行距应为 1.5 倍
+    expected: 1.5 倍
+  - id: abstract-english-keywords-008
+    title: 英文关键词首行缩进
+    severity: error
+    status: draft
+    description: 检查英文关键词行首行缩进是否为 2 字符。
+    message: 英文关键词行首行应缩进 2 字符
+    expected: 首行缩进 2 字符

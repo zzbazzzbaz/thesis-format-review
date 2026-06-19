@@ -1,0 +1,11 @@
+cases:
+  - id: global-page-format
+    file: samples/global-page-format.docx
+    description: 整体页面格式代表性错误样本。
+    error_description: 样本应包含页边距、非封面页页眉、正文页码和无页码区域的代表性错误，便于验证整体页面级规则。
+    expected_rule_ids:
+      - global-margin-001
+      - global-header-001
+      - global-header-003
+      - global-footer-page-number-003
+      - global-footer-page-number-excluded-001

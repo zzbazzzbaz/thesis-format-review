@@ -1,0 +1,11 @@
+cases:
+  - id: references-format
+    file: samples/references-format.docx
+    description: 参考文献格式代表性错误样本。
+    error_description: 样本应包含参考文献标题、标题后空行、条目编号空格和条目基础格式的代表性错误。
+    expected_rule_ids:
+      - references-title-001
+      - references-title-002
+      - references-entry-001
+      - references-entry-002
+      - references-entry-003

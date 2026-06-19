@@ -21,13 +21,13 @@
 
 | 中文模块 | 模块目录名 / `module` | `module_name` |
 |---|---|---|
+| 整体 | `global` | `整体` |
 | 封面 | `cover` | `封面` |
-| 中文摘要 | `chinese-abstract` | `中文摘要` |
-| 英文摘要 | `english-abstract` | `英文摘要` |
+| 摘要 | `abstract` | `摘要` |
 | 目录 | `table-of-contents` | `目录` |
 | 正文 | `main-text` | `正文` |
-| 致谢 | `acknowledgements` | `致谢` |
 | 参考文献 | `references` | `参考文献` |
+| 致谢 | `acknowledgements` | `致谢` |
 | 附录 | `appendix` | `附录` |
 
 ## 维护要求
@@ -37,6 +37,8 @@
 - `rule.yml` 不包含 `object`、`category`、`scope` 字段。
 - `case.yml` 必须写明 `description` 和 `error_description`。
 - 已发布的规则编号不能改名、不能复用；不用的规则标记为 `deprecated`。
+- 暂未实现检查器的新规则先标记为 `draft`，实现并验证通过后再改为 `active`。
+- 新模块 `case.yml` 可以先只列少量代表性人工样本，真实 `.docx` 由维护者后续按清单制作。
 
 ## 样本维护
 
