@@ -26,7 +26,7 @@ rules:
   - id: abstract-chinese-title-004
     title: 中文摘要标题居中
     severity: error
-    status: draft
+    status: active
     description: 检查中文摘要标题段落是否居中。
     message: 中文摘要标题应居中
     expected: 居中
@@ -54,7 +54,7 @@ rules:
   - id: abstract-chinese-body-003
     title: 中文摘要正文西文和数字字体
     severity: error
-    status: draft
+    status: active
     description: 检查中文摘要正文中的西文和数字字体是否为 Times New Roman。
     message: 中文摘要正文西文和数字字体应为 Times New Roman
     expected: Times New Roman
@@ -124,28 +124,28 @@ rules:
   - id: abstract-chinese-keywords-007
     title: 中文关键词西文和数字字体
     severity: error
-    status: draft
+    status: active
     description: 检查中文关键词行西文和数字字体是否为 Times New Roman。
     message: 中文关键词西文和数字字体应为 Times New Roman
     expected: Times New Roman
   - id: abstract-chinese-keywords-008
     title: 中文关键词行距
     severity: error
-    status: draft
+    status: active
     description: 检查中文关键词行距是否为 1.5 倍。
     message: 中文关键词行距应为 1.5 倍
     expected: 1.5 倍
   - id: abstract-chinese-keywords-009
     title: 中文关键词首行缩进
     severity: error
-    status: draft
+    status: active
     description: 检查中文关键词行首行缩进是否为 2 字符。
     message: 中文关键词行首行应缩进 2 字符
     expected: 首行缩进 2 字符
   - id: abstract-chinese-keywords-010
     title: 中文关键词两端对齐
     severity: error
-    status: draft
+    status: active
     description: 检查中文关键词行是否两端对齐。
     message: 中文关键词行应两端对齐
     expected: 两端对齐

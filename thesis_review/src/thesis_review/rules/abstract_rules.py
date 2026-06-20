@@ -17,6 +17,7 @@ from thesis_review.rules.context import RuleContext
 
 _TRAILING_PUNCTUATION_RE = re.compile(r"[，,。.;；：:、]$")
 _ASCII_WORD_RE = re.compile(r"[A-Za-z0-9]")
+_CHINESE_TEXT_RE = re.compile(r"[\u4e00-\u9fff，。；：、（）《》“”‘’]")
 
 
 def _paragraphs(document: DocumentModel) -> Iterable[ParagraphBlock]:
@@ -228,15 +229,25 @@ def _run_contains_keyword_content(run: RunSpan) -> bool:
     return bool(_ASCII_WORD_RE.search(run.text))
 
 
+def _run_contains_chinese_text(run: RunSpan) -> bool:
+    return bool(_CHINESE_TEXT_RE.search(run.text))
+
+
+def _run_contains_ascii_text(run: RunSpan) -> bool:
+    return bool(_ASCII_WORD_RE.search(run.text))
+
+
 class AbstractChineseTitleBodyChecker:
     checker_id = "abstract-chinese-title-body"
     rule_ids = (
         "abstract-chinese-title-001",
         "abstract-chinese-title-002",
         "abstract-chinese-title-003",
+        "abstract-chinese-title-004",
         "abstract-chinese-title-005",
         "abstract-chinese-body-001",
         "abstract-chinese-body-002",
+        "abstract-chinese-body-003",
         "abstract-chinese-body-004",
         "abstract-chinese-body-005",
         "abstract-chinese-body-006",
@@ -278,6 +289,14 @@ class AbstractChineseTitleBodyChecker:
                 "abstract-chinese-title-003",
                 bad_title_font.font_east_asian or "未识别",
                 _run_location(title, bad_title_font),
+            )
+        if title.alignment != "center":
+            _append_once(
+                issues,
+                context,
+                "abstract-chinese-title-004",
+                _display_alignment(title.alignment),
+                _block_location(title),
             )
         title_blank_count = _empty_count_after(paragraphs, title)
         if title_blank_count != 1:
@@ -337,7 +356,10 @@ class AbstractChineseTitleBodyChecker:
                     )
                 bad_body_font = _first_bad_run(
                     para,
-                    lambda run: run.font_east_asian == "宋体",
+                    lambda run: (
+                        not _run_contains_chinese_text(run)
+                        or run.font_east_asian == "宋体"
+                    ),
                 )
                 if bad_body_font is not None:
                     _append_once(
@@ -346,6 +368,21 @@ class AbstractChineseTitleBodyChecker:
                         "abstract-chinese-body-002",
                         bad_body_font.font_east_asian or "未识别",
                         _run_location(para, bad_body_font),
+                    )
+                bad_body_latin_font = _first_bad_run(
+                    para,
+                    lambda run: (
+                        not _run_contains_ascii_text(run)
+                        or run.font_latin == "Times New Roman"
+                    ),
+                )
+                if bad_body_latin_font is not None:
+                    _append_once(
+                        issues,
+                        context,
+                        "abstract-chinese-body-003",
+                        bad_body_latin_font.font_latin or "未识别",
+                        _run_location(para, bad_body_latin_font),
                     )
         return issues
 
@@ -359,6 +396,10 @@ class AbstractChineseKeywordsChecker:
         "abstract-chinese-keywords-004",
         "abstract-chinese-keywords-005",
         "abstract-chinese-keywords-006",
+        "abstract-chinese-keywords-007",
+        "abstract-chinese-keywords-008",
+        "abstract-chinese-keywords-009",
+        "abstract-chinese-keywords-010",
     )
 
     def check(self, context: RuleContext) -> list[Issue]:
@@ -412,6 +453,30 @@ class AbstractChineseKeywordsChecker:
                 content[-1],
                 _block_location(keyword_para),
             )
+        if not _has_line_spacing(keyword_para, 1.5):
+            _append_once(
+                issues,
+                context,
+                "abstract-chinese-keywords-008",
+                _display_line_spacing(keyword_para.line_spacing),
+                _block_location(keyword_para),
+            )
+        if not _has_indent(keyword_para, 2.0):
+            _append_once(
+                issues,
+                context,
+                "abstract-chinese-keywords-009",
+                _display_indent(keyword_para.first_line_indent_chars),
+                _block_location(keyword_para),
+            )
+        if keyword_para.alignment != "justify":
+            _append_once(
+                issues,
+                context,
+                "abstract-chinese-keywords-010",
+                _display_alignment(keyword_para.alignment),
+                _block_location(keyword_para),
+            )
 
         for run in _meaningful_runs(keyword_para):
             if not _has_size(run, 12.0):
@@ -422,12 +487,20 @@ class AbstractChineseKeywordsChecker:
                     _display_size(run.size_pt),
                     _run_location(keyword_para, run),
                 )
-            if run.font_east_asian != "宋体":
+            if _run_contains_chinese_text(run) and run.font_east_asian != "宋体":
                 _append_once(
                     issues,
                     context,
                     "abstract-chinese-keywords-006",
                     run.font_east_asian or "未识别",
+                    _run_location(keyword_para, run),
+                )
+            if _run_contains_ascii_text(run) and run.font_latin != "Times New Roman":
+                _append_once(
+                    issues,
+                    context,
+                    "abstract-chinese-keywords-007",
+                    run.font_latin or "未识别",
                     _run_location(keyword_para, run),
                 )
         return issues

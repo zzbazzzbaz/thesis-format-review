@@ -53,3 +53,14 @@ cases:
       - abstract-english-keywords-006
       - abstract-english-keywords-007
       - abstract-english-keywords-008
+  - id: abstract-chinese-remaining-draft-format
+    file: samples/abstract-chinese-remaining-draft-format.docx
+    description: 中文摘要剩余草稿规则错误样本。
+    error_description: 样本应只将中文摘要标题居中、中文摘要正文西文和数字字体、中文关键词西文和数字字体、关键词行距、关键词首行缩进、关键词两端对齐做错；其他摘要规则保持正确。
+    expected_rule_ids:
+      - abstract-chinese-title-004
+      - abstract-chinese-body-003
+      - abstract-chinese-keywords-007
+      - abstract-chinese-keywords-008
+      - abstract-chinese-keywords-009
+      - abstract-chinese-keywords-010

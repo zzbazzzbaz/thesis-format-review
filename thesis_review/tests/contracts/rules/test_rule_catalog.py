@@ -114,7 +114,8 @@ def test_new_modules_have_compact_manual_cases():
         base = rules_root() / module
         cases = yaml.safe_load((base / "case.yml").read_text(encoding="utf-8"))["cases"]
 
-        assert 1 <= len(cases) <= 4
+        max_cases = 5 if module == "abstract" else 4
+        assert 1 <= len(cases) <= max_cases
         for case in cases:
             assert case["description"]
             assert case["error_description"]

@@ -190,6 +190,45 @@ def test_chinese_title_body_checker_flags_case_rules():
     }
 
 
+def test_chinese_title_body_checker_flags_remaining_rules():
+    body = make_para(
+        flow_index=3,
+        text="中文摘要包含 C++ Builder 6.0 示例。",
+        alignment="justify",
+        line_spacing=1.5,
+        first_line_indent_chars=2.0,
+        runs=[
+            run("中文摘要包含 ", east="宋体", latin="宋体", size=12.0),
+            run("C++ Builder 6.0", east="仿宋", latin="仿宋", size=12.0),
+            run(" 示例。", east="宋体", latin="宋体", size=12.0),
+        ],
+    )
+    doc = make_doc([
+        make_para(flow_index=0, text="封面"),
+        make_para(
+            flow_index=1,
+            text="摘    要",
+            alignment="justify",
+            line_spacing=1.5,
+            first_line_indent_chars=0.0,
+            runs=[run("摘    要", east="黑体", latin="黑体", size=16.0)],
+        ),
+        empty(2),
+        body,
+        empty(4),
+        chinese_keywords(5),
+        english_title(6),
+        make_para(flow_index=7, text="目    录"),
+    ])
+
+    issues = AbstractChineseTitleBodyChecker().check(context_for(doc))
+
+    assert rule_ids(issues) == {
+        "abstract-chinese-title-004",
+        "abstract-chinese-body-003",
+    }
+
+
 def test_chinese_keywords_checker_accepts_valid_format():
     doc = valid_chinese_doc()
 
@@ -234,6 +273,41 @@ def test_chinese_keywords_checker_flags_case_rules():
         "abstract-chinese-keywords-004",
         "abstract-chinese-keywords-005",
         "abstract-chinese-keywords-006",
+    }
+
+
+def test_chinese_keywords_checker_flags_remaining_rules():
+    bad_keywords = make_para(
+        flow_index=5,
+        text="关键词：毕业设计；格式；规范；C++ Builder 6.0",
+        alignment="right",
+        line_spacing=1.0,
+        first_line_indent_chars=1.5,
+        runs=[
+            run("关键词：", east="宋体", latin="Times New Roman", size=12.0, bold=True),
+            run("毕业设计；格式；规范", east="宋体", latin="宋体", size=12.0),
+            run("；", east="宋体", latin="宋体", size=12.0),
+            run("C++ Builder 6.0", east="仿宋", latin="仿宋", size=12.0),
+        ],
+    )
+    doc = make_doc([
+        make_para(flow_index=0, text="封面"),
+        chinese_title(1),
+        empty(2),
+        chinese_body(3),
+        empty(4),
+        bad_keywords,
+        english_title(6),
+        make_para(flow_index=7, text="目    录"),
+    ])
+
+    issues = AbstractChineseKeywordsChecker().check(context_for(doc))
+
+    assert rule_ids(issues) == {
+        "abstract-chinese-keywords-007",
+        "abstract-chinese-keywords-008",
+        "abstract-chinese-keywords-009",
+        "abstract-chinese-keywords-010",
     }
 
 
