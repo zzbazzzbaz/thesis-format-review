@@ -1,6 +1,6 @@
 cases:
-  - id: appendix-title-format
-    file: samples/appendix-title-format.docx
+  - id: appendix-title-format-windows11-wps
+    file: samples/appendix-title-format-windows11-wps.docx
     description: 附录标题格式错误样本。
     error_description: 附录标题文本不是“附    录”，标题未使用黑体三号、未居中，且标题与附录正文之间不是正好 1 个空段落。
     expected_rule_ids:
@@ -10,8 +10,8 @@ cases:
       - appendix-title-004
       - appendix-title-005
 
-  - id: appendix-body-format
-    file: samples/appendix-body-format.docx
+  - id: appendix-body-format-windows11-wps
+    file: samples/appendix-body-format-windows11-wps.docx
     description: 附录正文格式错误样本。
     error_description: 附录正文段落未使用小四字号、宋体中文字体、Times New Roman 西文和数字字体、1.5 倍行距、首行缩进 2 字符和两端对齐。
     expected_rule_ids:
