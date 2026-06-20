@@ -193,3 +193,131 @@ def test_main_text_heading_checker_flags_level_three_rules():
         "main-text-heading-level-three-006",
         "main-text-heading-level-three-007",
     }
+
+
+def paragraph(
+    flow_index=9,
+    east="宋体",
+    latin="Times New Roman",
+    size=12.0,
+    line_spacing=1.5,
+    indent=2.0,
+    alignment="justify",
+):
+    text = "线性表是最常用的数据结构 Data 2026。"
+    return make_para(
+        flow_index=flow_index,
+        text=text,
+        alignment=alignment,
+        line_spacing=line_spacing,
+        first_line_indent_chars=indent,
+        runs=[
+            run("线性表是最常用的数据结构 ", east=east, latin=latin, size=size),
+            run("Data 2026", east=east, latin=latin, size=size),
+            run("。", east=east, latin=latin, size=size),
+        ],
+    )
+
+
+def test_main_text_paragraph_checker_accepts_valid_paragraph():
+    doc = thesis_doc(h1(5), empty(6), paragraph(7))
+
+    assert MainTextParagraphChecker().check(context_for(doc)) == []
+
+
+def test_main_text_paragraph_checker_flags_case_rules():
+    doc = thesis_doc(
+        h1(5),
+        empty(6),
+        paragraph(
+            7,
+            east="仿宋",
+            latin="Arial",
+            size=10.5,
+            line_spacing=1.0,
+            indent=0.0,
+            alignment="left",
+        ),
+    )
+
+    issues = MainTextParagraphChecker().check(context_for(doc))
+
+    assert rule_ids(issues) == {
+        "main-text-paragraph-001",
+        "main-text-paragraph-002",
+        "main-text-paragraph-003",
+        "main-text-paragraph-004",
+        "main-text-paragraph-005",
+        "main-text-paragraph-006",
+    }
+
+
+def test_main_text_paragraph_checker_skips_captions_and_formula_like_paragraphs():
+    doc = thesis_doc(
+        h1(5),
+        empty(6),
+        make_para(
+            flow_index=7,
+            text="图3-1 过阻尼响应",
+            alignment="center",
+            runs=[run("图3-1 过阻尼响应", east="仿宋", size=10.5)],
+        ),
+        make_para(
+            flow_index=8,
+            text="表4-1 实验数据",
+            alignment="center",
+            runs=[run("表4-1 实验数据", east="仿宋", size=10.5)],
+        ),
+        make_para(
+            flow_index=9,
+            text="(3-1)",
+            alignment="right",
+            runs=[run("(3-1)", east="仿宋", size=10.5)],
+        ),
+    )
+
+    assert MainTextParagraphChecker().check(context_for(doc)) == []
+
+
+def citation_para(
+    flow_index=7,
+    token="[1]",
+    superscript=True,
+    latin="Times New Roman",
+    size=12.0,
+):
+    return make_para(
+        flow_index=flow_index,
+        text=f"线性表{token}是常用结构。",
+        alignment="justify",
+        line_spacing=1.5,
+        first_line_indent_chars=2.0,
+        runs=[
+            run("线性表"),
+            run(token, latin=latin, size=size, superscript=superscript),
+            run("是常用结构。"),
+        ],
+    )
+
+
+def test_main_text_reference_citation_checker_accepts_valid_citation():
+    doc = thesis_doc(h1(5), empty(6), citation_para(7))
+
+    assert MainTextReferenceCitationChecker().check(context_for(doc)) == []
+
+
+def test_main_text_reference_citation_checker_flags_case_rules():
+    doc = thesis_doc(
+        h1(5),
+        empty(6),
+        citation_para(7, token="[a1]", superscript=False, latin="Arial", size=14.0),
+    )
+
+    issues = MainTextReferenceCitationChecker().check(context_for(doc))
+
+    assert rule_ids(issues) == {
+        "main-text-reference-citation-001",
+        "main-text-reference-citation-002",
+        "main-text-reference-citation-003",
+        "main-text-reference-citation-004",
+    }
