@@ -1,11 +1,23 @@
 cases:
-  - id: acknowledgements-format
-    file: samples/acknowledgements-format.docx
-    description: 致谢格式代表性错误样本。
-    error_description: 样本应包含致谢标题文本、标题样式、标题后空行和致谢正文基础格式的代表性错误。
+  - id: acknowledgements-title-format
+    file: samples/acknowledgements-title-format.docx
+    description: 致谢标题格式错误样本。
+    error_description: 致谢标题文本不是“致    谢”，标题未使用黑体三号、未居中，且标题与正文之间不是正好 1 个空段落。
     expected_rule_ids:
       - acknowledgements-title-001
+      - acknowledgements-title-002
       - acknowledgements-title-003
+      - acknowledgements-title-004
       - acknowledgements-title-005
+
+  - id: acknowledgements-body-format
+    file: samples/acknowledgements-body-format.docx
+    description: 致谢正文格式错误样本。
+    error_description: 致谢正文段落未使用小四字号、宋体中文字体、Times New Roman 西文和数字字体、1.5 倍行距、首行缩进 2 字符和两端对齐。
+    expected_rule_ids:
+      - acknowledgements-body-001
       - acknowledgements-body-002
+      - acknowledgements-body-003
+      - acknowledgements-body-004
+      - acknowledgements-body-005
       - acknowledgements-body-006

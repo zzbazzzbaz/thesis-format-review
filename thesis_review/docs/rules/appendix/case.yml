@@ -1,11 +1,23 @@
 cases:
-  - id: appendix-format
-    file: samples/appendix-format.docx
-    description: 附录格式代表性错误样本。
-    error_description: 样本应包含附录标题文本、标题样式、标题后空行和附录正文基础格式的代表性错误。
+  - id: appendix-title-format
+    file: samples/appendix-title-format.docx
+    description: 附录标题格式错误样本。
+    error_description: 附录标题文本不是“附    录”，标题未使用黑体三号、未居中，且标题与附录正文之间不是正好 1 个空段落。
     expected_rule_ids:
       - appendix-title-001
+      - appendix-title-002
       - appendix-title-003
+      - appendix-title-004
       - appendix-title-005
+
+  - id: appendix-body-format
+    file: samples/appendix-body-format.docx
+    description: 附录正文格式错误样本。
+    error_description: 附录正文段落未使用小四字号、宋体中文字体、Times New Roman 西文和数字字体、1.5 倍行距、首行缩进 2 字符和两端对齐。
+    expected_rule_ids:
+      - appendix-body-001
       - appendix-body-002
+      - appendix-body-003
+      - appendix-body-004
+      - appendix-body-005
       - appendix-body-006

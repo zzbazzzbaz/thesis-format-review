@@ -1,49 +1,21 @@
 # 项目级 AGENTS.md
 
-本项目默认使用简体中文沟通。除非用户另有说明，开发和测试以 `thesis_review/` Python 子项目为工作目录。
+- 默认使用简体中文沟通。
+- 除非用户另有说明，开发和测试以 `thesis_review/` Python 子项目为工作目录。
+- Python 版本固定为 3.12，依赖管理优先使用 `uv`；安装依赖用 `uv sync --extra dev`。
 
-## 项目结构
+## 必要结构
 
-- `docs/superpowers/specs/`：设计文档
-- `docs/superpowers/plans/`：实现计划
-- `thesis_review/`：毕业设计格式审核系统 Python 子项目
+- 代码入口：`thesis_review/src/thesis_review/`
+- 规则资产：`thesis_review/docs/rules/**`
+- 测试目录：`thesis_review/tests/`
+- UNO 镜像：`thesis_review/Dockerfile.uno-dev`
 
-## Python 与依赖
+当前已实现规则模块是 `abstract` 和 `table-of-contents`；其他规则模块未实现前应保持 `draft`。
 
-- Python 版本固定为 3.12，见 `thesis_review/.python-version`
-- `thesis_review/pyproject.toml` 使用 `requires-python = ">=3.12,<3.13"`
-- 宿主机开发优先使用 `uv`
-- Docker/UNO 开发镜像中也使用 `uv` 安装 Python 依赖
-- LibreOffice/UNO 不是 pip 依赖；容器内通过 apt 安装 `libreoffice-writer` 和 `python3-uno`
-- 容器中的虚拟环境固定在 `/opt/venv`，创建时使用 `--system-site-packages`，以便 `/opt/venv/bin/python` 能 import apt 安装的 `uno`
+## 测试
 
-## UNO 开发镜像
-
-镜像 Dockerfile 位于：
-
-```bash
-thesis_review/Dockerfile.uno-dev
-```
-
-构建镜像：
-
-```bash
-cd thesis_review
-docker build -f Dockerfile.uno-dev -t thesis-review-uno-dev .
-```
-
-只有以下情况通常需要重建镜像：
-
-- 修改 `Dockerfile.uno-dev`
-- 修改 `pyproject.toml` 或 `uv.lock` 中的依赖
-- 新增 apt 级依赖，例如字体或 LibreOffice 组件
-- 主动刷新 Ubuntu/LibreOffice 基础环境
-
-日常修改 Python 代码、测试、fixture 时，不需要重建镜像；源码通过 volume 挂载进容器。
-
-## 测试命令
-
-所有命令默认从 `thesis_review/` 目录运行。
+所有命令默认从 `thesis_review/` 运行。
 
 宿主机纯 Python 测试：
 
@@ -57,20 +29,12 @@ uv run pytest -m "not uno" -q
 uv run pytest tests/contracts/rules/test_rule_catalog.py -q
 ```
 
-容器内全量当前测试：
+容器内全量测试：
 
 ```bash
 docker run --rm -v "$PWD":/workspace -w /workspace \
   thesis-review-uno-dev \
   /opt/venv/bin/python -m pytest -q
-```
-
-容器内纯 Python 测试：
-
-```bash
-docker run --rm -v "$PWD":/workspace -w /workspace \
-  thesis-review-uno-dev \
-  /opt/venv/bin/python -m pytest -m "not uno" -q
 ```
 
 容器内 UNO 测试：
@@ -81,15 +45,7 @@ docker run --rm -v "$PWD":/workspace -w /workspace \
   /opt/venv/bin/python -m pytest -m uno -v
 ```
 
-容器内单文件测试示例：
-
-```bash
-docker run --rm -v "$PWD":/workspace -w /workspace \
-  thesis-review-uno-dev \
-  /opt/venv/bin/python -m pytest tests/test_uno_session.py -m uno -v
-```
-
-容器内规则样本契约测试：
+规则样本契约测试：
 
 ```bash
 docker run --rm -v "$PWD":/workspace -w /workspace \
@@ -97,48 +53,25 @@ docker run --rm -v "$PWD":/workspace -w /workspace \
   /opt/venv/bin/python -m pytest tests/contracts/rules/test_case_cli_contract.py -m uno -v
 ```
 
-容器内生成 fixture 示例：
+## UNO 约束
 
-```bash
-docker run --rm -v "$PWD":/workspace -w /workspace \
-  thesis-review-uno-dev \
-  /opt/venv/bin/python tests/fixtures/make_fixtures.py
-```
+- 涉及 LibreOffice/UNO 的测试必须在 Docker 容器中运行，不依赖 macOS 宿主机 LibreOffice。
+- UNO 测试使用 `@pytest.mark.uno`。
+- `SOFFICE_BIN` 默认是 `/usr/bin/soffice`，可通过环境变量覆盖。
+- 日常修改 Python 代码、测试、规则资产或静态前端时，不需要重建 `thesis-review-uno-dev` 镜像；修改 `Dockerfile.uno-dev`、`pyproject.toml`、`uv.lock` 或 apt 依赖时才重建。
 
-## UNO 开发约束
+## 规则开发
 
-- 涉及 LibreOffice/UNO 的测试必须在 Docker 容器中运行，不依赖 macOS 宿主机 LibreOffice
-- UNO 测试使用 `@pytest.mark.uno`
-- `SOFFICE_BIN` 默认是 `/usr/bin/soffice`
-- 优先使用一次性 `docker run --rm` 跑测试，避免残留 soffice 进程污染下一次测试
-- 若需要调试容器环境，可进入 shell：
+- `rule.yml` 是运行时规则元数据；`case.yml` 是样本期望命中规则，只用于测试。
+- Word 样本只放在 `thesis_review/docs/rules/<module>/samples/`。
+- 规则编号使用小写英文全词和三位数字，例如 `table-of-contents-title-006`。
+- 一个 `rule_id` 只代表一个原子检查点；已发布编号不能改名或复用，废弃时改为 `deprecated`。
+- 规则代码通过 `IssueFactory.create(rule_id=..., actual=..., location=...)` 创建问题，不硬编码 `message`、`expected`、`severity`。
+- 新增规则时先维护 `rule.yml` 和 `case.yml`，再实现检查器并加入 `rules/registry.py`。
 
-```bash
-cd thesis_review
-docker run --rm -it -v "$PWD":/workspace -w /workspace thesis-review-uno-dev bash
-```
+## 实现偏好
 
-进入后使用：
-
-```bash
-/opt/venv/bin/python -m pytest -m uno -v
-/opt/venv/bin/python -c "import uno; print('uno ok')"
-soffice --version
-```
-
-## 规则开发流程
-
-- 规则资产入口是 `thesis_review/docs/rules/**`
-- `rule.yml` 描述规则元数据，`case.yml` 描述人工 Word 样本期望命中的规则
-- 规则样本契约测试统一使用 `tests/contracts/rules/test_case_cli_contract.py`
-- 该测试会遍历所有模块的 `case.yml`，读取对应模块下 `samples/*.docx`，通过 CLI 生成 `issues.json`，再与 `case.yml` 的 `expected_rule_ids` 对比
-- 未制作的样本会跳过；已经制作样本的 case 应该通过该契约测试验证
-- 样本存在时，契约测试会按该模块 `case.yml` 中的 `expected_rule_ids` 严格比对命中的模块规则；开发中规则可以先保持 `draft`，实现并验证后再改为 `active`
-
-## 实现方式
-
-- 按 `docs/_chat/执行方式决策.md` 的任务分组执行
-- Task 11-12 属于“UNO 会话”组：fixture + `uno_session`
-- Task 11-12 使用独立 subagent + 独立 review
-- 保留 TDD：先写失败测试，再实现，再在容器中验证
-- UNO 层计划中的 API 代码只作为参考，真实实现以容器中 LibreOffice/UNO 行为和测试断言为准
+- 保留 TDD：先写失败测试，再实现，再验证。
+- 小改动优先跑最小相关测试；影响共享模型、规则注册、CLI/Web 或 UNO 定位契约时扩大测试范围。
+- 涉及真实文档样式、字体继承、批注和保存结果时，以容器内 LibreOffice/UNO 行为为准。
+- 不要用 `python-docx` 替代 UNO 做最终格式判定。

@@ -1,11 +1,26 @@
 cases:
-  - id: cover-format
-    file: samples/cover-format.docx
-    description: 封面格式代表性错误样本。
-    error_description: 样本应包含封面题目、封面信息行和封面日期的代表性样式错误，不需要修改姓名、学号等具体值。
+  - id: cover-title-format
+    file: samples/cover-title-format.docx
+    description: 封面题目格式错误样本。
+    error_description: 封面论文题目保留任意真实题目文本，但题目未使用黑体和小二字号。
     expected_rule_ids:
       - cover-title-001
       - cover-title-002
+
+  - id: cover-info-format
+    file: samples/cover-info-format.docx
+    description: 封面信息行格式错误样本。
+    error_description: 封面学院、专业、班级、姓名、学号等信息行未使用仿宋、三号字号和加粗格式；不要求修改具体示例值。
+    expected_rule_ids:
       - cover-info-001
+      - cover-info-002
       - cover-info-003
+
+  - id: cover-date-format
+    file: samples/cover-date-format.docx
+    description: 封面日期格式错误样本。
+    error_description: 封面日期行未使用仿宋、三号字号和加粗格式；不检查日期具体年月日是否正确。
+    expected_rule_ids:
+      - cover-date-001
       - cover-date-002
+      - cover-date-003

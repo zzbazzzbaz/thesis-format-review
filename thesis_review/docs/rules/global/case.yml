@@ -1,11 +1,41 @@
 cases:
-  - id: global-page-format
-    file: samples/global-page-format.docx
-    description: 整体页面格式代表性错误样本。
-    error_description: 样本应包含页边距、非封面页页眉、正文页码和无页码区域的代表性错误，便于验证整体页面级规则。
+  - id: global-margin-format
+    file: samples/global-margin-format.docx
+    description: 页面边距错误样本。
+    error_description: 文档页面上、下、左、右边距不是 2.6 cm，用于验证整体页面边距规则。
     expected_rule_ids:
       - global-margin-001
+      - global-margin-002
+      - global-margin-003
+      - global-margin-004
+
+  - id: global-header-format
+    file: samples/global-header-format.docx
+    description: 非封面页页眉格式错误样本。
+    error_description: 从中文摘要到附录范围内的页眉文本不是“山东石油化工学院本科毕业设计（论文）”，或页眉未使用黑体五号、未居中。
+    expected_rule_ids:
       - global-header-001
+      - global-header-002
       - global-header-003
+      - global-header-004
+
+  - id: global-footer-page-number-format
+    file: samples/global-footer-page-number-format.docx
+    description: 正文到附录页码格式错误样本。
+    error_description: 正文到附录范围内的页码未使用阿拉伯数字、未连续编排、未位于页脚中间，或页码未使用 Times New Roman 五号。
+    expected_rule_ids:
+      - global-footer-page-number-001
+      - global-footer-page-number-002
       - global-footer-page-number-003
+      - global-footer-page-number-004
+      - global-footer-page-number-005
+
+  - id: global-footer-page-number-excluded
+    file: samples/global-footer-page-number-excluded.docx
+    description: 无页码区域错误样本。
+    error_description: 封面、中文摘要、英文摘要或目录页显示了页码，用于验证这些区域不应显示页码。
+    expected_rule_ids:
       - global-footer-page-number-excluded-001
+      - global-footer-page-number-excluded-002
+      - global-footer-page-number-excluded-003
+      - global-footer-page-number-excluded-004
