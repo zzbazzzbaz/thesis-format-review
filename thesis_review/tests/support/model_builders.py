@@ -16,6 +16,7 @@ def make_run(
     size_pt=12.0,
     bold=False,
     italic=False,
+    superscript=False,
     block_id="b-0001",
 ):
     return RunSpan(
@@ -27,6 +28,7 @@ def make_run(
         size_pt=size_pt,
         bold=bold,
         italic=italic,
+        superscript=superscript,
     )
 
 
@@ -41,6 +43,7 @@ def make_para(
     first_line_indent_chars=2.0,
     runs=None,
     is_empty=None,
+    page_break_before=False,
 ):
     if type_index is None:
         type_index = flow_index
@@ -64,6 +67,7 @@ def make_para(
         alignment=alignment,
         line_spacing=line_spacing,
         first_line_indent_chars=first_line_indent_chars,
+        page_break_before=page_break_before,
         is_empty=is_empty,
         runs=runs,
     )

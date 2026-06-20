@@ -20,6 +20,7 @@ class RunSpan(BaseModel):
     size_pt: float | None
     bold: bool
     italic: bool
+    superscript: bool = False
 
 
 class BlockBase(BaseModel):

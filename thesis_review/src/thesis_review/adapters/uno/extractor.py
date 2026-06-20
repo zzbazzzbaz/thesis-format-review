@@ -52,6 +52,14 @@ def _is_italic(posture_val) -> bool:
         return False
 
 
+def _is_superscript(escapement_val) -> bool:
+    """UNO CharEscapement > 0 表示上标。"""
+    try:
+        return int(escapement_val) > 0
+    except (TypeError, ValueError):
+        return False
+
+
 def _outline_level(para) -> int | None:
     """UNO OutlineLevel：1=Heading1 → 模型 0；0=正文 → None。"""
     lvl = int(getattr(para, "OutlineLevel", 0) or 0)
@@ -153,6 +161,7 @@ def _extract_paragraph(block: TraversedBlock) -> ParagraphBlock:
             size_pt=ch_height,
             bold=_is_bold(ch_weight),
             italic=_is_italic(ch_posture),
+            superscript=_is_superscript(getattr(portion, "CharEscapement", None)),
         ))
 
     first_run_pt = runs[0].size_pt if runs else None

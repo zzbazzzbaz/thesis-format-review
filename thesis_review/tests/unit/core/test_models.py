@@ -27,6 +27,37 @@ def test_runspan_holds_char_level_fields():
     assert run.size_pt == 12.0
 
 
+def test_runspan_superscript_defaults_to_false():
+    run = RunSpan(
+        id="b-0001-r-0001",
+        text="[1]",
+        run_index=0,
+        font_east_asian="宋体",
+        font_latin="Times New Roman",
+        size_pt=12.0,
+        bold=False,
+        italic=False,
+    )
+
+    assert run.superscript is False
+
+
+def test_runspan_accepts_superscript_true():
+    run = RunSpan(
+        id="b-0001-r-0001",
+        text="[1]",
+        run_index=0,
+        font_east_asian="宋体",
+        font_latin="Times New Roman",
+        size_pt=12.0,
+        bold=False,
+        italic=False,
+        superscript=True,
+    )
+
+    assert run.superscript is True
+
+
 def test_paragraph_holds_para_level_fields_and_runs():
     para = ParagraphBlock(
         id="b-0001",

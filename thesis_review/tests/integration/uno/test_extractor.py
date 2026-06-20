@@ -127,6 +127,29 @@ def test_extract_preserves_empty_paragraphs(tmp_path):
 
 
 @pytest.mark.uno
+def test_extract_superscript_run(tmp_path):
+    """正文引用上标应抽取为 RunSpan.superscript=True。"""
+    path = tmp_path / "with_superscript.docx"
+    docx = Document()
+    paragraph = docx.add_paragraph()
+    paragraph.add_run("正文引用")
+    cite = paragraph.add_run("[1]")
+    cite.font.superscript = True
+    docx.save(path)
+
+    with UnoSession() as session:
+        with session.open(str(path)) as doc:
+            model = extract(doc, source_path=str(path))
+
+    para = next(
+        block for block in model.blocks
+        if block.kind == "paragraph" and "[1]" in block.text
+    )
+    cite_run = next(run for run in para.runs if "[1]" in run.text)
+    assert cite_run.superscript is True
+
+
+@pytest.mark.uno
 def test_extract_alignment_default_left(sample_docx):
     """规则样本中应能读出左对齐段落。"""
     with UnoSession() as session:
