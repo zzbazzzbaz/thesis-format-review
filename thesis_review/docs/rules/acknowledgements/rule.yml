@@ -5,77 +5,77 @@ rules:
   - id: acknowledgements-title-001
     title: 致谢标题文本
     severity: error
-    status: draft
+    status: active
     description: 检查致谢标题文本是否为“致    谢”，中间为 4 个普通半角空格。
     message: 致谢标题文本应为“致    谢”
     expected: 致    谢
   - id: acknowledgements-title-002
     title: 致谢标题中文字体
     severity: error
-    status: draft
+    status: active
     description: 检查致谢标题中文字体是否为黑体。
     message: 致谢标题中文字体应为黑体
     expected: 黑体
   - id: acknowledgements-title-003
     title: 致谢标题字号
     severity: error
-    status: draft
+    status: active
     description: 检查致谢标题字号是否为三号，即 16pt。
     message: 致谢标题字号应为三号
     expected: 三号（16pt）
   - id: acknowledgements-title-004
     title: 致谢标题居中
     severity: error
-    status: draft
+    status: active
     description: 检查致谢标题是否居中。
     message: 致谢标题应居中
     expected: 居中
   - id: acknowledgements-title-005
     title: 致谢标题后空行
     severity: error
-    status: draft
+    status: active
     description: 检查致谢标题和致谢正文之间是否正好有 1 个空段落。
     message: 致谢标题后必须且只能空一行
     expected: 1 个空段落
   - id: acknowledgements-body-001
     title: 致谢正文字号
     severity: error
-    status: draft
+    status: active
     description: 检查致谢正文字号是否为小四，即 12pt。
     message: 致谢正文字号应为小四
     expected: 小四（12pt）
   - id: acknowledgements-body-002
     title: 致谢正文中文字体
     severity: error
-    status: draft
+    status: active
     description: 检查致谢正文中文字体是否为宋体。
     message: 致谢正文中文字体应为宋体
     expected: 宋体
   - id: acknowledgements-body-003
     title: 致谢正文西文和数字字体
     severity: error
-    status: draft
+    status: active
     description: 检查致谢正文西文和数字字体是否为 Times New Roman。
     message: 致谢正文西文和数字字体应为 Times New Roman
     expected: Times New Roman
   - id: acknowledgements-body-004
     title: 致谢正文行距
     severity: error
-    status: draft
+    status: active
     description: 检查致谢正文行距是否为 1.5 倍。
     message: 致谢正文行距应为 1.5 倍
     expected: 1.5 倍
   - id: acknowledgements-body-005
     title: 致谢正文首行缩进
     severity: error
-    status: draft
+    status: active
     description: 检查致谢正文首行缩进是否为 2 字符。
     message: 致谢正文首行应缩进 2 字符
     expected: 首行缩进 2 字符
   - id: acknowledgements-body-006
     title: 致谢正文两端对齐
     severity: error
-    status: draft
+    status: active
     description: 检查致谢正文是否两端对齐。
     message: 致谢正文应两端对齐
     expected: 两端对齐

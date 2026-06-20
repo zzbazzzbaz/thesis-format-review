@@ -5,77 +5,77 @@ rules:
   - id: appendix-title-001
     title: 附录标题文本
     severity: error
-    status: draft
+    status: active
     description: 检查附录标题文本是否为“附    录”，中间为 4 个普通半角空格。
     message: 附录标题文本应为“附    录”
     expected: 附    录
   - id: appendix-title-002
     title: 附录标题中文字体
     severity: error
-    status: draft
+    status: active
     description: 检查附录标题中文字体是否为黑体。
     message: 附录标题中文字体应为黑体
     expected: 黑体
   - id: appendix-title-003
     title: 附录标题字号
     severity: error
-    status: draft
+    status: active
     description: 检查附录标题字号是否为三号，即 16pt。
     message: 附录标题字号应为三号
     expected: 三号（16pt）
   - id: appendix-title-004
     title: 附录标题居中
     severity: error
-    status: draft
+    status: active
     description: 检查附录标题是否居中。
     message: 附录标题应居中
     expected: 居中
   - id: appendix-title-005
     title: 附录标题后空行
     severity: error
-    status: draft
+    status: active
     description: 检查附录标题和附录正文之间是否正好有 1 个空段落。
     message: 附录标题后必须且只能空一行
     expected: 1 个空段落
   - id: appendix-body-001
     title: 附录正文字号
     severity: error
-    status: draft
+    status: active
     description: 检查附录正文字号是否为小四，即 12pt。
     message: 附录正文字号应为小四
     expected: 小四（12pt）
   - id: appendix-body-002
     title: 附录正文中文字体
     severity: error
-    status: draft
+    status: active
     description: 检查附录正文中文字体是否为宋体。
     message: 附录正文中文字体应为宋体
     expected: 宋体
   - id: appendix-body-003
     title: 附录正文西文和数字字体
     severity: error
-    status: draft
+    status: active
     description: 检查附录正文西文和数字字体是否为 Times New Roman。
     message: 附录正文西文和数字字体应为 Times New Roman
     expected: Times New Roman
   - id: appendix-body-004
     title: 附录正文行距
     severity: error
-    status: draft
+    status: active
     description: 检查附录正文行距是否为 1.5 倍。
     message: 附录正文行距应为 1.5 倍
     expected: 1.5 倍
   - id: appendix-body-005
     title: 附录正文首行缩进
     severity: error
-    status: draft
+    status: active
     description: 检查附录正文首行缩进是否为 2 字符。
     message: 附录正文首行应缩进 2 字符
     expected: 首行缩进 2 字符
   - id: appendix-body-006
     title: 附录正文两端对齐
     severity: error
-    status: draft
+    status: active
     description: 检查附录正文是否两端对齐。
     message: 附录正文应两端对齐
     expected: 两端对齐

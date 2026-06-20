@@ -5,203 +5,203 @@ rules:
   - id: main-text-heading-level-one-001
     title: 一级标题编号形态
     severity: error
-    status: draft
+    status: active
     description: 检查一级标题编号是否为“第X章”，其中 X 只允许中文数字。
     message: 一级标题编号应使用“第X章”中文数字形式
     expected: 第X章
   - id: main-text-heading-level-one-002
     title: 一级标题编号后空格
     severity: error
-    status: draft
+    status: active
     description: 检查一级标题编号后是否正好有 2 个普通半角空格再接标题。
     message: 一级标题编号与标题之间应空 2 个普通半角空格
     expected: 2 个普通半角空格
   - id: main-text-heading-level-one-003
     title: 一级标题中文字体
     severity: error
-    status: draft
+    status: active
     description: 检查一级标题中文字体是否为黑体。
     message: 一级标题中文字体应为黑体
     expected: 黑体
   - id: main-text-heading-level-one-004
     title: 一级标题字号
     severity: error
-    status: draft
+    status: active
     description: 检查一级标题字号是否为三号，即 16pt。
     message: 一级标题字号应为三号
     expected: 三号（16pt）
   - id: main-text-heading-level-one-005
     title: 一级标题后空行
     severity: error
-    status: draft
+    status: active
     description: 检查一级标题和后续正文之间是否正好有 1 个空段落。
     message: 一级标题后必须且只能空一行
     expected: 1 个空段落
   - id: main-text-heading-level-one-006
     title: 一级标题另起一页
     severity: error
-    status: draft
+    status: active
     description: 检查每一章一级标题是否另起一页。
     message: 每一章一级标题应另起一页
     expected: 另起一页
   - id: main-text-heading-level-two-001
     title: 二级标题编号形态
     severity: error
-    status: draft
+    status: active
     description: 检查二级标题编号是否为阿拉伯数字点号形式 N.N。
     message: 二级标题编号应为 N.N 形式
     expected: N.N
   - id: main-text-heading-level-two-002
     title: 二级标题编号后空格
     severity: error
-    status: draft
+    status: active
     description: 检查二级标题编号和标题之间是否正好有 1 个普通半角空格。
     message: 二级标题编号与标题之间应空 1 个普通半角空格
     expected: 1 个普通半角空格
   - id: main-text-heading-level-two-003
     title: 二级标题中文字体
     severity: error
-    status: draft
+    status: active
     description: 检查二级标题中文字体是否为黑体。
     message: 二级标题中文字体应为黑体
     expected: 黑体
   - id: main-text-heading-level-two-004
     title: 二级标题字号
     severity: error
-    status: draft
+    status: active
     description: 检查二级标题字号是否为四号，即 14pt。
     message: 二级标题字号应为四号
     expected: 四号（14pt）
   - id: main-text-heading-level-two-005
     title: 二级标题行距
     severity: error
-    status: draft
+    status: active
     description: 检查二级标题行距是否为 1.5 倍。
     message: 二级标题行距应为 1.5 倍
     expected: 1.5 倍
   - id: main-text-heading-level-two-006
     title: 二级标题数字和西文字体
     severity: error
-    status: draft
+    status: active
     description: 检查二级标题编号、数字和西文字体是否为 Times New Roman。
     message: 二级标题数字和西文字体应为 Times New Roman
     expected: Times New Roman
   - id: main-text-heading-level-three-001
     title: 三级标题编号形态
     severity: error
-    status: draft
+    status: active
     description: 检查三级标题编号是否为阿拉伯数字点号形式 N.N.N。
     message: 三级标题编号应为 N.N.N 形式
     expected: N.N.N
   - id: main-text-heading-level-three-002
     title: 三级标题编号后空格
     severity: error
-    status: draft
+    status: active
     description: 检查三级标题编号和标题之间是否正好有 1 个普通半角空格。
     message: 三级标题编号与标题之间应空 1 个普通半角空格
     expected: 1 个普通半角空格
   - id: main-text-heading-level-three-003
     title: 三级标题首行缩进
     severity: error
-    status: draft
+    status: active
     description: 检查三级标题首行缩进是否为 2 字符。
     message: 三级标题首行应缩进 2 字符
     expected: 首行缩进 2 字符
   - id: main-text-heading-level-three-004
     title: 三级标题中文字体
     severity: error
-    status: draft
+    status: active
     description: 检查三级标题中文字体是否为黑体。
     message: 三级标题中文字体应为黑体
     expected: 黑体
   - id: main-text-heading-level-three-005
     title: 三级标题字号
     severity: error
-    status: draft
+    status: active
     description: 检查三级标题字号是否为小四，即 12pt。
     message: 三级标题字号应为小四
     expected: 小四（12pt）
   - id: main-text-heading-level-three-006
     title: 三级标题行距
     severity: error
-    status: draft
+    status: active
     description: 检查三级标题行距是否为 1.5 倍。
     message: 三级标题行距应为 1.5 倍
     expected: 1.5 倍
   - id: main-text-heading-level-three-007
     title: 三级标题数字和西文字体
     severity: error
-    status: draft
+    status: active
     description: 检查三级标题编号、数字和西文字体是否为 Times New Roman。
     message: 三级标题数字和西文字体应为 Times New Roman
     expected: Times New Roman
   - id: main-text-paragraph-001
     title: 正文段落字号
     severity: error
-    status: draft
+    status: active
     description: 检查正文普通段落字号是否为小四，即 12pt。
     message: 正文普通段落字号应为小四
     expected: 小四（12pt）
   - id: main-text-paragraph-002
     title: 正文段落中文字体
     severity: error
-    status: draft
+    status: active
     description: 检查正文普通段落中文字体是否为宋体。
     message: 正文普通段落中文字体应为宋体
     expected: 宋体
   - id: main-text-paragraph-003
     title: 正文段落西文和数字字体
     severity: error
-    status: draft
+    status: active
     description: 检查正文普通段落西文和数字字体是否为 Times New Roman。
     message: 正文普通段落西文和数字字体应为 Times New Roman
     expected: Times New Roman
   - id: main-text-paragraph-004
     title: 正文段落首行缩进
     severity: error
-    status: draft
+    status: active
     description: 检查正文普通段落首行缩进是否为 2 字符，包括以“（1）”开头的段落。
     message: 正文普通段落首行应缩进 2 字符
     expected: 首行缩进 2 字符
   - id: main-text-paragraph-005
     title: 正文段落行距
     severity: error
-    status: draft
+    status: active
     description: 检查正文普通段落行距是否为 1.5 倍。
     message: 正文普通段落行距应为 1.5 倍
     expected: 1.5 倍
   - id: main-text-paragraph-006
     title: 正文段落两端对齐
     severity: error
-    status: draft
+    status: active
     description: 检查正文普通段落是否两端对齐。
     message: 正文普通段落应两端对齐
     expected: 两端对齐
   - id: main-text-reference-citation-001
     title: 正文引用编号格式
     severity: error
-    status: draft
+    status: active
     description: 检查正文参考文献引用编号是否为方括号数字形式，例如 [1]。
     message: 正文参考文献引用应使用方括号数字格式
     expected: "[1]"
   - id: main-text-reference-citation-002
     title: 正文引用编号上标
     severity: error
-    status: draft
+    status: active
     description: 检查正文参考文献引用编号是否为上标。
     message: 正文参考文献引用编号应为上标
     expected: 上标
   - id: main-text-reference-citation-003
     title: 正文引用编号字号
     severity: error
-    status: draft
+    status: active
     description: 检查正文参考文献引用编号字号是否为小四，即 12pt。
     message: 正文参考文献引用编号字号应为小四
     expected: 小四（12pt）
   - id: main-text-reference-citation-004
     title: 正文引用编号字体
     severity: error
-    status: draft
+    status: active
     description: 检查正文参考文献引用编号字体是否为 Times New Roman。
     message: 正文参考文献引用编号字体应为 Times New Roman
     expected: Times New Roman

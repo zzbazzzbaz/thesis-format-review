@@ -44,15 +44,25 @@ def test_rule_modules_match_expected_names():
         assert spec.module_name == module_name
 
 
-def test_unimplemented_rule_modules_remain_draft():
+def test_unimplemented_rule_groups_remain_draft():
     catalog = load_rule_catalog(rules_root())
 
-    for module, spec in catalog.modules_by_name.items():
-        if module in {"abstract", "table-of-contents"}:
-            continue
+    draft_only_modules = {"global"}
+    for module in draft_only_modules:
+        spec = catalog.modules_by_name[module]
         assert spec.rules
         assert {rule.status for rule in spec.rules} == {"draft"}
         assert {rule.severity for rule in spec.rules} == {"error"}
+
+    main_text = catalog.modules_by_name["main-text"]
+    draft_prefixes = (
+        "main-text-formula-",
+        "main-text-figure-caption-",
+        "main-text-table-caption-",
+    )
+    for rule in main_text.rules:
+        if rule.id.startswith(draft_prefixes):
+            assert rule.status == "draft"
 
 
 def test_active_rules_are_declared_by_registered_checkers():

@@ -5,56 +5,56 @@ rules:
   - id: cover-title-001
     title: 封面题目中文字体
     severity: error
-    status: draft
+    status: active
     description: 检查封面题目中文字体是否为黑体，不限制题目具体文本。
     message: 封面题目中文字体应为黑体
     expected: 黑体
   - id: cover-title-002
     title: 封面题目字号
     severity: error
-    status: draft
+    status: active
     description: 检查封面题目字号是否为小二，即 18pt。
     message: 封面题目字号应为小二
     expected: 小二（18pt）
   - id: cover-info-001
     title: 封面信息行中文字体
     severity: error
-    status: draft
+    status: active
     description: 检查封面信息行中文字体是否为仿宋，不检查信息标签存在性和示例值。
     message: 封面信息行中文字体应为仿宋
     expected: 仿宋
   - id: cover-info-002
     title: 封面信息行字号
     severity: error
-    status: draft
+    status: active
     description: 检查封面信息行字号是否为三号，即 16pt。
     message: 封面信息行字号应为三号
     expected: 三号（16pt）
   - id: cover-info-003
     title: 封面信息行加粗
     severity: error
-    status: draft
+    status: active
     description: 检查封面信息行是否加粗。
     message: 封面信息行应加粗
     expected: 加粗
   - id: cover-date-001
     title: 封面日期中文字体
     severity: error
-    status: draft
+    status: active
     description: 检查封面日期中文字体是否为仿宋，不检查日期具体值。
     message: 封面日期中文字体应为仿宋
     expected: 仿宋
   - id: cover-date-002
     title: 封面日期字号
     severity: error
-    status: draft
+    status: active
     description: 检查封面日期字号是否为三号，即 16pt。
     message: 封面日期字号应为三号
     expected: 三号（16pt）
   - id: cover-date-003
     title: 封面日期加粗
     severity: error
-    status: draft
+    status: active
     description: 检查封面日期是否加粗。
     message: 封面日期应加粗
     expected: 加粗
