@@ -27,8 +27,9 @@ cases:
   - id: main-text-paragraph-and-citation-format
     file: samples/main-text-paragraph-and-citation-format.docx
     description: 正文普通段落和引用编号格式错误样本。
-    error_description: 正文普通段落未使用小四字号、宋体中文字体、Times New Roman 西文和数字字体、首行缩进 2 字符、1.5 倍行距和两端对齐；正文参考文献引用未使用方括号数字格式，或引用编号未设置为上标、小四字号和 Times New Roman 字体。
+    error_description: 正文普通段落未使用小四字号、宋体中文字体、Times New Roman 西文和数字字体、首行缩进 2 字符、1.5 倍行距和两端对齐；正文参考文献引用未使用方括号数字格式、小四字号或 Times New Roman 字体；样本一级标题未显式设置段前分页。
     expected_rule_ids:
+      - main-text-heading-level-one-006
       - main-text-paragraph-001
       - main-text-paragraph-002
       - main-text-paragraph-003
@@ -36,38 +37,19 @@ cases:
       - main-text-paragraph-005
       - main-text-paragraph-006
       - main-text-reference-citation-001
-      - main-text-reference-citation-002
       - main-text-reference-citation-003
       - main-text-reference-citation-004
 
   - id: main-text-formula-format
     file: samples/main-text-formula-format.docx
-    description: 正文公式格式错误样本。
-    error_description: 正文公式缺少公式号，或公式号未按章编号为“(章号-序号)”，公式和编号整体未居中，公式编号未居右，或公式编号未使用五号 Times New Roman。
+    description: 正文公式格式错误样本；公式规则保留给第二份 spec。
+    error_description: 本阶段公式规则仍为 draft，不作为 CLI 期望命中；该样本当前仅用于确认已激活的正文一级标题段前分页规则。
     expected_rule_ids:
-      - main-text-formula-001
-      - main-text-formula-002
-      - main-text-formula-003
-      - main-text-formula-004
-      - main-text-formula-005
-      - main-text-formula-006
+      - main-text-heading-level-one-006
 
   - id: main-text-figure-table-caption-format
     file: samples/main-text-figure-table-caption-format.docx
-    description: 正文图片图题和表格表题格式错误样本。
-    error_description: 图片缺少图题、图题未位于图片下方、图号未按章编号、图号与图题之间不是 1 个普通半角空格、图题未居中或未使用五号宋体；表格缺少表题、表题未位于表格上方、表号未按章编号、表号与表题之间不是 1 个普通半角空格、表题未居中或未使用五号宋体。
+    description: 正文图片图题和表格表题格式错误样本；图题和表题规则保留给第二份 spec。
+    error_description: 本阶段图片题注和表格题注规则仍为 draft，不作为 CLI 期望命中；该样本当前仅用于确认已激活的正文一级标题段前分页规则。
     expected_rule_ids:
-      - main-text-figure-caption-001
-      - main-text-figure-caption-002
-      - main-text-figure-caption-003
-      - main-text-figure-caption-004
-      - main-text-figure-caption-005
-      - main-text-figure-caption-006
-      - main-text-figure-caption-007
-      - main-text-table-caption-001
-      - main-text-table-caption-002
-      - main-text-table-caption-003
-      - main-text-table-caption-004
-      - main-text-table-caption-005
-      - main-text-table-caption-006
-      - main-text-table-caption-007
+      - main-text-heading-level-one-006

@@ -32,6 +32,8 @@ _MALFORMED_H3_RE = re.compile(r"^(\d+\.\d{2,})( *)(.+)$")
 _FIGURE_CAPTION_RE = re.compile(r"^图\d+-\d+ ")
 _TABLE_CAPTION_RE = re.compile(r"^表\d+-\d+ ")
 _FORMULA_LIKE_RE = re.compile(r"^\s*(?:[A-Za-z0-9+\-*/=()]+|\(\d+-\d+\))\s*$")
+_PLACEHOLDER_RE = re.compile(r"^[…\.．。]{2,}$")
+_CONTINUED_TABLE_RE = re.compile(r"^续表\s*\d+-\d+")
 _CITATION_RE = re.compile(r"\[[A-Za-z0-9]+\]")
 _VALID_CITATION_RE = re.compile(r"^\[\d+\]$")
 
@@ -74,6 +76,8 @@ def _is_caption_or_formula(para: ParagraphBlock) -> bool:
         _FIGURE_CAPTION_RE.match(text)
         or _TABLE_CAPTION_RE.match(text)
         or _FORMULA_LIKE_RE.match(text)
+        or _PLACEHOLDER_RE.match(text)
+        or _CONTINUED_TABLE_RE.match(text)
     )
 
 

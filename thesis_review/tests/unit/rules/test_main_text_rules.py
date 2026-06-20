@@ -279,6 +279,27 @@ def test_main_text_paragraph_checker_skips_captions_and_formula_like_paragraphs(
     assert MainTextParagraphChecker().check(context_for(doc)) == []
 
 
+def test_main_text_paragraph_checker_skips_placeholders_and_continued_tables():
+    doc = thesis_doc(
+        h1(5),
+        empty(6),
+        make_para(
+            flow_index=7,
+            text="……",
+            alignment="left",
+            runs=[run("……", east="宋体", latin="宋体", size=12.0)],
+        ),
+        make_para(
+            flow_index=8,
+            text="续表4-1",
+            alignment="right",
+            runs=[run("续表4-1", east="宋体", latin="Times New Roman", size=10.5)],
+        ),
+    )
+
+    assert MainTextParagraphChecker().check(context_for(doc)) == []
+
+
 def citation_para(
     flow_index=7,
     token="[1]",

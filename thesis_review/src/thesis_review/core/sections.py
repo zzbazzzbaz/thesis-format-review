@@ -56,6 +56,16 @@ def is_body_chapter(para: ParagraphBlock) -> bool:
     return bool(_BODY_CHAPTER_RE.match(text))
 
 
+def is_references_title_candidate(para: ParagraphBlock) -> bool:
+    text = para.text.strip()
+    if "\t" in text:
+        return False
+    normalized = norm_text(text)
+    return normalized == "参考文献" or (
+        "参考" in normalized and "文献" in normalized
+    )
+
+
 def _find_first(
     paragraphs: list[ParagraphBlock],
     names: set[str],
@@ -125,7 +135,14 @@ def detect_sections(document: DocumentModel) -> dict[str, SectionRange]:
             body_start = para.flow_index
             break
 
-    ref_idx = _find_first(paragraphs, {"参考文献"}, start=body_start or 0)
+    ref_idx = next(
+        (
+            i for i, para in enumerate(paragraphs)
+            if para.flow_index >= (body_start or 0)
+            and is_references_title_candidate(para)
+        ),
+        None,
+    )
     ref_flow = paragraphs[ref_idx].flow_index if ref_idx is not None else 0
     thanks_idx = _find_first(paragraphs, {"致谢"}, start=ref_flow)
     thanks_flow = paragraphs[thanks_idx].flow_index if thanks_idx is not None else 0

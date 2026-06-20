@@ -77,6 +77,14 @@ def test_references_title_checker_flags_text_and_blank_count():
     assert rule_ids(issues) == {"references-title-001", "references-title-002"}
 
 
+def test_references_title_checker_flags_references_like_bad_title():
+    doc = references_doc(title(1, text="参考的文献"), entry(2))
+
+    issues = ReferencesTitleChecker().check(context_for(doc))
+
+    assert rule_ids(issues) == {"references-title-001", "references-title-002"}
+
+
 def test_references_entry_checker_accepts_valid_entry():
     doc = references_doc(title(1), empty(2), entry(3))
 
