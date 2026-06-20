@@ -11,6 +11,12 @@
 - 测试目录：`thesis_review/tests/`
 - UNO 镜像：`thesis_review/Dockerfile.uno-dev`
 
+## Superpowers 文档
+
+- 设计规格（spec）统一放在项目根目录的 `docs/superpowers/specs/`。
+- 实施计划（plan）统一放在项目根目录的 `docs/superpowers/plans/`。
+- Superpowers 相关文档默认使用简体中文。
+
 当前已实现规则模块是 `abstract` 和 `table-of-contents`；其他规则模块未实现前应保持 `draft`。
 
 ## 测试
