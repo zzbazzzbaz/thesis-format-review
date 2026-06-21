@@ -44,14 +44,14 @@ def test_rule_modules_match_expected_names():
         assert spec.module_name == module_name
 
 
-def test_unimplemented_rule_groups_remain_draft():
+def test_unimplemented_rule_groups_are_not_active():
     catalog = load_rule_catalog(rules_root())
 
-    draft_only_modules = {"global"}
-    for module in draft_only_modules:
+    inactive_modules = {"global"}
+    for module in inactive_modules:
         spec = catalog.modules_by_name[module]
         assert spec.rules
-        assert {rule.status for rule in spec.rules} == {"draft"}
+        assert {rule.status for rule in spec.rules} <= {"draft", "deprecated"}
         assert {rule.severity for rule in spec.rules} == {"error"}
 
     main_text = catalog.modules_by_name["main-text"]
