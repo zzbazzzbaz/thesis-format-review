@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import pytest
 from docx import Document
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT
+from docx.shared import Cm, Pt
 
 pytest.importorskip("uno")
 
@@ -203,3 +205,154 @@ def test_extract_preserves_table_in_flow(tmp_path):
     assert table_block.column_count == 2
     assert "A1" in table_block.text
     assert "B2" in table_block.text
+
+
+@pytest.mark.uno
+def test_extract_page_style_header_footer_and_page_number(tmp_path):
+    """页样式应包含页眉页脚文本，正文块应带页面样式名。"""
+    path = tmp_path / "with_header_footer.docx"
+    docx = Document()
+    section = docx.sections[0]
+    header_para = section.header.paragraphs[0]
+    header_para.text = "山东石油化工学院本科毕业设计（论文）"
+    header_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    header_run = header_para.runs[0]
+    header_run.font.name = "SimHei"
+    header_run.font.size = Pt(10.5)
+    footer_para = section.footer.paragraphs[0]
+    footer_para.text = "1"
+    footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    footer_run = footer_para.runs[0]
+    footer_run.font.name = "Times New Roman"
+    footer_run.font.size = Pt(10.5)
+    docx.add_paragraph("摘    要")
+    docx.add_paragraph("摘要正文")
+    docx.add_paragraph("目    录")
+    docx.add_paragraph("第一章  引言")
+    docx.save(path)
+
+    with UnoSession() as session:
+        with session.open(str(path)) as doc:
+            model = extract(doc, source_path=str(path))
+
+    assert model.page_styles
+    assert any(style.header_text for style in model.page_styles)
+    assert any(style.footer_text for style in model.page_styles)
+    assert any(block.page_style_name for block in model.blocks)
+
+
+@pytest.mark.uno
+def test_extract_uses_ooxml_page_number_size_when_uno_textfield_size_is_wrong():
+    """页脚 PAGE 字段字号以 OOXML 字段结果 run 为准，避免 UNO 导入失真。"""
+    path = "docs/rules/global/samples/global-header-format.docx"
+
+    with UnoSession() as session:
+        with session.open(path) as doc:
+            model = extract(doc, source_path=path)
+
+    page_number_runs = [
+        run
+        for style in model.page_styles
+        for paragraph in style.footer_paragraphs
+        if paragraph.page_number_text
+        for run in paragraph.runs
+        if run.text.strip().isdigit()
+    ]
+    assert page_number_runs
+    assert {run.size_pt for run in page_number_runs} == {10.5}
+
+
+@pytest.mark.uno
+def test_extract_preserves_ooxml_page_number_size_violation_from_rule_sample():
+    """真实页码字号错误样本应从 OOXML 抽出 12pt。"""
+    path = "docs/rules/global/samples/global-footer-page-number-format.docx"
+
+    with UnoSession() as session:
+        with session.open(path) as doc:
+            model = extract(doc, source_path=path)
+
+    page_number_runs = [
+        run
+        for style in model.page_styles
+        for paragraph in style.footer_paragraphs
+        if paragraph.page_number_text
+        for run in paragraph.runs
+        if run.text.strip().isdigit()
+    ]
+    assert page_number_runs
+    assert {run.size_pt for run in page_number_runs} == {12.0}
+
+
+@pytest.mark.uno
+def test_extract_preserves_image_in_flow(tmp_path):
+    """正文图片应作为 ImageBlock 出现在图题前。"""
+    path = tmp_path / "with_image.docx"
+    image_path = tmp_path / "pixel.png"
+    image_path.write_bytes(
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
+        b"\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde"
+        b"\x00\x00\x00\x0cIDATx\x9cc\xf8\xff\xff?\x00\x05\xfe\x02\xfeA\xe2`"
+        b"\x82\x00\x00\x00\x00IEND\xaeB`\x82"
+    )
+    docx_file = Document()
+    docx_file.add_paragraph("图前段落")
+    docx_file.add_picture(str(image_path))
+    docx_file.add_paragraph("图1-1 示例")
+    docx_file.save(path)
+
+    with UnoSession() as session:
+        with session.open(str(path)) as doc:
+            model = extract(doc, source_path=str(path))
+
+    kinds = [block.kind for block in model.blocks]
+    assert "image" in kinds
+    assert kinds.index("image") < next(
+        i for i, block in enumerate(model.blocks)
+        if block.kind == "paragraph" and block.text.startswith("图1-1")
+    )
+
+
+@pytest.mark.uno
+def test_extract_formula_like_paragraph_tab_stops(tmp_path):
+    """公式样式段落应抽取可用于编号位置判断的制表位。"""
+    path = tmp_path / "with_formula_like.docx"
+    docx_file = Document()
+    para = docx_file.add_paragraph("a = b + c\t(1-1)")
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    para.paragraph_format.tab_stops.add_tab_stop(
+        Cm(8),
+        alignment=WD_TAB_ALIGNMENT.CENTER,
+    )
+    para.paragraph_format.tab_stops.add_tab_stop(
+        Cm(16),
+        alignment=WD_TAB_ALIGNMENT.RIGHT,
+    )
+    docx_file.save(path)
+
+    with UnoSession() as session:
+        with session.open(str(path)) as doc:
+            model = extract(doc, source_path=str(path))
+
+    para_model = next(
+        block for block in model.blocks
+        if block.kind == "paragraph" and "(1-1)" in block.text
+    )
+    assert para_model.tab_stops
+    assert {tab.alignment for tab in para_model.tab_stops} & {"center", "right"}
+
+
+@pytest.mark.uno
+def test_extract_marks_ooxml_ole_formula_paragraphs_from_rule_sample():
+    """WPS/Word 公式 OLE 对象应通过只读 OOXML 证据映射到段落。"""
+    path = "docs/rules/main-text/samples/main-text-formula-format.docx"
+
+    with UnoSession() as session:
+        with session.open(path) as doc:
+            model = extract(doc, source_path=path)
+
+    formula_paragraphs = [
+        block for block in model.blocks
+        if block.kind == "paragraph" and block.contains_math
+    ]
+    assert formula_paragraphs
+    assert any("(3-2)" in paragraph.text for paragraph in formula_paragraphs)

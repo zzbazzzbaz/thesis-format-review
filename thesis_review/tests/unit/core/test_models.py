@@ -3,12 +3,16 @@ from pydantic import ValidationError
 
 from thesis_review.core.models import (
     DocumentModel,
+    FormattedTextRun,
+    HeaderFooterParagraph,
     ImageBlock,
     Issue,
     Location,
+    PageStyleInfo,
     ParagraphBlock,
     RunSpan,
     TableBlock,
+    TabStopInfo,
 )
 
 
@@ -121,6 +125,97 @@ def test_document_block_discriminated_union_parses_table_and_image():
     assert isinstance(doc.blocks[1], ImageBlock)
     assert doc.blocks[0].type_index == 0
     assert doc.blocks[1].flow_index == 1
+
+
+def test_header_footer_paragraph_holds_formatted_runs_and_page_number_state():
+    paragraph = HeaderFooterParagraph(
+        text="1",
+        paragraph_index=0,
+        alignment="center",
+        runs=[
+            FormattedTextRun(
+                text="1",
+                run_index=0,
+                font_latin="Times New Roman",
+                size_pt=10.5,
+            )
+        ],
+        has_page_number_field=True,
+        page_number_text="1",
+        page_number_format="arabic",
+    )
+
+    assert paragraph.text == "1"
+    assert paragraph.runs[0].font_latin == "Times New Roman"
+    assert paragraph.page_number_format == "arabic"
+
+
+def test_page_style_info_keeps_header_footer_details_and_legacy_text_fields():
+    style = PageStyleInfo(
+        name="正文",
+        header_text="山东石油化工学院本科毕业设计（论文）",
+        footer_text="1",
+        header_paragraphs=[
+            HeaderFooterParagraph(
+                text="山东石油化工学院本科毕业设计（论文）",
+                paragraph_index=0,
+                alignment="center",
+                runs=[
+                    FormattedTextRun(
+                        text="山东石油化工学院本科毕业设计（论文）",
+                        run_index=0,
+                        font_east_asian="黑体",
+                        size_pt=10.5,
+                    )
+                ],
+            )
+        ],
+        footer_paragraphs=[
+            HeaderFooterParagraph(
+                text="1",
+                paragraph_index=0,
+                alignment="center",
+                runs=[
+                    FormattedTextRun(
+                        text="1",
+                        run_index=0,
+                        font_latin="Times New Roman",
+                        size_pt=10.5,
+                    )
+                ],
+                has_page_number_field=True,
+                page_number_text="1",
+                page_number_format="arabic",
+            )
+        ],
+    )
+
+    assert style.header_text == "山东石油化工学院本科毕业设计（论文）"
+    assert style.footer_paragraphs[0].has_page_number_field is True
+
+
+def test_blocks_and_paragraphs_have_second_stage_defaults():
+    para = ParagraphBlock(
+        id="b-0001",
+        flow_index=1,
+        type_index=0,
+        page_style_name="正文",
+        text="a = b + c",
+        style_name="公式",
+        outline_level=None,
+        alignment="center",
+        line_spacing=1.5,
+        first_line_indent_chars=0.0,
+        runs=[],
+        contains_math=True,
+        math_object_count=1,
+        tab_stops=[TabStopInfo(position_mm=80.0, alignment="center")],
+    )
+
+    assert para.page_style_name == "正文"
+    assert para.contains_math is True
+    assert para.math_object_count == 1
+    assert para.tab_stops[0].alignment == "center"
 
 
 def test_issue_with_location():

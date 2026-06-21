@@ -21,9 +21,14 @@ def test_registry_returns_all_checkers():
         "acknowledgements-body",
         "appendix-title",
         "appendix-body",
+        "global-header",
+        "global-footer-page-number",
         "main-text-heading",
         "main-text-paragraph",
         "main-text-reference-citation",
+        "main-text-formula",
+        "main-text-figure-caption",
+        "main-text-table-caption",
     }
 
 
@@ -36,7 +41,7 @@ def test_registry_returns_fresh_checker_list():
     checkers = get_checkers()
     checkers.clear()
 
-    assert len(get_checkers()) == 18
+    assert len(get_checkers()) == 23
 
 
 def test_registry_includes_table_of_contents_rule_ids():
@@ -67,3 +72,18 @@ def test_registry_includes_phase_one_rule_ids():
     assert "main-text-heading-level-three-007" in rule_ids
     assert "main-text-paragraph-006" in rule_ids
     assert "main-text-reference-citation-004" in rule_ids
+
+
+def test_registry_includes_stage_two_global_rule_ids():
+    rule_ids = {rule_id for checker in get_checkers() for rule_id in checker.rule_ids}
+
+    assert "global-header-004" in rule_ids
+    assert "global-footer-page-number-005" in rule_ids
+
+
+def test_registry_includes_stage_two_main_text_rule_ids():
+    rule_ids = {rule_id for checker in get_checkers() for rule_id in checker.rule_ids}
+
+    assert "main-text-formula-006" in rule_ids
+    assert "main-text-figure-caption-007" in rule_ids
+    assert "main-text-table-caption-007" in rule_ids

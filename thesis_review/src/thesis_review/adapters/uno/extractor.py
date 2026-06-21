@@ -5,12 +5,25 @@
 """
 from __future__ import annotations
 
+import re
+
 from thesis_review.core.models import (
     DocumentBlock,
     DocumentModel,
+    FormattedTextRun,
+    HeaderFooterParagraph,
+    ImageBlock,
+    PageStyleInfo,
     ParagraphBlock,
     RunSpan,
     TableBlock,
+    TabStopInfo,
+)
+from thesis_review.adapters.ooxml.structure import (
+    PageNumberFormatInfo,
+    footer_page_number_format,
+    match_paragraph_object_flags,
+    paragraph_object_infos,
 )
 from thesis_review.adapters.uno.traversal import TraversedBlock
 from thesis_review.adapters.uno.traversal import blocks as iter_blocks
@@ -20,6 +33,12 @@ from thesis_review.adapters.uno.traversal import text_portions
 
 _MM100_PER_PT = 35.2778       # 1pt = 0.352778mm = 35.2778 (1/100 mm)
 _ADJUST = {0: "left", 1: "right", 2: "justify", 3: "center"}
+_TAB_ADJUST = {
+    "LEFT": "left",
+    "CENTER": "center",
+    "RIGHT": "right",
+    "DECIMAL": "decimal",
+}
 _LINE_MODE_PROP = 0            # com.sun.star.style.LineSpacingMode.PROP
 
 # ── 辅助 ────────────────────────────────────────────────────────────
@@ -33,6 +52,13 @@ def _safe_float(val) -> float | None:
         return float(val)
     except (TypeError, ValueError):
         return None
+
+
+def _mm100_to_mm(value) -> float | None:
+    val = _safe_float(value)
+    if val is None:
+        return None
+    return round(val / 100.0, 2)
 
 
 def _is_bold(weight_val) -> bool:
@@ -107,6 +133,36 @@ def _page_break_before(para) -> bool:
     return "PAGE_BEFORE" in str(break_type)
 
 
+def _page_style_name(para) -> str | None:
+    return getattr(para, "PageDescName", None) or getattr(para, "PageStyleName", None)
+
+
+def _tab_stops(para) -> list[TabStopInfo]:
+    stops: list[TabStopInfo] = []
+    for stop in getattr(para, "ParaTabStops", ()) or ():
+        alignment = _TAB_ADJUST.get(str(getattr(stop, "Alignment", "")).split("'")[-2], "unknown")
+        stops.append(
+            TabStopInfo(
+                position_mm=_mm100_to_mm(getattr(stop, "Position", None)),
+                alignment=alignment,
+            )
+        )
+    return stops
+
+
+def _math_object_count(para) -> int:
+    count = 0
+    try:
+        enum = para.createEnumeration()
+    except AttributeError:
+        return 0
+    while enum.hasMoreElements():
+        portion = enum.nextElement()
+        if getattr(portion, "TextPortionType", "") in {"Frame", "TextContent"}:
+            count += 1
+    return count
+
+
 def _safe_count(obj, accessor: str) -> int | None:
     try:
         return int(getattr(obj, accessor)().getCount())
@@ -130,7 +186,11 @@ def _table_text(table) -> str:
     return "\n".join(texts)
 
 
-def _extract_paragraph(block: TraversedBlock) -> ParagraphBlock:
+def _extract_paragraph(
+    block: TraversedBlock,
+    *,
+    has_ooxml_object: bool = False,
+) -> ParagraphBlock:
     elem = block.element
     text = elem.getString()
 
@@ -165,10 +225,14 @@ def _extract_paragraph(block: TraversedBlock) -> ParagraphBlock:
         ))
 
     first_run_pt = runs[0].size_pt if runs else None
+    math_count = _math_object_count(elem)
+    if has_ooxml_object and math_count == 0:
+        math_count = 1
     return ParagraphBlock(
         id=block_id,
         flow_index=block.flow_index,
         type_index=block.type_index,
+        page_style_name=_page_style_name(elem),
         text=text,
         style_name=getattr(elem, "ParaStyleName", None),
         outline_level=_outline_level(elem),
@@ -178,6 +242,9 @@ def _extract_paragraph(block: TraversedBlock) -> ParagraphBlock:
         page_break_before=_page_break_before(elem),
         is_empty=not text.strip(),
         runs=runs,
+        contains_math=math_count > 0,
+        math_object_count=math_count,
+        tab_stops=_tab_stops(elem),
     )
 
 
@@ -187,10 +254,174 @@ def _extract_table(block: TraversedBlock) -> TableBlock:
         id=f"b-{block.flow_index:04d}",
         flow_index=block.flow_index,
         type_index=block.type_index,
+        page_style_name=None,
         row_count=_safe_count(table, "getRows"),
         column_count=_safe_count(table, "getColumns"),
         text=_table_text(table),
     )
+
+
+def _extract_image(block: TraversedBlock) -> ImageBlock:
+    shape = block.element
+    size = getattr(shape, "Size", None)
+    return ImageBlock(
+        id=f"b-{block.flow_index:04d}",
+        flow_index=block.flow_index,
+        type_index=block.type_index,
+        name=getattr(shape, "Name", None),
+        alt_text=getattr(shape, "Description", None) or getattr(shape, "Title", None),
+        width_mm=_mm100_to_mm(getattr(size, "Width", None)),
+        height_mm=_mm100_to_mm(getattr(size, "Height", None)),
+    )
+
+
+def _formatted_runs(text_obj) -> list[FormattedTextRun]:
+    runs: list[FormattedTextRun] = []
+    try:
+        enum = text_obj.createEnumeration()
+    except AttributeError:
+        return runs
+    run_index = 0
+    while enum.hasMoreElements():
+        portion = enum.nextElement()
+        try:
+            text = portion.getString()
+        except AttributeError:
+            continue
+        if not text:
+            continue
+        size = _safe_float(getattr(portion, "CharHeightAsian", None))
+        if size is None:
+            size = _safe_float(getattr(portion, "CharHeight", None))
+        weight = getattr(portion, "CharWeightAsian", None)
+        if weight is None:
+            weight = getattr(portion, "CharWeight", None)
+        posture = getattr(portion, "CharPostureAsian", None)
+        if posture is None:
+            posture = getattr(portion, "CharPosture", None)
+        runs.append(
+            FormattedTextRun(
+                text=text,
+                run_index=run_index,
+                font_east_asian=getattr(portion, "CharFontNameAsian", None),
+                font_latin=getattr(portion, "CharFontName", None),
+                size_pt=size,
+                bold=_is_bold(weight),
+                italic=_is_italic(posture),
+            )
+        )
+        run_index += 1
+    return runs
+
+
+def _guess_page_number_format(text: str) -> str | None:
+    value = text.strip()
+    if not value:
+        return None
+    if value.isdigit():
+        return "arabic"
+    if re.fullmatch(r"[IVXLCDM]+", value, re.IGNORECASE):
+        return "roman"
+    return "unknown"
+
+
+def _merge_page_number_run_format(
+    runs: list[FormattedTextRun],
+    page_number: PageNumberFormatInfo | None,
+) -> list[FormattedTextRun]:
+    if page_number is None:
+        return runs
+    for index, run in enumerate(runs):
+        if not run.text.strip().isdigit():
+            continue
+        runs[index] = run.model_copy(
+            update={
+                "font_east_asian": page_number.font_east_asian or run.font_east_asian,
+                "font_latin": page_number.font_latin or run.font_latin,
+                "size_pt": page_number.size_pt if page_number.size_pt is not None else run.size_pt,
+            }
+        )
+        break
+    return runs
+
+
+def _header_footer_paragraphs(
+    text_obj,
+    *,
+    page_number: PageNumberFormatInfo | None = None,
+) -> list[HeaderFooterParagraph]:
+    paragraphs: list[HeaderFooterParagraph] = []
+    try:
+        enum = text_obj.createEnumeration()
+    except AttributeError:
+        return paragraphs
+    index = 0
+    while enum.hasMoreElements():
+        elem = enum.nextElement()
+        try:
+            is_paragraph = elem.supportsService("com.sun.star.text.Paragraph")
+        except AttributeError:
+            is_paragraph = False
+        if not is_paragraph:
+            continue
+        text = elem.getString()
+        runs = _formatted_runs(elem)
+        page_number_text = text.strip() or None
+        if page_number_text and page_number_text.isdigit():
+            runs = _merge_page_number_run_format(runs, page_number)
+        paragraphs.append(
+            HeaderFooterParagraph(
+                text=text,
+                paragraph_index=index,
+                alignment=_alignment(elem),
+                runs=runs,
+                has_page_number_field=False,
+                page_number_text=page_number_text,
+                page_number_format=_guess_page_number_format(text),
+            )
+        )
+        index += 1
+    return paragraphs
+
+
+def _extract_page_styles(
+    doc,
+    *,
+    page_number: PageNumberFormatInfo | None = None,
+) -> list[PageStyleInfo]:
+    styles: list[PageStyleInfo] = []
+    try:
+        page_styles = doc.getStyleFamilies().getByName("PageStyles")
+        names = page_styles.getElementNames()
+    except AttributeError:
+        return styles
+    for name in names:
+        style = page_styles.getByName(name)
+        header_paragraphs = _header_footer_paragraphs(getattr(style, "HeaderText", None))
+        footer_paragraphs = _header_footer_paragraphs(
+            getattr(style, "FooterText", None),
+            page_number=page_number,
+        )
+        styles.append(
+            PageStyleInfo(
+                name=name,
+                width_mm=_mm100_to_mm(getattr(style, "Width", None)),
+                height_mm=_mm100_to_mm(getattr(style, "Height", None)),
+                margin_top_mm=_mm100_to_mm(getattr(style, "TopMargin", None)),
+                margin_bottom_mm=_mm100_to_mm(getattr(style, "BottomMargin", None)),
+                margin_left_mm=_mm100_to_mm(getattr(style, "LeftMargin", None)),
+                margin_right_mm=_mm100_to_mm(getattr(style, "RightMargin", None)),
+                header_text="\n".join(
+                    para.text for para in header_paragraphs if para.text.strip()
+                ) or None,
+                footer_text="\n".join(
+                    para.text for para in footer_paragraphs if para.text.strip()
+                ) or None,
+                header_paragraphs=header_paragraphs,
+                footer_paragraphs=footer_paragraphs,
+            )
+        )
+    return styles
 
 
 # ── 主函数 ──────────────────────────────────────────────────────────
@@ -207,10 +438,38 @@ def extract(doc, source_path: str = "unknown.docx") -> DocumentModel:
         DocumentModel，段落按 UNO 枚举顺序排列
     """
     blocks: list[DocumentBlock] = []
-    for block in iter_blocks(doc):
+    traversed_blocks = iter_blocks(doc)
+    paragraph_texts = [
+        block.element.getString()
+        for block in traversed_blocks
+        if block.kind == "paragraph"
+    ]
+    ooxml_object_flags = match_paragraph_object_flags(
+        paragraph_texts,
+        paragraph_object_infos(source_path),
+    )
+    ooxml_page_number = footer_page_number_format(source_path)
+    paragraph_index = 0
+    for block in traversed_blocks:
         if block.kind == "paragraph":
-            blocks.append(_extract_paragraph(block))
+            has_ooxml_object = (
+                paragraph_index < len(ooxml_object_flags)
+                and ooxml_object_flags[paragraph_index]
+            )
+            blocks.append(
+                _extract_paragraph(
+                    block,
+                    has_ooxml_object=has_ooxml_object,
+                )
+            )
+            paragraph_index += 1
         elif block.kind == "table":
             blocks.append(_extract_table(block))
+        elif block.kind == "image":
+            blocks.append(_extract_image(block))
 
-    return DocumentModel(source_docx=source_path, blocks=blocks)
+    return DocumentModel(
+        source_docx=source_path,
+        blocks=blocks,
+        page_styles=_extract_page_styles(doc, page_number=ooxml_page_number),
+    )

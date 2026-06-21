@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 
-from thesis_review.core.models import Issue, ParagraphBlock, RunSpan
+from thesis_review.core.models import DocumentBlock, Issue, ParagraphBlock, RunSpan
 from thesis_review.core.sections import is_toc_entry
 from thesis_review.rules.context import RuleContext
 from thesis_review.rules.formatting import (
@@ -20,6 +20,8 @@ from thesis_review.rules.formatting import (
     has_indent,
     has_line_spacing,
     run_location,
+    runs_overlapping,
+    section_blocks,
     section_paragraphs,
 )
 
@@ -36,6 +38,22 @@ _PLACEHOLDER_RE = re.compile(r"^[…\.．。]{2,}$")
 _CONTINUED_TABLE_RE = re.compile(r"^续表\s*\d+-\d+")
 _CITATION_RE = re.compile(r"\[[A-Za-z0-9]+\]")
 _VALID_CITATION_RE = re.compile(r"^\[\d+\]$")
+_FORMULA_NUMBER_RE = re.compile(r"[\(（](\d+)-(\d+)[\)）]")
+_FIGURE_CAPTION_ANY_RE = re.compile(r"^图(\d+)-(\d+)( *)(.+)$")
+_TABLE_CAPTION_ANY_RE = re.compile(r"^表(\d+)-(\d+)( *)(.+)$")
+_MATH_EXPR_RE = re.compile(r"^[A-Za-zα-ωΑ-Ω0-9\s+\-*/=^_().（）\t]+(?:[\(（]\d+-\d+[\)）])?$")
+_CHINESE_NUMERAL_MAP = {
+    "一": 1,
+    "二": 2,
+    "三": 3,
+    "四": 4,
+    "五": 5,
+    "六": 6,
+    "七": 7,
+    "八": 8,
+    "九": 9,
+    "十": 10,
+}
 
 
 def _main_paragraphs(context: RuleContext) -> list[ParagraphBlock]:
@@ -70,12 +88,140 @@ def _is_h3_candidate(para: ParagraphBlock) -> bool:
     return bool(_H3_RE.match(text) or _MALFORMED_H3_RE.match(text))
 
 
+def _chapter_number(para: ParagraphBlock) -> int | None:
+    match = _H1_RE.match(para.text.strip())
+    if match is None:
+        return None
+    numeral = match.group(2)
+    if numeral.isdigit():
+        return int(numeral)
+    if numeral in _CHINESE_NUMERAL_MAP:
+        return _CHINESE_NUMERAL_MAP[numeral]
+    if numeral.startswith("十") and len(numeral) == 2:
+        return 10 + _CHINESE_NUMERAL_MAP.get(numeral[1], 0)
+    if numeral.endswith("十") and len(numeral) == 2:
+        return _CHINESE_NUMERAL_MAP.get(numeral[0], 0) * 10
+    return None
+
+
+def _chapter_for_block(blocks: list[DocumentBlock], index: int) -> int | None:
+    current: int | None = None
+    for candidate in blocks[: index + 1]:
+        if candidate.kind == "paragraph" and _is_h1_candidate(candidate):
+            current = _chapter_number(candidate)
+    return current
+
+
+def _is_formula_candidate(para: ParagraphBlock) -> bool:
+    text = para.text.strip()
+    has_math = para.contains_math or para.math_object_count > 0
+    if not text and not has_math:
+        return False
+    if (
+        _is_heading(para)
+        or _FIGURE_CAPTION_ANY_RE.match(text)
+        or _TABLE_CAPTION_ANY_RE.match(text)
+    ):
+        return False
+    if has_math:
+        return True
+    if para.style_name and para.style_name.lower() in {"公式", "equation"}:
+        return True
+    if "式" in text and len(text) > 20:
+        return False
+    return bool(("=" in text or "\t" in text) and _MATH_EXPR_RE.match(text))
+
+
+def _next_non_empty_block(
+    blocks: list[DocumentBlock],
+    index: int,
+) -> tuple[int, DocumentBlock] | None:
+    for next_index in range(index + 1, len(blocks)):
+        block = blocks[next_index]
+        if block.kind == "paragraph" and not block.text.strip():
+            continue
+        return next_index, block
+    return None
+
+
+def _previous_non_empty_block(
+    blocks: list[DocumentBlock],
+    index: int,
+) -> tuple[int, DocumentBlock] | None:
+    for prev_index in range(index - 1, -1, -1):
+        block = blocks[prev_index]
+        if block.kind == "paragraph" and not block.text.strip():
+            continue
+        return prev_index, block
+    return None
+
+
+def _has_tab_alignment(para: ParagraphBlock, alignment: str) -> bool:
+    return any(stop.alignment == alignment for stop in para.tab_stops)
+
+
+def _is_formula_number_only(para: ParagraphBlock) -> bool:
+    return bool(_FORMULA_NUMBER_RE.fullmatch(para.text.strip()))
+
+
+def _is_formula_number_for_previous(
+    blocks: list[DocumentBlock],
+    index: int,
+) -> bool:
+    block = blocks[index]
+    if block.kind != "paragraph" or not _is_formula_number_only(block):
+        return False
+    for prev_index in range(index - 1, -1, -1):
+        previous = blocks[prev_index]
+        if previous.kind != "paragraph":
+            return False
+        if _is_formula_candidate(previous):
+            return True
+        if previous.text.strip():
+            return False
+    return False
+
+
+def _is_continuation_blank_formula(
+    blocks: list[DocumentBlock],
+    index: int,
+) -> bool:
+    block = blocks[index]
+    if (
+        block.kind != "paragraph"
+        or block.text.strip()
+        or not _is_formula_candidate(block)
+    ):
+        return False
+    prev_item = (index - 1, blocks[index - 1]) if index > 0 else None
+    return (
+        prev_item is not None
+        and prev_item[1].kind == "paragraph"
+        and not prev_item[1].text.strip()
+        and _is_formula_candidate(prev_item[1])
+    )
+
+
+def _first_bad_caption_run(
+    para: ParagraphBlock,
+    rule_id: str,
+    predicate,
+    actual,
+    issues: list[Issue],
+    context: RuleContext,
+) -> None:
+    append_first_bad_run(issues, context, para, rule_id, predicate, actual)
+
+
 def _is_caption_or_formula(para: ParagraphBlock) -> bool:
     text = para.text.strip()
     return bool(
         _FIGURE_CAPTION_RE.match(text)
         or _TABLE_CAPTION_RE.match(text)
+        or _FIGURE_CAPTION_ANY_RE.match(text)
+        or _TABLE_CAPTION_ANY_RE.match(text)
         or _FORMULA_LIKE_RE.match(text)
+        or _is_formula_candidate(para)
         or _PLACEHOLDER_RE.match(text)
         or _CONTINUED_TABLE_RE.match(text)
     )
@@ -83,23 +229,6 @@ def _is_caption_or_formula(para: ParagraphBlock) -> bool:
 
 def _is_heading(para: ParagraphBlock) -> bool:
     return _is_h1_candidate(para) or _is_h2_candidate(para) or _is_h3_candidate(para)
-
-
-def _run_ranges(para: ParagraphBlock) -> list[tuple[int, int, RunSpan]]:
-    ranges: list[tuple[int, int, RunSpan]] = []
-    cursor = 0
-    for run in para.runs:
-        start = cursor
-        cursor += len(run.text)
-        ranges.append((start, cursor, run))
-    return ranges
-
-
-def _runs_overlapping(para: ParagraphBlock, start: int, end: int) -> list[RunSpan]:
-    return [
-        run for run_start, run_end, run in _run_ranges(para)
-        if run_end > start and run_start < end and run.text.strip()
-    ]
 
 
 class MainTextHeadingChecker:
@@ -404,7 +533,7 @@ class MainTextReferenceCitationChecker:
                 continue
             for match in _CITATION_RE.finditer(para.text):
                 token = match.group(0)
-                runs = _runs_overlapping(para, match.start(), match.end())
+                runs = runs_overlapping(para, match.start(), match.end())
                 if _VALID_CITATION_RE.fullmatch(token) is None:
                     append_issue(
                         issues,
@@ -443,4 +572,350 @@ class MainTextReferenceCitationChecker:
                             run_location(para, run),
                         )
                         break
+        return issues
+
+
+class MainTextFormulaChecker:
+    checker_id = "main-text-formula"
+    rule_ids = (
+        "main-text-formula-001",
+        "main-text-formula-002",
+        "main-text-formula-003",
+        "main-text-formula-004",
+        "main-text-formula-005",
+        "main-text-formula-006",
+    )
+
+    def check(self, context: RuleContext) -> list[Issue]:
+        blocks = section_blocks(context, "main-text")
+        issues: list[Issue] = []
+        formula_seq_by_chapter: dict[int, int] = {}
+        for index, block in enumerate(blocks):
+            if (
+                block.kind != "paragraph"
+                or not _is_formula_candidate(block)
+                or _is_formula_number_for_previous(blocks, index)
+                or _is_continuation_blank_formula(blocks, index)
+            ):
+                continue
+            chapter = _chapter_for_block(blocks, index)
+            if chapter is None:
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-formula-002",
+                    "未识别章节",
+                    block_location(block),
+                )
+                continue
+            formula_seq_by_chapter[chapter] = formula_seq_by_chapter.get(chapter, 0) + 1
+            expected = f"{chapter}-{formula_seq_by_chapter[chapter]}"
+            match = _FORMULA_NUMBER_RE.search(block.text)
+            number_para = block
+            if match is None:
+                next_item = _next_non_empty_block(blocks, index)
+                if (
+                    next_item is not None
+                    and next_item[1].kind == "paragraph"
+                    and _FORMULA_NUMBER_RE.fullmatch(next_item[1].text.strip())
+                ):
+                    number_para = next_item[1]
+                    match = _FORMULA_NUMBER_RE.search(number_para.text)
+            if match is None:
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-formula-001",
+                    "未找到",
+                    block_location(block),
+                )
+                continue
+            actual = f"{match.group(1)}-{match.group(2)}"
+            if actual != expected:
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-formula-002",
+                    match.group(0),
+                    block_location(number_para),
+                )
+            if number_para is block:
+                if not _has_tab_alignment(block, "center"):
+                    append_issue(
+                        issues,
+                        context,
+                        "main-text-formula-003",
+                        "未识别",
+                        block_location(block),
+                    )
+                if not _has_tab_alignment(block, "right"):
+                    append_issue(
+                        issues,
+                        context,
+                        "main-text-formula-004",
+                        "未识别",
+                        block_location(block),
+                    )
+            else:
+                if block.alignment != "center":
+                    append_issue(
+                        issues,
+                        context,
+                        "main-text-formula-003",
+                        display_alignment(block.alignment),
+                        block_location(block),
+                    )
+                if number_para.alignment != "right":
+                    append_issue(
+                        issues,
+                        context,
+                        "main-text-formula-004",
+                        display_alignment(number_para.alignment),
+                        block_location(number_para),
+                    )
+            number_runs = runs_overlapping(number_para, match.start(), match.end())
+            for run in number_runs:
+                if run.size_pt != 10.5:
+                    append_issue(
+                        issues,
+                        context,
+                        "main-text-formula-005",
+                        display_size(run.size_pt),
+                        run_location(number_para, run),
+                    )
+                    break
+            for run in number_runs:
+                if run.font_latin != "Times New Roman":
+                    append_issue(
+                        issues,
+                        context,
+                        "main-text-formula-006",
+                        run.font_latin or "未识别",
+                        run_location(number_para, run),
+                    )
+                    break
+        return issues
+
+
+class MainTextFigureCaptionChecker:
+    checker_id = "main-text-figure-caption"
+    rule_ids = (
+        "main-text-figure-caption-001",
+        "main-text-figure-caption-002",
+        "main-text-figure-caption-003",
+        "main-text-figure-caption-004",
+        "main-text-figure-caption-005",
+        "main-text-figure-caption-006",
+        "main-text-figure-caption-007",
+    )
+
+    def check(self, context: RuleContext) -> list[Issue]:
+        blocks = section_blocks(context, "main-text")
+        issues: list[Issue] = []
+        figure_seq_by_chapter: dict[int, int] = {}
+        paired_caption_ids: set[str] = set()
+        for index, block in enumerate(blocks):
+            if block.kind != "image":
+                continue
+            chapter = _chapter_for_block(blocks, index)
+            if chapter is None:
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-figure-caption-003",
+                    "未识别章节",
+                    block_location(block),
+                )
+                continue
+            figure_seq_by_chapter[chapter] = figure_seq_by_chapter.get(chapter, 0) + 1
+            expected = f"图{chapter}-{figure_seq_by_chapter[chapter]}"
+            next_item = _next_non_empty_block(blocks, index)
+            if next_item is None or next_item[1].kind != "paragraph":
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-figure-caption-001",
+                    "未找到",
+                    block_location(block),
+                )
+                continue
+            caption = next_item[1]
+            match = _FIGURE_CAPTION_ANY_RE.match(caption.text.strip())
+            if match is None:
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-figure-caption-001",
+                    "未找到",
+                    block_location(block),
+                )
+                continue
+            paired_caption_ids.add(caption.id)
+            actual_number = f"图{match.group(1)}-{match.group(2)}"
+            spaces = match.group(3)
+            if actual_number != expected:
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-figure-caption-003",
+                    actual_number,
+                    block_location(caption),
+                )
+            if len(spaces) != 1:
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-figure-caption-004",
+                    f"{len(spaces)} 个空格",
+                    block_location(caption),
+                )
+            if caption.alignment != "center":
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-figure-caption-005",
+                    display_alignment(caption.alignment),
+                    block_location(caption),
+                )
+            _first_bad_caption_run(
+                caption,
+                "main-text-figure-caption-006",
+                lambda run: run.size_pt == 10.5,
+                lambda run: display_size(run.size_pt),
+                issues,
+                context,
+            )
+            _first_bad_caption_run(
+                caption,
+                "main-text-figure-caption-007",
+                _is_chinese_font("宋体"),
+                lambda run: run.font_east_asian or "未识别",
+                issues,
+                context,
+            )
+        for index, block in enumerate(blocks):
+            if block.kind != "paragraph" or block.id in paired_caption_ids:
+                continue
+            if _FIGURE_CAPTION_ANY_RE.match(block.text.strip()):
+                prev_item = _previous_non_empty_block(blocks, index)
+                if prev_item is None or prev_item[1].kind != "image":
+                    append_issue(
+                        issues,
+                        context,
+                        "main-text-figure-caption-002",
+                        "未位于图片下方",
+                        block_location(block),
+                    )
+        return issues
+
+
+class MainTextTableCaptionChecker:
+    checker_id = "main-text-table-caption"
+    rule_ids = (
+        "main-text-table-caption-001",
+        "main-text-table-caption-002",
+        "main-text-table-caption-003",
+        "main-text-table-caption-004",
+        "main-text-table-caption-005",
+        "main-text-table-caption-006",
+        "main-text-table-caption-007",
+    )
+
+    def check(self, context: RuleContext) -> list[Issue]:
+        blocks = section_blocks(context, "main-text")
+        issues: list[Issue] = []
+        table_seq_by_chapter: dict[int, int] = {}
+        paired_caption_ids: set[str] = set()
+        for index, block in enumerate(blocks):
+            if block.kind != "table":
+                continue
+            chapter = _chapter_for_block(blocks, index)
+            if chapter is None:
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-table-caption-003",
+                    "未识别章节",
+                    block_location(block),
+                )
+                continue
+            table_seq_by_chapter[chapter] = table_seq_by_chapter.get(chapter, 0) + 1
+            expected = f"表{chapter}-{table_seq_by_chapter[chapter]}"
+            prev_item = _previous_non_empty_block(blocks, index)
+            if prev_item is None or prev_item[1].kind != "paragraph":
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-table-caption-001",
+                    "未找到",
+                    block_location(block),
+                )
+                continue
+            caption = prev_item[1]
+            match = _TABLE_CAPTION_ANY_RE.match(caption.text.strip())
+            if match is None:
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-table-caption-001",
+                    "未找到",
+                    block_location(block),
+                )
+                continue
+            paired_caption_ids.add(caption.id)
+            actual_number = f"表{match.group(1)}-{match.group(2)}"
+            spaces = match.group(3)
+            if actual_number != expected:
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-table-caption-003",
+                    actual_number,
+                    block_location(caption),
+                )
+            if len(spaces) != 1:
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-table-caption-004",
+                    f"{len(spaces)} 个空格",
+                    block_location(caption),
+                )
+            if caption.alignment != "center":
+                append_issue(
+                    issues,
+                    context,
+                    "main-text-table-caption-005",
+                    display_alignment(caption.alignment),
+                    block_location(caption),
+                )
+            _first_bad_caption_run(
+                caption,
+                "main-text-table-caption-006",
+                lambda run: run.size_pt == 10.5,
+                lambda run: display_size(run.size_pt),
+                issues,
+                context,
+            )
+            _first_bad_caption_run(
+                caption,
+                "main-text-table-caption-007",
+                _is_chinese_font("宋体"),
+                lambda run: run.font_east_asian or "未识别",
+                issues,
+                context,
+            )
+        for index, block in enumerate(blocks):
+            if block.kind != "paragraph" or block.id in paired_caption_ids:
+                continue
+            if _TABLE_CAPTION_ANY_RE.match(block.text.strip()):
+                next_item = _next_non_empty_block(blocks, index)
+                if next_item is None or next_item[1].kind != "table":
+                    append_issue(
+                        issues,
+                        context,
+                        "main-text-table-caption-002",
+                        "未位于表格上方",
+                        block_location(block),
+                    )
         return issues

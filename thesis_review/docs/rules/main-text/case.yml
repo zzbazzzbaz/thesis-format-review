@@ -2,7 +2,7 @@ cases:
   - id: main-text-heading-format
     file: samples/main-text-heading-format.docx
     description: 正文各级标题格式错误样本。
-    error_description: 一级标题未使用“第X章”中文数字编号、编号后不是 2 个普通半角空格、未使用黑体三号、标题后不是正好 1 个空段落或未另起一页；二级标题未使用 N.N 编号、编号后不是 1 个普通半角空格、未使用黑体四号、1.5 倍行距和 Times New Roman 数字西文字体；三级标题未使用 N.N.N 编号、编号后不是 1 个普通半角空格、未首行缩进 2 字符、未使用黑体小四、1.5 倍行距和 Times New Roman 数字西文字体。
+    error_description: 一级标题未使用“第X章”中文数字编号、编号后不是 2 个普通半角空格、未使用黑体三号、标题后不是正好 1 个空段落或未另起一页；二级标题未使用 N.N 编号、编号后不是 1 个普通半角空格、未使用黑体四号、1.5 倍行距和 Times New Roman 数字西文字体；三级标题未使用 N.N.N 编号、编号后不是 1 个普通半角空格、未首行缩进 2 字符、未使用黑体小四、1.5 倍行距和 Times New Roman 数字西文字体；样本内真实存在的公式、图片和表格对象也存在题注或编号位置问题。
     expected_rule_ids:
       - main-text-heading-level-one-001
       - main-text-heading-level-one-002
@@ -23,11 +23,17 @@ cases:
       - main-text-heading-level-three-005
       - main-text-heading-level-three-006
       - main-text-heading-level-three-007
+      - main-text-formula-001
+      - main-text-formula-003
+      - main-text-formula-004
+      - main-text-figure-caption-001
+      - main-text-figure-caption-002
+      - main-text-table-caption-001
 
   - id: main-text-paragraph-and-citation-format
     file: samples/main-text-paragraph-and-citation-format.docx
     description: 正文普通段落和引用编号格式错误样本。
-    error_description: 正文普通段落未使用小四字号、宋体中文字体、Times New Roman 西文和数字字体、首行缩进 2 字符、1.5 倍行距和两端对齐；正文参考文献引用未使用方括号数字格式、小四字号或 Times New Roman 字体；样本一级标题未显式设置段前分页。
+    error_description: 正文普通段落未使用小四字号、宋体中文字体、Times New Roman 西文和数字字体、首行缩进 2 字符、1.5 倍行距和两端对齐；正文参考文献引用未使用方括号数字格式、小四字号或 Times New Roman 字体；样本一级标题未显式设置段前分页；样本内真实存在的公式、图片和表格对象也存在题注或编号位置问题。
     expected_rule_ids:
       - main-text-heading-level-one-006
       - main-text-paragraph-001
@@ -39,17 +45,43 @@ cases:
       - main-text-reference-citation-001
       - main-text-reference-citation-003
       - main-text-reference-citation-004
+      - main-text-formula-001
+      - main-text-formula-003
+      - main-text-formula-004
+      - main-text-figure-caption-001
+      - main-text-figure-caption-002
+      - main-text-table-caption-001
 
   - id: main-text-formula-format
     file: samples/main-text-formula-format.docx
-    description: 正文公式格式错误样本；公式规则保留给第二份 spec。
-    error_description: 本阶段公式规则仍为 draft，不作为 CLI 期望命中；该样本当前仅用于确认已激活的正文一级标题段前分页规则。
+    description: 正文公式格式错误样本。
+    error_description: 正文公式缺少规范公式号，或公式号未按章编号、公式主体未居中、公式编号未居右、编号未使用 Times New Roman 五号；样本内真实存在的图片和表格对象也存在题注问题。
     expected_rule_ids:
       - main-text-heading-level-one-006
+      - main-text-formula-001
+      - main-text-formula-002
+      - main-text-formula-003
+      - main-text-formula-004
+      - main-text-formula-005
+      - main-text-formula-006
+      - main-text-figure-caption-001
+      - main-text-figure-caption-002
+      - main-text-table-caption-001
 
   - id: main-text-figure-table-caption-format
     file: samples/main-text-figure-table-caption-format.docx
-    description: 正文图片图题和表格表题格式错误样本；图题和表题规则保留给第二份 spec。
-    error_description: 本阶段图片题注和表格题注规则仍为 draft，不作为 CLI 期望命中；该样本当前仅用于确认已激活的正文一级标题段前分页规则。
+    description: 正文图片图题和表格表题格式错误样本。
+    error_description: 正文图片缺少规范图题或图题位置错误；正文表格缺少规范表题或表题位置、空格、居中、宋体五号格式错误；样本内真实存在的公式对象也存在编号和位置问题。
     expected_rule_ids:
       - main-text-heading-level-one-006
+      - main-text-formula-001
+      - main-text-formula-003
+      - main-text-formula-004
+      - main-text-figure-caption-001
+      - main-text-figure-caption-002
+      - main-text-table-caption-001
+      - main-text-table-caption-002
+      - main-text-table-caption-004
+      - main-text-table-caption-005
+      - main-text-table-caption-006
+      - main-text-table-caption-007

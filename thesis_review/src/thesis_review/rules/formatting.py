@@ -5,20 +5,26 @@ import re
 from collections.abc import Callable, Iterable
 from math import isclose
 
-from thesis_review.core.models import Issue, Location, ParagraphBlock, RunSpan
-from thesis_review.core.sections import paragraphs_in_range
+from thesis_review.core.models import (
+    DocumentBlock,
+    Issue,
+    Location,
+    ParagraphBlock,
+    RunSpan,
+)
+from thesis_review.core.sections import blocks_in_range, paragraphs_in_range
 from thesis_review.rules.context import RuleContext
 
 _ASCII_TEXT_RE = re.compile(r"[A-Za-z0-9]")
 _CHINESE_TEXT_RE = re.compile(r"[\u4e00-\u9fff，。；：、（）《》“”‘’]")
 
 
-def block_location(para: ParagraphBlock) -> Location:
+def block_location(block: DocumentBlock) -> Location:
     return Location(
         target="block",
-        block_id=para.id,
-        block_kind="paragraph",
-        flow_index=para.flow_index,
+        block_id=block.id,
+        block_kind=block.kind,
+        flow_index=block.flow_index,
     )
 
 
@@ -38,6 +44,13 @@ def section_paragraphs(context: RuleContext, name: str) -> list[ParagraphBlock]:
     if section is None:
         return []
     return list(paragraphs_in_range(context.document, section))
+
+
+def section_blocks(context: RuleContext, name: str) -> list[DocumentBlock]:
+    section = context.sections.get(name)
+    if section is None:
+        return []
+    return list(blocks_in_range(context.document, section))
 
 
 def non_empty(paragraphs: Iterable[ParagraphBlock]) -> list[ParagraphBlock]:
@@ -85,6 +98,10 @@ def display_alignment(alignment: str | None) -> str:
     return names.get(alignment or "", alignment or "未识别")
 
 
+def display_page_style_actual(name: str | None) -> str:
+    return name or "未识别"
+
+
 def has_size(run: RunSpan, size: float) -> bool:
     return run.size_pt is not None and isclose(run.size_pt, size, abs_tol=0.01)
 
@@ -123,6 +140,23 @@ def contains_chinese(text: str) -> bool:
 
 def contains_ascii(text: str) -> bool:
     return bool(_ASCII_TEXT_RE.search(text))
+
+
+def run_ranges(para: ParagraphBlock) -> list[tuple[int, int, RunSpan]]:
+    ranges: list[tuple[int, int, RunSpan]] = []
+    cursor = 0
+    for run in para.runs:
+        start = cursor
+        cursor += len(run.text)
+        ranges.append((start, cursor, run))
+    return ranges
+
+
+def runs_overlapping(para: ParagraphBlock, start: int, end: int) -> list[RunSpan]:
+    return [
+        run for run_start, run_end, run in run_ranges(para)
+        if run_end > start and run_start < end and run.text.strip()
+    ]
 
 
 def append_issue(

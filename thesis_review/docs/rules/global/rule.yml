@@ -33,35 +33,35 @@ rules:
   - id: global-header-001
     title: 页眉文本
     severity: error
-    status: draft
+    status: active
     description: 检查中文摘要到附录范围内的页眉文本是否为“山东石油化工学院本科毕业设计（论文）”，封面不检查页眉。
     message: 非封面页页眉文本应为“山东石油化工学院本科毕业设计（论文）”
     expected: 山东石油化工学院本科毕业设计（论文）
   - id: global-header-002
     title: 页眉中文字体
     severity: error
-    status: draft
+    status: active
     description: 检查中文摘要到附录范围内的页眉中文字体是否为黑体。
     message: 非封面页页眉中文字体应为黑体
     expected: 黑体
   - id: global-header-003
     title: 页眉字号
     severity: error
-    status: draft
+    status: active
     description: 检查中文摘要到附录范围内的页眉字号是否为五号，即 10.5pt。
     message: 非封面页页眉字号应为五号
     expected: 五号（10.5pt）
   - id: global-header-004
     title: 页眉居中
     severity: error
-    status: draft
+    status: active
     description: 检查中文摘要到附录范围内的页眉是否居中。
     message: 非封面页页眉应居中
     expected: 居中
   - id: global-footer-page-number-001
     title: 页码数字形式
     severity: error
-    status: draft
+    status: active
     description: 检查正文到附录范围内页脚页码是否使用阿拉伯数字。
     message: 正文到附录页码应使用阿拉伯数字
     expected: 阿拉伯数字页码
@@ -75,21 +75,21 @@ rules:
   - id: global-footer-page-number-003
     title: 页码居中
     severity: error
-    status: draft
+    status: active
     description: 检查正文到附录范围内页码是否位于页脚中间。
     message: 正文到附录页码应位于页脚中间
     expected: 页脚居中
   - id: global-footer-page-number-004
     title: 页码字体
     severity: error
-    status: draft
+    status: active
     description: 检查正文到附录范围内页码字体是否为 Times New Roman。
     message: 正文到附录页码字体应为 Times New Roman
     expected: Times New Roman
   - id: global-footer-page-number-005
     title: 页码字号
     severity: error
-    status: draft
+    status: active
     description: 检查正文到附录范围内页码字号是否为五号，即 10.5pt。
     message: 正文到附录页码字号应为五号
     expected: 五号（10.5pt）

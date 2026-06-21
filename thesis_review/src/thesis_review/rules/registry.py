@@ -21,10 +21,17 @@ from thesis_review.rules.cover_rules import (
     CoverInfoChecker,
     CoverTitleChecker,
 )
+from thesis_review.rules.global_rules import (
+    GlobalFooterPageNumberChecker,
+    GlobalHeaderChecker,
+)
 from thesis_review.rules.main_text_rules import (
+    MainTextFigureCaptionChecker,
+    MainTextFormulaChecker,
     MainTextHeadingChecker,
     MainTextParagraphChecker,
     MainTextReferenceCitationChecker,
+    MainTextTableCaptionChecker,
 )
 from thesis_review.rules.references_rules import (
     ReferencesEntryChecker,
@@ -51,9 +58,14 @@ CHECKER_CLASSES: tuple[type[RuleChecker], ...] = (
     AcknowledgementsBodyChecker,
     AppendixTitleChecker,
     AppendixBodyChecker,
+    GlobalHeaderChecker,
+    GlobalFooterPageNumberChecker,
     MainTextHeadingChecker,
     MainTextParagraphChecker,
     MainTextReferenceCitationChecker,
+    MainTextFormulaChecker,
+    MainTextFigureCaptionChecker,
+    MainTextTableCaptionChecker,
 )
 
 

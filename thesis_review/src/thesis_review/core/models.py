@@ -9,6 +9,8 @@ BlockKind = Literal["paragraph", "table", "image"]
 TargetKind = Literal["block", "run"]
 IssueCategory = Literal["format", "structure", "ai"]
 IssueSeverity = Literal["error", "warning", "info"]
+TabStopAlignment = Literal["left", "center", "right", "decimal", "unknown"]
+PageNumberFormat = Literal["arabic", "roman", "unknown"]
 
 
 class RunSpan(BaseModel):
@@ -23,11 +25,37 @@ class RunSpan(BaseModel):
     superscript: bool = False
 
 
+class FormattedTextRun(BaseModel):
+    text: str
+    run_index: int
+    font_east_asian: str | None = None
+    font_latin: str | None = None
+    size_pt: float | None = None
+    bold: bool = False
+    italic: bool = False
+
+
+class HeaderFooterParagraph(BaseModel):
+    text: str
+    paragraph_index: int
+    alignment: str | None = None
+    runs: list[FormattedTextRun] = []
+    has_page_number_field: bool = False
+    page_number_text: str | None = None
+    page_number_format: PageNumberFormat | None = None
+
+
+class TabStopInfo(BaseModel):
+    position_mm: float | None = None
+    alignment: TabStopAlignment = "unknown"
+
+
 class BlockBase(BaseModel):
     id: str
     kind: BlockKind
     flow_index: int
     type_index: int
+    page_style_name: str | None = None
 
 
 class ParagraphBlock(BlockBase):
@@ -41,6 +69,9 @@ class ParagraphBlock(BlockBase):
     page_break_before: bool = False
     is_empty: bool = False
     runs: list[RunSpan]
+    contains_math: bool = False
+    math_object_count: int = 0
+    tab_stops: list[TabStopInfo] = []
 
 
 class TableBlock(BlockBase):
@@ -74,6 +105,8 @@ class PageStyleInfo(BaseModel):
     margin_right_mm: float | None = None
     header_text: str | None = None
     footer_text: str | None = None
+    header_paragraphs: list[HeaderFooterParagraph] = []
+    footer_paragraphs: list[HeaderFooterParagraph] = []
 
 
 class DocumentModel(BaseModel):

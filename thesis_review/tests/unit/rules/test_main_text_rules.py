@@ -2,11 +2,21 @@ from pathlib import Path
 
 from thesis_review.rules.context import build_rule_context
 from thesis_review.rules.main_text_rules import (
+    MainTextFigureCaptionChecker,
+    MainTextFormulaChecker,
     MainTextHeadingChecker,
     MainTextParagraphChecker,
     MainTextReferenceCitationChecker,
+    MainTextTableCaptionChecker,
 )
-from tests.support.model_builders import make_doc, make_para, make_run
+from tests.support.model_builders import (
+    make_doc,
+    make_image,
+    make_para,
+    make_run,
+    make_table,
+    make_tab_stop,
+)
 
 
 def context_for(doc):
@@ -342,3 +352,270 @@ def test_main_text_reference_citation_checker_flags_case_rules():
         "main-text-reference-citation-003",
         "main-text-reference-citation-004",
     }
+
+
+def formula_para(
+    flow_index=7,
+    text="a = b + c\t(1-1)",
+    alignment="center",
+    latin="Times New Roman",
+    size=10.5,
+    tab_stops=None,
+):
+    if tab_stops is None:
+        tab_stops = [
+            make_tab_stop(position_mm=75.0, alignment="center"),
+            make_tab_stop(position_mm=150.0, alignment="right"),
+        ]
+    return make_para(
+        flow_index=flow_index,
+        text=text,
+        style_name="公式",
+        alignment=alignment,
+        first_line_indent_chars=0.0,
+        contains_math=True,
+        math_object_count=1,
+        tab_stops=tab_stops,
+        runs=[
+            run("a = b + c\t", latin=latin, size=12.0),
+            run("(1-1)", latin=latin, size=size),
+        ],
+    )
+
+
+def test_main_text_formula_checker_accepts_valid_formula():
+    doc = thesis_doc(h1(5, text="第一章  引言"), empty(6), formula_para(7))
+
+    assert MainTextFormulaChecker().check(context_for(doc)) == []
+
+
+def test_main_text_formula_checker_flags_numbering_alignment_font_and_size():
+    doc = thesis_doc(
+        h1(5, text="第一章  引言"),
+        empty(6),
+        formula_para(
+            7,
+            text="a = b + c\t(1-2)",
+            alignment="left",
+            latin="Arial",
+            size=12.0,
+            tab_stops=[],
+        ),
+    )
+
+    issues = MainTextFormulaChecker().check(context_for(doc))
+
+    assert rule_ids(issues) >= {
+        "main-text-formula-002",
+        "main-text-formula-003",
+        "main-text-formula-004",
+        "main-text-formula-005",
+        "main-text-formula-006",
+    }
+
+
+def test_main_text_formula_checker_flags_missing_formula_number_only_for_number_rules():
+    doc = thesis_doc(
+        h1(5, text="第一章  引言"),
+        empty(6),
+        formula_para(7, text="a = b + c", tab_stops=[]),
+    )
+
+    issues = MainTextFormulaChecker().check(context_for(doc))
+
+    assert "main-text-formula-001" in rule_ids(issues)
+
+
+def test_main_text_formula_checker_pairs_blank_math_paragraph_with_number_paragraph():
+    doc = thesis_doc(
+        h1(5, text="第一章  引言"),
+        empty(6),
+        make_para(
+            flow_index=7,
+            text="       ",
+            alignment="center",
+            first_line_indent_chars=0.0,
+            contains_math=True,
+            math_object_count=1,
+            runs=[],
+        ),
+        make_para(
+            flow_index=8,
+            text="       (1-1)",
+            alignment="right",
+            first_line_indent_chars=0.0,
+            contains_math=True,
+            math_object_count=1,
+            runs=[run("       (1-1)", latin="Times New Roman", size=10.5)],
+        ),
+    )
+
+    assert MainTextFormulaChecker().check(context_for(doc)) == []
+
+
+def test_main_text_formula_checker_deduplicates_adjacent_blank_math_paragraphs():
+    doc = thesis_doc(
+        h1(5, text="第一章  引言"),
+        empty(6),
+        make_para(
+            flow_index=7,
+            text="       ",
+            alignment="center",
+            first_line_indent_chars=0.0,
+            contains_math=True,
+            math_object_count=1,
+            runs=[],
+        ),
+        make_para(
+            flow_index=8,
+            text="",
+            alignment="center",
+            first_line_indent_chars=0.0,
+            contains_math=True,
+            math_object_count=1,
+            runs=[],
+        ),
+    )
+
+    issues = MainTextFormulaChecker().check(context_for(doc))
+
+    assert rule_ids(issues) == {"main-text-formula-001"}
+
+
+def figure_caption(
+    flow_index=8,
+    text="图1-1 过阻尼响应",
+    east="宋体",
+    size=10.5,
+    alignment="center",
+):
+    return make_para(
+        flow_index=flow_index,
+        text=text,
+        alignment=alignment,
+        first_line_indent_chars=0.0,
+        runs=[run(text, east=east, latin="Times New Roman", size=size)],
+    )
+
+
+def test_main_text_figure_caption_checker_accepts_valid_caption_below_image():
+    doc = thesis_doc(
+        h1(5, text="第一章  引言"),
+        empty(6),
+        make_image(flow_index=7),
+        figure_caption(8),
+    )
+
+    assert MainTextFigureCaptionChecker().check(context_for(doc)) == []
+
+
+def test_main_text_figure_caption_checker_flags_missing_caption():
+    doc = thesis_doc(
+        h1(5, text="第一章  引言"),
+        empty(6),
+        make_image(flow_index=7),
+        paragraph(8),
+    )
+
+    issues = MainTextFigureCaptionChecker().check(context_for(doc))
+
+    assert "main-text-figure-caption-001" in rule_ids(issues)
+    assert issues[0].location.block_kind == "image"
+
+
+def test_main_text_figure_caption_checker_flags_caption_format_rules():
+    doc = thesis_doc(
+        h1(5, text="第一章  引言"),
+        empty(6),
+        make_image(flow_index=7),
+        figure_caption(
+            8,
+            text="图1-2 过阻尼响应",
+            east="仿宋",
+            size=12.0,
+            alignment="left",
+        ),
+    )
+
+    issues = MainTextFigureCaptionChecker().check(context_for(doc))
+
+    assert rule_ids(issues) >= {
+        "main-text-figure-caption-003",
+        "main-text-figure-caption-005",
+        "main-text-figure-caption-006",
+        "main-text-figure-caption-007",
+    }
+
+
+def table_caption(
+    flow_index=7,
+    text="表1-1 实验数据",
+    east="宋体",
+    size=10.5,
+    alignment="center",
+):
+    return make_para(
+        flow_index=flow_index,
+        text=text,
+        alignment=alignment,
+        first_line_indent_chars=0.0,
+        runs=[run(text, east=east, latin="Times New Roman", size=size)],
+    )
+
+
+def test_main_text_table_caption_checker_accepts_valid_caption_above_table():
+    doc = thesis_doc(
+        h1(5, text="第一章  引言"),
+        empty(6),
+        table_caption(7),
+        make_table(flow_index=8),
+    )
+
+    assert MainTextTableCaptionChecker().check(context_for(doc)) == []
+
+
+def test_main_text_table_caption_checker_flags_missing_caption():
+    doc = thesis_doc(
+        h1(5, text="第一章  引言"),
+        empty(6),
+        make_table(flow_index=7),
+    )
+
+    issues = MainTextTableCaptionChecker().check(context_for(doc))
+
+    assert "main-text-table-caption-001" in rule_ids(issues)
+    assert issues[0].location.block_kind == "table"
+
+
+def test_main_text_table_caption_checker_flags_caption_format_rules():
+    doc = thesis_doc(
+        h1(5, text="第一章  引言"),
+        empty(6),
+        table_caption(
+            7,
+            text="表1-2 实验数据",
+            east="仿宋",
+            size=12.0,
+            alignment="left",
+        ),
+        make_table(flow_index=8),
+    )
+
+    issues = MainTextTableCaptionChecker().check(context_for(doc))
+
+    assert rule_ids(issues) >= {
+        "main-text-table-caption-003",
+        "main-text-table-caption-005",
+        "main-text-table-caption-006",
+        "main-text-table-caption-007",
+    }
+
+
+def test_main_text_paragraph_checker_skips_math_object_paragraph():
+    doc = thesis_doc(
+        h1(5),
+        empty(6),
+        formula_para(7, text="a = b + c\t(1-1)", alignment="center"),
+    )
+
+    assert MainTextParagraphChecker().check(context_for(doc)) == []

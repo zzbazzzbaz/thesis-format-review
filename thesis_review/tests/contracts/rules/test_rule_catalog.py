@@ -44,25 +44,51 @@ def test_rule_modules_match_expected_names():
         assert spec.module_name == module_name
 
 
-def test_unimplemented_rule_groups_are_not_active():
+def test_deprecated_global_rules_remain_deprecated_and_stage_two_rules_are_active():
+    catalog = load_rule_catalog(rules_root())
+    global_rules = catalog.modules_by_name["global"].rules
+    by_id = {rule.id: rule for rule in global_rules}
+
+    for rule_id in {
+        "global-margin-001",
+        "global-margin-002",
+        "global-margin-003",
+        "global-margin-004",
+        "global-footer-page-number-002",
+        "global-footer-page-number-excluded-001",
+        "global-footer-page-number-excluded-002",
+        "global-footer-page-number-excluded-003",
+        "global-footer-page-number-excluded-004",
+    }:
+        assert by_id[rule_id].status == "deprecated"
+
+    for rule_id in {
+        "global-header-001",
+        "global-header-002",
+        "global-header-003",
+        "global-header-004",
+        "global-footer-page-number-001",
+        "global-footer-page-number-003",
+        "global-footer-page-number-004",
+        "global-footer-page-number-005",
+    }:
+        assert by_id[rule_id].status == "active"
+
+    assert {rule.severity for rule in global_rules} == {"error"}
+
+
+def test_stage_two_main_text_object_rules_are_active():
     catalog = load_rule_catalog(rules_root())
 
-    inactive_modules = {"global"}
-    for module in inactive_modules:
-        spec = catalog.modules_by_name[module]
-        assert spec.rules
-        assert {rule.status for rule in spec.rules} <= {"draft", "deprecated"}
-        assert {rule.severity for rule in spec.rules} == {"error"}
-
     main_text = catalog.modules_by_name["main-text"]
-    draft_prefixes = (
+    active_prefixes = (
         "main-text-formula-",
         "main-text-figure-caption-",
         "main-text-table-caption-",
     )
     for rule in main_text.rules:
-        if rule.id.startswith(draft_prefixes):
-            assert rule.status == "draft"
+        if rule.id.startswith(active_prefixes):
+            assert rule.status == "active"
 
 
 def test_active_rules_are_declared_by_registered_checkers():

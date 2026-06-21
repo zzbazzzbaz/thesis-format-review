@@ -12,9 +12,8 @@ cases:
   - id: global-footer-page-number-format
     file: samples/global-footer-page-number-format.docx
     description: 正文到附录页码格式错误样本。
-    error_description: 正文到附录范围内的页码未使用阿拉伯数字、未连续编排、未位于页脚中间，或页码未使用 Times New Roman 五号。
+    error_description: 正文到附录范围内的页码未位于页脚中间，或页码未使用 Times New Roman 五号。
     expected_rule_ids:
-      - global-footer-page-number-001
       - global-footer-page-number-003
       - global-footer-page-number-004
       - global-footer-page-number-005

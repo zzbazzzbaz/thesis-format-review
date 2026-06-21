@@ -2,24 +2,25 @@ cases:
   - id: references-title-format-windows11-wps
     file: samples/references-title-format-windows11-wps.docx
     description: 参考文献标题格式错误样本。
-    error_description: 参考文献标题文本不是严格的“参考文献”，且标题与第一条参考文献条目之间不是正好 1 个空段落。
+    error_description: 参考文献标题文本不是严格的“参考文献”。
     expected_rule_ids:
       - references-title-001
-      - references-title-002
 
   - id: references-entry-numbering-windows11-wps
     file: samples/references-entry-numbering-windows11-wps.docx
     description: 参考文献条目编号格式错误样本。
-    error_description: 参考文献条目未使用方括号数字编号，或编号与正文内容之间不是正好 1 个普通半角空格。
+    error_description: 参考文献条目未使用方括号数字编号，或编号与正文内容之间不是正好 1 个普通半角空格；样本标题与第一条参考文献条目之间也不是正好 1 个空段落。
     expected_rule_ids:
+      - references-title-002
       - references-entry-001
       - references-entry-002
 
   - id: references-entry-format-windows11-wps
     file: samples/references-entry-format-windows11-wps.docx
     description: 参考文献条目正文格式错误样本。
-    error_description: 参考文献条目正文未使用宋体中文字体、Times New Roman 西文和数字字体、小四字号和 1.5 倍行距。
+    error_description: 参考文献条目正文未使用宋体中文字体、Times New Roman 西文和数字字体、小四字号和 1.5 倍行距；样本标题与第一条参考文献条目之间也不是正好 1 个空段落。
     expected_rule_ids:
+      - references-title-002
       - references-entry-003
       - references-entry-004
       - references-entry-005
