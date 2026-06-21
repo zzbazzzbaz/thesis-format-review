@@ -5,29 +5,29 @@ rules:
   - id: global-margin-001
     title: 上边距
     severity: error
-    status: draft
-    description: 检查所有页面的上边距是否为 2.6 cm。
+    status: deprecated
+    description: 已废弃：纯 UNO API 导入 .docx 后页边距值可能被 LibreOffice 重解释，不适合作为该规则唯一判定依据；后续需基于 OOXML 页节属性重新设计。
     message: 页面上边距应为 2.6 cm
     expected: 2.6 cm
   - id: global-margin-002
     title: 下边距
     severity: error
-    status: draft
-    description: 检查所有页面的下边距是否为 2.6 cm。
+    status: deprecated
+    description: 已废弃：纯 UNO API 导入 .docx 后页边距值可能被 LibreOffice 重解释，不适合作为该规则唯一判定依据；后续需基于 OOXML 页节属性重新设计。
     message: 页面下边距应为 2.6 cm
     expected: 2.6 cm
   - id: global-margin-003
     title: 左边距
     severity: error
-    status: draft
-    description: 检查所有页面的左边距是否为 2.6 cm。
+    status: deprecated
+    description: 已废弃：纯 UNO API 导入 .docx 后页边距值可能被 LibreOffice 重解释，不适合作为该规则唯一判定依据；后续需基于 OOXML 页节属性重新设计。
     message: 页面左边距应为 2.6 cm
     expected: 2.6 cm
   - id: global-margin-004
     title: 右边距
     severity: error
-    status: draft
-    description: 检查所有页面的右边距是否为 2.6 cm。
+    status: deprecated
+    description: 已废弃：纯 UNO API 导入 .docx 后页边距值可能被 LibreOffice 重解释，不适合作为该规则唯一判定依据；后续需基于 OOXML 页节属性重新设计。
     message: 页面右边距应为 2.6 cm
     expected: 2.6 cm
   - id: global-header-001
@@ -68,8 +68,8 @@ rules:
   - id: global-footer-page-number-002
     title: 页码连续
     severity: error
-    status: draft
-    description: 检查正文到附录范围内页脚页码是否连续编排。
+    status: deprecated
+    description: 已废弃：页码连续性依赖渲染页序、页码起始值和 section 映射，纯 UNO PageStyle 信息不足以稳定判定；后续需结合 OOXML 与渲染页模型重新设计。
     message: 正文到附录页码应连续编排
     expected: 连续页码
   - id: global-footer-page-number-003
@@ -96,28 +96,28 @@ rules:
   - id: global-footer-page-number-excluded-001
     title: 封面无页码
     severity: error
-    status: draft
-    description: 检查封面是否未显示页码。
+    status: deprecated
+    description: 已废弃：WPS 文本框页码在 UNO 中可能表现为 DrawPage shape，难以仅靠 UNO 稳定映射到封面区域；后续需结合 OOXML 页脚引用和区域模型重新设计。
     message: 封面不应显示页码
     expected: 无页码
   - id: global-footer-page-number-excluded-002
     title: 中文摘要无页码
     severity: error
-    status: draft
-    description: 检查中文摘要页是否未显示页码。
+    status: deprecated
+    description: 已废弃：WPS 文本框页码在 UNO 中可能表现为 DrawPage shape，难以仅靠 UNO 稳定映射到中文摘要区域；后续需结合 OOXML 页脚引用和区域模型重新设计。
     message: 中文摘要不应显示页码
     expected: 无页码
   - id: global-footer-page-number-excluded-003
     title: 英文摘要无页码
     severity: error
-    status: draft
-    description: 检查英文摘要页是否未显示页码。
+    status: deprecated
+    description: 已废弃：WPS 文本框页码在 UNO 中可能表现为 DrawPage shape，难以仅靠 UNO 稳定映射到英文摘要区域；后续需结合 OOXML 页脚引用和区域模型重新设计。
     message: 英文摘要不应显示页码
     expected: 无页码
   - id: global-footer-page-number-excluded-004
     title: 目录无页码
     severity: error
-    status: draft
-    description: 检查目录页是否未显示页码。
+    status: deprecated
+    description: 已废弃：WPS 文本框页码在 UNO 中可能表现为 DrawPage shape，难以仅靠 UNO 稳定映射到目录区域；后续需结合 OOXML 页脚引用和区域模型重新设计。
     message: 目录不应显示页码
     expected: 无页码

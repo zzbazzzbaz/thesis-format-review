@@ -1,14 +1,4 @@
 cases:
-  - id: global-margin-format
-    file: samples/global-margin-format.docx
-    description: 页面边距错误样本。
-    error_description: 文档页面上、下、左、右边距不是 2.6 cm，用于验证整体页面边距规则。
-    expected_rule_ids:
-      - global-margin-001
-      - global-margin-002
-      - global-margin-003
-      - global-margin-004
-
   - id: global-header-format
     file: samples/global-header-format.docx
     description: 非封面页页眉格式错误样本。
@@ -25,17 +15,6 @@ cases:
     error_description: 正文到附录范围内的页码未使用阿拉伯数字、未连续编排、未位于页脚中间，或页码未使用 Times New Roman 五号。
     expected_rule_ids:
       - global-footer-page-number-001
-      - global-footer-page-number-002
       - global-footer-page-number-003
       - global-footer-page-number-004
       - global-footer-page-number-005
-
-  - id: global-footer-page-number-excluded
-    file: samples/global-footer-page-number-excluded.docx
-    description: 无页码区域错误样本。
-    error_description: 封面、中文摘要、英文摘要或目录页显示了页码，用于验证这些区域不应显示页码。
-    expected_rule_ids:
-      - global-footer-page-number-excluded-001
-      - global-footer-page-number-excluded-002
-      - global-footer-page-number-excluded-003
-      - global-footer-page-number-excluded-004
