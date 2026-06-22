@@ -147,8 +147,19 @@ def test_main_text_heading_checker_flags_level_one_rules():
         "main-text-heading-level-one-003",
         "main-text-heading-level-one-004",
         "main-text-heading-level-one-005",
-        "main-text-heading-level-one-006",
     }
+    assert "main-text-heading-level-one-006" not in rule_ids(issues)
+
+
+def test_main_text_heading_checker_ignores_deprecated_new_page_rule():
+    doc = thesis_doc(
+        h1(5, page_break_before=False),
+        body(6),
+    )
+
+    issues = MainTextHeadingChecker().check(context_for(doc))
+
+    assert "main-text-heading-level-one-006" not in rule_ids(issues)
 
 
 def test_main_text_heading_checker_flags_level_two_rules():

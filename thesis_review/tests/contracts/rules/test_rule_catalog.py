@@ -112,6 +112,27 @@ def test_stage_two_main_text_object_rules_have_expected_statuses():
         assert by_id[rule_id].status == "active"
 
 
+def test_deprecated_unstable_layout_rules_remain_deprecated():
+    catalog = load_rule_catalog(rules_root())
+
+    main_text = {rule.id: rule for rule in catalog.modules_by_name["main-text"].rules}
+    references = {rule.id: rule for rule in catalog.modules_by_name["references"].rules}
+
+    assert main_text["main-text-heading-level-one-006"].status == "deprecated"
+    assert references["references-title-002"].status == "deprecated"
+
+    for rule_id in {
+        "main-text-heading-level-one-001",
+        "main-text-heading-level-one-002",
+        "main-text-heading-level-one-003",
+        "main-text-heading-level-one-004",
+        "main-text-heading-level-one-005",
+    }:
+        assert main_text[rule_id].status == "active"
+
+    assert references["references-title-001"].status == "active"
+
+
 def test_active_rules_are_declared_by_registered_checkers():
     catalog = load_rule_catalog(rules_root())
     checker_rule_ids = {

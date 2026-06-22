@@ -239,7 +239,6 @@ class MainTextHeadingChecker:
         "main-text-heading-level-one-003",
         "main-text-heading-level-one-004",
         "main-text-heading-level-one-005",
-        "main-text-heading-level-one-006",
         "main-text-heading-level-two-001",
         "main-text-heading-level-two-002",
         "main-text-heading-level-two-003",
@@ -318,15 +317,6 @@ class MainTextHeadingChecker:
                 f"{blank_count} 个空段落",
                 block_location(para),
             )
-        if not para.page_break_before:
-            append_issue(
-                issues,
-                context,
-                "main-text-heading-level-one-006",
-                "未另起一页",
-                block_location(para),
-            )
-
     def _check_h2(
         self,
         context: RuleContext,

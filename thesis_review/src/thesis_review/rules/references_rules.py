@@ -13,7 +13,6 @@ from thesis_review.rules.formatting import (
     contains_chinese,
     display_line_spacing,
     display_size,
-    empty_count_after,
     has_line_spacing,
     non_empty,
     section_paragraphs,
@@ -31,7 +30,7 @@ def _title_and_entries(
     if not visible:
         return paragraphs, None, []
     title = visible[0]
-    start = paragraphs.index(title) + 1 + empty_count_after(paragraphs, title)
+    start = paragraphs.index(title) + 1
     entries = [para for para in paragraphs[start:] if para.text.strip()]
     return paragraphs, title, entries
 
@@ -46,7 +45,7 @@ def _is_latin_font(run: RunSpan) -> bool:
 
 class ReferencesTitleChecker:
     checker_id = "references-title"
-    rule_ids = ("references-title-001", "references-title-002")
+    rule_ids = ("references-title-001",)
 
     def check(self, context: RuleContext) -> list[Issue]:
         paragraphs, title, _ = _title_and_entries(context)
@@ -59,15 +58,6 @@ class ReferencesTitleChecker:
                 context,
                 "references-title-001",
                 title.text,
-                block_location(title),
-            )
-        blank_count = empty_count_after(paragraphs, title)
-        if blank_count != 1:
-            append_issue(
-                issues,
-                context,
-                "references-title-002",
-                f"{blank_count} 个空段落",
                 block_location(title),
             )
         return issues

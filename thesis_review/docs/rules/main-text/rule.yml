@@ -40,8 +40,8 @@ rules:
   - id: main-text-heading-level-one-006
     title: 一级标题另起一页
     severity: error
-    status: active
-    description: 检查每一章一级标题是否另起一页。
+    status: deprecated
+    description: 废弃。一级标题另起页是版面结果，可由分页符、分节符、样式或手动排版实现，当前抽取模型无法稳定泛化判定。
     message: 每一章一级标题应另起一页
     expected: 另起一页
   - id: main-text-heading-level-two-001

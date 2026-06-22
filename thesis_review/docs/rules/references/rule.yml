@@ -12,8 +12,8 @@ rules:
   - id: references-title-002
     title: 参考文献标题后空行
     severity: error
-    status: active
-    description: 检查参考文献标题和参考文献条目之间是否正好有 1 个空段落。
+    status: deprecated
+    description: 废弃。标题后空段在 Word/WPS/LibreOffice 导入时容易受隐藏对象和空段合并影响，当前抽取模型无法稳定泛化判定。
     message: 参考文献标题后必须且只能空一行
     expected: 1 个空段落
   - id: references-entry-001

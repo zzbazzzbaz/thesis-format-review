@@ -69,12 +69,12 @@ def test_references_title_checker_accepts_valid_title_and_blank():
     assert ReferencesTitleChecker().check(context_for(doc)) == []
 
 
-def test_references_title_checker_flags_text_and_blank_count():
+def test_references_title_checker_flags_text_but_ignores_deprecated_blank_count():
     doc = references_doc(title(1, text="参考 文献"), entry(2))
 
     issues = ReferencesTitleChecker().check(context_for(doc))
 
-    assert rule_ids(issues) == {"references-title-001", "references-title-002"}
+    assert rule_ids(issues) == {"references-title-001"}
 
 
 def test_references_title_checker_flags_references_like_bad_title():
@@ -82,7 +82,15 @@ def test_references_title_checker_flags_references_like_bad_title():
 
     issues = ReferencesTitleChecker().check(context_for(doc))
 
-    assert rule_ids(issues) == {"references-title-001", "references-title-002"}
+    assert rule_ids(issues) == {"references-title-001"}
+
+
+def test_references_title_checker_ignores_deprecated_blank_count_rule():
+    doc = references_doc(title(1), entry(2))
+
+    issues = ReferencesTitleChecker().check(context_for(doc))
+
+    assert "references-title-002" not in rule_ids(issues)
 
 
 def test_references_entry_checker_accepts_valid_entry():
