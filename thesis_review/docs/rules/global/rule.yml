@@ -61,8 +61,8 @@ rules:
   - id: global-footer-page-number-001
     title: 页码数字形式
     severity: error
-    status: active
-    description: 检查正文到附录范围内页脚页码是否使用阿拉伯数字。
+    status: deprecated
+    description: 已废弃：页码数字形式依赖页脚字段、页码格式与渲染页映射，当前 UNO 样本无法稳定证明该规则；后续需结合 OOXML 与渲染页模型重新设计。
     message: 正文到附录页码应使用阿拉伯数字
     expected: 阿拉伯数字页码
   - id: global-footer-page-number-002

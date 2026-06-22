@@ -187,8 +187,8 @@ rules:
   - id: main-text-reference-citation-002
     title: 正文引用编号上标
     severity: error
-    status: active
-    description: 检查正文参考文献引用编号是否为上标。
+    status: deprecated
+    description: 已废弃：引用编号上标在当前 UNO 抽取和真实样本文档中无法稳定验证，后续需基于 OOXML run 属性重新设计。
     message: 正文参考文献引用编号应为上标
     expected: 上标
   - id: main-text-reference-citation-003

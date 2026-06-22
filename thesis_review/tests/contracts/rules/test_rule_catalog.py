@@ -54,6 +54,7 @@ def test_deprecated_global_rules_remain_deprecated_and_stage_two_rules_are_activ
         "global-margin-002",
         "global-margin-003",
         "global-margin-004",
+        "global-footer-page-number-001",
         "global-footer-page-number-002",
         "global-footer-page-number-excluded-001",
         "global-footer-page-number-excluded-002",
@@ -67,7 +68,6 @@ def test_deprecated_global_rules_remain_deprecated_and_stage_two_rules_are_activ
         "global-header-002",
         "global-header-003",
         "global-header-004",
-        "global-footer-page-number-001",
         "global-footer-page-number-003",
         "global-footer-page-number-004",
         "global-footer-page-number-005",
@@ -119,6 +119,7 @@ def test_deprecated_unstable_layout_rules_remain_deprecated():
     references = {rule.id: rule for rule in catalog.modules_by_name["references"].rules}
 
     assert main_text["main-text-heading-level-one-006"].status == "deprecated"
+    assert main_text["main-text-reference-citation-002"].status == "deprecated"
     assert references["references-title-002"].status == "deprecated"
 
     for rule_id in {
