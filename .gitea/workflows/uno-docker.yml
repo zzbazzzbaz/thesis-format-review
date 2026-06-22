@@ -43,7 +43,7 @@ jobs:
 
       - name: Login to Gitea Container Registry
         if: gitea.event_name != 'pull_request'
-        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login ${REGISTRY} -u "${{ gitea.actor }}" --password-stdin
+        run: echo "${{ secrets.GITEA_TOKEN }}" | docker login ${REGISTRY} -u "${{ gitea.actor }}" --password-stdin
 
       - name: Push UNO image
         if: gitea.event_name != 'pull_request'
