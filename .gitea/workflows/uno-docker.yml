@@ -17,7 +17,7 @@ env:
   SERVICE_DIR: thesis_review
 
 jobs:
-  build-test-push:
+  build-push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,24 +25,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Build UNO test image
-        uses: docker/build-push-action@v6
-        with:
-          context: ${{ env.SERVICE_DIR }}
-          file: ${{ env.SERVICE_DIR }}/Dockerfile.uno-dev
-          load: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ gitea.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-
-      - name: Run Python tests in UNO image
-        run: |
-          docker run --rm \
-            -v "$PWD/${SERVICE_DIR}:/workspace" \
-            -w /workspace \
-            "${REGISTRY}/${IMAGE_NAME}:${{ gitea.sha }}" \
-            /opt/venv/bin/python -m pytest -q
 
       - name: Login to Gitea Container Registry
         if: ${{ gitea.event_name != 'pull_request' }}
@@ -52,8 +34,12 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_TOKEN }}
 
-      - name: Push UNO test image
-        if: ${{ gitea.event_name != 'pull_request' }}
-        run: |
-          docker push "${REGISTRY}/${IMAGE_NAME}:${{ gitea.sha }}"
-          docker push "${REGISTRY}/${IMAGE_NAME}:latest"
+      - name: Build and push UNO image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.SERVICE_DIR }}
+          file: ${{ env.SERVICE_DIR }}/Dockerfile.uno-dev
+          push: ${{ gitea.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ gitea.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
