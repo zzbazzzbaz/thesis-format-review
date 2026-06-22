@@ -77,18 +77,39 @@ def test_deprecated_global_rules_remain_deprecated_and_stage_two_rules_are_activ
     assert {rule.severity for rule in global_rules} == {"error"}
 
 
-def test_stage_two_main_text_object_rules_are_active():
+def test_stage_two_main_text_object_rules_have_expected_statuses():
     catalog = load_rule_catalog(rules_root())
 
     main_text = catalog.modules_by_name["main-text"]
-    active_prefixes = (
-        "main-text-formula-",
-        "main-text-figure-caption-",
-        "main-text-table-caption-",
-    )
-    for rule in main_text.rules:
-        if rule.id.startswith(active_prefixes):
-            assert rule.status == "active"
+    by_id = {rule.id: rule for rule in main_text.rules}
+
+    for rule_id in {
+        "main-text-formula-003",
+        "main-text-formula-004",
+        "main-text-figure-caption-001",
+        "main-text-figure-caption-002",
+        "main-text-table-caption-001",
+        "main-text-table-caption-002",
+    }:
+        assert by_id[rule_id].status == "deprecated"
+
+    for rule_id in {
+        "main-text-formula-001",
+        "main-text-formula-002",
+        "main-text-formula-005",
+        "main-text-formula-006",
+        "main-text-figure-caption-003",
+        "main-text-figure-caption-004",
+        "main-text-figure-caption-005",
+        "main-text-figure-caption-006",
+        "main-text-figure-caption-007",
+        "main-text-table-caption-003",
+        "main-text-table-caption-004",
+        "main-text-table-caption-005",
+        "main-text-table-caption-006",
+        "main-text-table-caption-007",
+    }:
+        assert by_id[rule_id].status == "active"
 
 
 def test_active_rules_are_declared_by_registered_checkers():

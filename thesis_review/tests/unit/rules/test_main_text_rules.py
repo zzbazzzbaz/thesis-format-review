@@ -389,7 +389,7 @@ def test_main_text_formula_checker_accepts_valid_formula():
     assert MainTextFormulaChecker().check(context_for(doc)) == []
 
 
-def test_main_text_formula_checker_flags_numbering_alignment_font_and_size():
+def test_main_text_formula_checker_flags_numbering_font_and_size():
     doc = thesis_doc(
         h1(5, text="第一章  引言"),
         empty(6),
@@ -407,11 +407,11 @@ def test_main_text_formula_checker_flags_numbering_alignment_font_and_size():
 
     assert rule_ids(issues) >= {
         "main-text-formula-002",
-        "main-text-formula-003",
-        "main-text-formula-004",
         "main-text-formula-005",
         "main-text-formula-006",
     }
+    assert "main-text-formula-003" not in rule_ids(issues)
+    assert "main-text-formula-004" not in rule_ids(issues)
 
 
 def test_main_text_formula_checker_flags_missing_formula_number_only_for_number_rules():
@@ -509,7 +509,7 @@ def test_main_text_figure_caption_checker_accepts_valid_caption_below_image():
     assert MainTextFigureCaptionChecker().check(context_for(doc)) == []
 
 
-def test_main_text_figure_caption_checker_flags_missing_caption():
+def test_main_text_figure_caption_checker_ignores_deprecated_missing_caption_rule():
     doc = thesis_doc(
         h1(5, text="第一章  引言"),
         empty(6),
@@ -519,8 +519,20 @@ def test_main_text_figure_caption_checker_flags_missing_caption():
 
     issues = MainTextFigureCaptionChecker().check(context_for(doc))
 
-    assert "main-text-figure-caption-001" in rule_ids(issues)
-    assert issues[0].location.block_kind == "image"
+    assert "main-text-figure-caption-001" not in rule_ids(issues)
+
+
+def test_main_text_figure_caption_checker_ignores_deprecated_position_rule():
+    doc = thesis_doc(
+        h1(5, text="第一章  引言"),
+        empty(6),
+        figure_caption(7),
+        paragraph(8),
+    )
+
+    issues = MainTextFigureCaptionChecker().check(context_for(doc))
+
+    assert "main-text-figure-caption-002" not in rule_ids(issues)
 
 
 def test_main_text_figure_caption_checker_flags_caption_format_rules():
@@ -574,7 +586,7 @@ def test_main_text_table_caption_checker_accepts_valid_caption_above_table():
     assert MainTextTableCaptionChecker().check(context_for(doc)) == []
 
 
-def test_main_text_table_caption_checker_flags_missing_caption():
+def test_main_text_table_caption_checker_ignores_deprecated_missing_caption_rule():
     doc = thesis_doc(
         h1(5, text="第一章  引言"),
         empty(6),
@@ -583,8 +595,20 @@ def test_main_text_table_caption_checker_flags_missing_caption():
 
     issues = MainTextTableCaptionChecker().check(context_for(doc))
 
-    assert "main-text-table-caption-001" in rule_ids(issues)
-    assert issues[0].location.block_kind == "table"
+    assert "main-text-table-caption-001" not in rule_ids(issues)
+
+
+def test_main_text_table_caption_checker_ignores_deprecated_position_rule():
+    doc = thesis_doc(
+        h1(5, text="第一章  引言"),
+        empty(6),
+        paragraph(7),
+        table_caption(8),
+    )
+
+    issues = MainTextTableCaptionChecker().check(context_for(doc))
+
+    assert "main-text-table-caption-002" not in rule_ids(issues)
 
 
 def test_main_text_table_caption_checker_flags_caption_format_rules():

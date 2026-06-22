@@ -222,15 +222,15 @@ rules:
   - id: main-text-formula-003
     title: 公式整体居中
     severity: error
-    status: active
-    description: 检查公式和编号整体是否居中对齐。
+    status: deprecated
+    description: 废弃。公式整体位置在 Word/WPS/LibreOffice 中存在多种实现方式，当前抽取模型无法稳定泛化判定。
     message: 公式和编号整体应居中对齐
     expected: 居中对齐
   - id: main-text-formula-004
     title: 公式编号居右
     severity: error
-    status: active
-    description: 检查公式编号是否居右放置。
+    status: deprecated
+    description: 废弃。公式编号居右可能由制表位、表格、对象锚点或独立段落实现，当前抽取模型无法稳定泛化判定。
     message: 公式编号应居右放置
     expected: 居右
   - id: main-text-formula-005
@@ -250,15 +250,15 @@ rules:
   - id: main-text-figure-caption-001
     title: 图片图题存在
     severity: error
-    status: active
-    description: 检查所有图片是否有图题。
+    status: deprecated
+    description: 废弃。图片对象和图题的配对受浮动锚点、嵌入方式和导入结果影响较大，当前抽取模型无法稳定泛化判定。
     message: 图片应有图题
     expected: 有图题
   - id: main-text-figure-caption-002
     title: 图片图题位置
     severity: error
-    status: active
-    description: 检查图题是否位于图片下方。
+    status: deprecated
+    description: 废弃。图片与图题的上下位置依赖版面渲染和对象锚点，当前抽取模型无法稳定泛化判定。
     message: 图题应位于图片下方
     expected: 图片下方
   - id: main-text-figure-caption-003
@@ -299,15 +299,15 @@ rules:
   - id: main-text-table-caption-001
     title: 表格表题存在
     severity: error
-    status: active
-    description: 检查所有表格是否有表题。
+    status: deprecated
+    description: 废弃。表格和表题的配对在续表、说明段和空段存在时不够稳定，当前抽取模型不再强制判定。
     message: 表格应有表题
     expected: 有表题
   - id: main-text-table-caption-002
     title: 表格表题位置
     severity: error
-    status: active
-    description: 检查表题是否位于表格上方。
+    status: deprecated
+    description: 废弃。表题位置依赖表格相邻块推断，遇到续表、空段或说明段时容易误报。
     message: 表题应位于表格上方
     expected: 表格上方
   - id: main-text-table-caption-003

@@ -580,8 +580,6 @@ class MainTextFormulaChecker:
     rule_ids = (
         "main-text-formula-001",
         "main-text-formula-002",
-        "main-text-formula-003",
-        "main-text-formula-004",
         "main-text-formula-005",
         "main-text-formula-006",
     )
@@ -639,40 +637,6 @@ class MainTextFormulaChecker:
                     match.group(0),
                     block_location(number_para),
                 )
-            if number_para is block:
-                if not _has_tab_alignment(block, "center"):
-                    append_issue(
-                        issues,
-                        context,
-                        "main-text-formula-003",
-                        "未识别",
-                        block_location(block),
-                    )
-                if not _has_tab_alignment(block, "right"):
-                    append_issue(
-                        issues,
-                        context,
-                        "main-text-formula-004",
-                        "未识别",
-                        block_location(block),
-                    )
-            else:
-                if block.alignment != "center":
-                    append_issue(
-                        issues,
-                        context,
-                        "main-text-formula-003",
-                        display_alignment(block.alignment),
-                        block_location(block),
-                    )
-                if number_para.alignment != "right":
-                    append_issue(
-                        issues,
-                        context,
-                        "main-text-formula-004",
-                        display_alignment(number_para.alignment),
-                        block_location(number_para),
-                    )
             number_runs = runs_overlapping(number_para, match.start(), match.end())
             for run in number_runs:
                 if run.size_pt != 10.5:
@@ -700,8 +664,6 @@ class MainTextFormulaChecker:
 class MainTextFigureCaptionChecker:
     checker_id = "main-text-figure-caption"
     rule_ids = (
-        "main-text-figure-caption-001",
-        "main-text-figure-caption-002",
         "main-text-figure-caption-003",
         "main-text-figure-caption-004",
         "main-text-figure-caption-005",
@@ -713,9 +675,11 @@ class MainTextFigureCaptionChecker:
         blocks = section_blocks(context, "main-text")
         issues: list[Issue] = []
         figure_seq_by_chapter: dict[int, int] = {}
-        paired_caption_ids: set[str] = set()
         for index, block in enumerate(blocks):
-            if block.kind != "image":
+            if block.kind != "paragraph":
+                continue
+            match = _FIGURE_CAPTION_ANY_RE.match(block.text.strip())
+            if match is None:
                 continue
             chapter = _chapter_for_block(blocks, index)
             if chapter is None:
@@ -729,28 +693,6 @@ class MainTextFigureCaptionChecker:
                 continue
             figure_seq_by_chapter[chapter] = figure_seq_by_chapter.get(chapter, 0) + 1
             expected = f"图{chapter}-{figure_seq_by_chapter[chapter]}"
-            next_item = _next_non_empty_block(blocks, index)
-            if next_item is None or next_item[1].kind != "paragraph":
-                append_issue(
-                    issues,
-                    context,
-                    "main-text-figure-caption-001",
-                    "未找到",
-                    block_location(block),
-                )
-                continue
-            caption = next_item[1]
-            match = _FIGURE_CAPTION_ANY_RE.match(caption.text.strip())
-            if match is None:
-                append_issue(
-                    issues,
-                    context,
-                    "main-text-figure-caption-001",
-                    "未找到",
-                    block_location(block),
-                )
-                continue
-            paired_caption_ids.add(caption.id)
             actual_number = f"图{match.group(1)}-{match.group(2)}"
             spaces = match.group(3)
             if actual_number != expected:
@@ -759,7 +701,7 @@ class MainTextFigureCaptionChecker:
                     context,
                     "main-text-figure-caption-003",
                     actual_number,
-                    block_location(caption),
+                    block_location(block),
                 )
             if len(spaces) != 1:
                 append_issue(
@@ -767,18 +709,18 @@ class MainTextFigureCaptionChecker:
                     context,
                     "main-text-figure-caption-004",
                     f"{len(spaces)} 个空格",
-                    block_location(caption),
+                    block_location(block),
                 )
-            if caption.alignment != "center":
+            if block.alignment != "center":
                 append_issue(
                     issues,
                     context,
                     "main-text-figure-caption-005",
-                    display_alignment(caption.alignment),
-                    block_location(caption),
+                    display_alignment(block.alignment),
+                    block_location(block),
                 )
             _first_bad_caption_run(
-                caption,
+                block,
                 "main-text-figure-caption-006",
                 lambda run: run.size_pt == 10.5,
                 lambda run: display_size(run.size_pt),
@@ -786,34 +728,19 @@ class MainTextFigureCaptionChecker:
                 context,
             )
             _first_bad_caption_run(
-                caption,
+                block,
                 "main-text-figure-caption-007",
                 _is_chinese_font("宋体"),
                 lambda run: run.font_east_asian or "未识别",
                 issues,
                 context,
             )
-        for index, block in enumerate(blocks):
-            if block.kind != "paragraph" or block.id in paired_caption_ids:
-                continue
-            if _FIGURE_CAPTION_ANY_RE.match(block.text.strip()):
-                prev_item = _previous_non_empty_block(blocks, index)
-                if prev_item is None or prev_item[1].kind != "image":
-                    append_issue(
-                        issues,
-                        context,
-                        "main-text-figure-caption-002",
-                        "未位于图片下方",
-                        block_location(block),
-                    )
         return issues
 
 
 class MainTextTableCaptionChecker:
     checker_id = "main-text-table-caption"
     rule_ids = (
-        "main-text-table-caption-001",
-        "main-text-table-caption-002",
         "main-text-table-caption-003",
         "main-text-table-caption-004",
         "main-text-table-caption-005",
@@ -825,9 +752,11 @@ class MainTextTableCaptionChecker:
         blocks = section_blocks(context, "main-text")
         issues: list[Issue] = []
         table_seq_by_chapter: dict[int, int] = {}
-        paired_caption_ids: set[str] = set()
         for index, block in enumerate(blocks):
-            if block.kind != "table":
+            if block.kind != "paragraph":
+                continue
+            match = _TABLE_CAPTION_ANY_RE.match(block.text.strip())
+            if match is None:
                 continue
             chapter = _chapter_for_block(blocks, index)
             if chapter is None:
@@ -841,28 +770,6 @@ class MainTextTableCaptionChecker:
                 continue
             table_seq_by_chapter[chapter] = table_seq_by_chapter.get(chapter, 0) + 1
             expected = f"表{chapter}-{table_seq_by_chapter[chapter]}"
-            prev_item = _previous_non_empty_block(blocks, index)
-            if prev_item is None or prev_item[1].kind != "paragraph":
-                append_issue(
-                    issues,
-                    context,
-                    "main-text-table-caption-001",
-                    "未找到",
-                    block_location(block),
-                )
-                continue
-            caption = prev_item[1]
-            match = _TABLE_CAPTION_ANY_RE.match(caption.text.strip())
-            if match is None:
-                append_issue(
-                    issues,
-                    context,
-                    "main-text-table-caption-001",
-                    "未找到",
-                    block_location(block),
-                )
-                continue
-            paired_caption_ids.add(caption.id)
             actual_number = f"表{match.group(1)}-{match.group(2)}"
             spaces = match.group(3)
             if actual_number != expected:
@@ -871,7 +778,7 @@ class MainTextTableCaptionChecker:
                     context,
                     "main-text-table-caption-003",
                     actual_number,
-                    block_location(caption),
+                    block_location(block),
                 )
             if len(spaces) != 1:
                 append_issue(
@@ -879,18 +786,18 @@ class MainTextTableCaptionChecker:
                     context,
                     "main-text-table-caption-004",
                     f"{len(spaces)} 个空格",
-                    block_location(caption),
+                    block_location(block),
                 )
-            if caption.alignment != "center":
+            if block.alignment != "center":
                 append_issue(
                     issues,
                     context,
                     "main-text-table-caption-005",
-                    display_alignment(caption.alignment),
-                    block_location(caption),
+                    display_alignment(block.alignment),
+                    block_location(block),
                 )
             _first_bad_caption_run(
-                caption,
+                block,
                 "main-text-table-caption-006",
                 lambda run: run.size_pt == 10.5,
                 lambda run: display_size(run.size_pt),
@@ -898,24 +805,11 @@ class MainTextTableCaptionChecker:
                 context,
             )
             _first_bad_caption_run(
-                caption,
+                block,
                 "main-text-table-caption-007",
                 _is_chinese_font("宋体"),
                 lambda run: run.font_east_asian or "未识别",
                 issues,
                 context,
             )
-        for index, block in enumerate(blocks):
-            if block.kind != "paragraph" or block.id in paired_caption_ids:
-                continue
-            if _TABLE_CAPTION_ANY_RE.match(block.text.strip()):
-                next_item = _next_non_empty_block(blocks, index)
-                if next_item is None or next_item[1].kind != "table":
-                    append_issue(
-                        issues,
-                        context,
-                        "main-text-table-caption-002",
-                        "未位于表格上方",
-                        block_location(block),
-                    )
         return issues
