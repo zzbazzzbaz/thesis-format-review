@@ -8,6 +8,8 @@ from thesis_review.rules.formatting import (
     append_first_bad_run,
     contains_chinese,
     display_size,
+    run_location,
+    runs_overlapping,
     section_paragraphs,
 )
 
@@ -52,27 +54,95 @@ def _requires_chinese_font(expected: str):
     return predicate
 
 
+def _first_bad_run(
+    runs: list[RunSpan],
+    predicate,
+) -> RunSpan | None:
+    for run in runs:
+        if not predicate(run):
+            return run
+    return None
+
+
+def _append_title_issue(
+    issues: list[Issue],
+    context: RuleContext,
+    title: ParagraphBlock,
+    runs: list[RunSpan],
+    rule_id: str,
+    predicate,
+    actual,
+) -> None:
+    run = _first_bad_run(runs, predicate)
+    if run is None:
+        return
+    issues.append(
+        context.issue_factory.create(
+            rule_id=rule_id,
+            actual=actual(run),
+            location=run_location(title, run),
+        )
+    )
+
+
 class CoverTitleChecker:
     checker_id = "cover-title"
-    rule_ids = ("cover-title-001", "cover-title-002")
+    rule_ids = (
+        "cover-title-label-001",
+        "cover-title-label-002",
+        "cover-title-001",
+        "cover-title-002",
+    )
 
     def check(self, context: RuleContext) -> list[Issue]:
         title = _first_with_norm_prefix(_cover_paragraphs(context), ("题目",))
         if title is None:
             return []
         issues: list[Issue] = []
-        append_first_bad_run(
+        label_end = title.text.find("：") + 1
+        if label_end <= 0:
+            label_end = title.text.find(":") + 1
+        if label_end <= 0:
+            label_end = len("题    目：")
+
+        label_runs = runs_overlapping(title, 0, min(label_end, len(title.text)))
+        content_runs = runs_overlapping(
+            title,
+            min(label_end, len(title.text)),
+            len(title.text),
+        )
+        _append_title_issue(
             issues,
             context,
             title,
+            label_runs,
+            "cover-title-label-001",
+            _requires_chinese_font("仿宋"),
+            lambda run: run.font_east_asian or "未识别",
+        )
+        _append_title_issue(
+            issues,
+            context,
+            title,
+            label_runs,
+            "cover-title-label-002",
+            lambda run: not run.text.strip() or run.size_pt == 16.0,
+            lambda run: display_size(run.size_pt),
+        )
+        _append_title_issue(
+            issues,
+            context,
+            title,
+            content_runs,
             "cover-title-001",
             _requires_chinese_font("黑体"),
             lambda run: run.font_east_asian or "未识别",
         )
-        append_first_bad_run(
+        _append_title_issue(
             issues,
             context,
             title,
+            content_runs,
             "cover-title-002",
             lambda run: not run.text.strip() or run.size_pt == 18.0,
             lambda run: display_size(run.size_pt),

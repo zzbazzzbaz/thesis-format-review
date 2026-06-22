@@ -1,4 +1,12 @@
 cases:
+  - id: cover-title-label-format
+    file: samples/cover-title-label-format.docx
+    description: 封面题目标签格式错误样本。
+    error_description: 封面“题    目：”标签中的“题    目”未使用仿宋三号；冒号和题目内容格式保持正确。
+    expected_rule_ids:
+      - cover-title-label-001
+      - cover-title-label-002
+
   - id: cover-title-format-windows11-wps
     file: samples/cover-title-format-windows11-wps.docx
     description: 封面题目格式错误样本。
@@ -10,10 +18,8 @@ cases:
   - id: cover-info-format-windows11-wps
     file: samples/cover-info-format-windows11-wps.docx
     description: 封面信息行格式错误样本。
-    error_description: 封面学院、专业、班级、姓名、学号等信息行未使用仿宋、三号字号和加粗格式；样本中的题目行也保留了错误字体和字号；不要求修改具体示例值。
+    error_description: 封面学院、专业、班级、姓名、学号等信息行未使用仿宋、三号字号和加粗格式；不要求修改具体示例值。
     expected_rule_ids:
-      - cover-title-001
-      - cover-title-002
       - cover-info-001
       - cover-info-002
       - cover-info-003
@@ -21,10 +27,8 @@ cases:
   - id: cover-date-format-windows11-wps
     file: samples/cover-date-format-windows11-wps.docx
     description: 封面日期格式错误样本。
-    error_description: 封面日期行未使用仿宋、三号字号和加粗格式；样本中的题目行也保留了错误字体和字号；不检查日期具体年月日是否正确。
+    error_description: 封面日期行未使用仿宋、三号字号和加粗格式；不检查日期具体年月日是否正确。
     expected_rule_ids:
-      - cover-title-001
-      - cover-title-002
       - cover-date-001
       - cover-date-002
       - cover-date-003

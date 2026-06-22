@@ -2,19 +2,33 @@ module: cover
 module_name: 封面
 
 rules:
-  - id: cover-title-001
-    title: 封面题目中文字体
+  - id: cover-title-label-001
+    title: 封面题目标签中文字体
     severity: error
     status: active
-    description: 检查封面题目中文字体是否为黑体，不限制题目具体文本。
-    message: 封面题目中文字体应为黑体
+    description: 检查封面“题    目：”标签中文字体是否为仿宋。
+    message: 封面“题    目：”标签中文字体应为仿宋
+    expected: 仿宋
+  - id: cover-title-label-002
+    title: 封面题目标签字号
+    severity: error
+    status: active
+    description: 检查封面“题    目：”标签字号是否为三号，即 16pt。
+    message: 封面“题    目：”标签字号应为三号
+    expected: 三号（16pt）
+  - id: cover-title-001
+    title: 封面题目内容中文字体
+    severity: error
+    status: active
+    description: 检查封面“题    目：”冒号后的题目内容中文字体是否为黑体，不限制题目具体文本。
+    message: 封面题目内容中文字体应为黑体
     expected: 黑体
   - id: cover-title-002
-    title: 封面题目字号
+    title: 封面题目内容字号
     severity: error
     status: active
-    description: 检查封面题目字号是否为小二，即 18pt。
-    message: 封面题目字号应为小二
+    description: 检查封面“题    目：”冒号后的题目内容字号是否为小二，即 18pt。
+    message: 封面题目内容字号应为小二
     expected: 小二（18pt）
   - id: cover-info-001
     title: 封面信息行中文字体

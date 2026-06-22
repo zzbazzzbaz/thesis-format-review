@@ -49,26 +49,84 @@ def rule_ids(issues):
 
 def test_cover_title_checker_accepts_valid_title_line():
     doc = cover_doc(
-        para(
-            0,
-            "题    目：线性表的设计和实现",
-            east="黑体",
-            size=18.0,
-            bold=False,
+        make_para(
+            flow_index=0,
+            text="题    目：线性表的设计和实现",
+            alignment="center",
+            runs=[
+                make_run(
+                    text="题    目：",
+                    font_east_asian="仿宋",
+                    font_latin="Times New Roman",
+                    size_pt=16.0,
+                    bold=False,
+                ),
+                make_run(
+                    text="线性表的设计和实现",
+                    font_east_asian="黑体",
+                    font_latin="Times New Roman",
+                    size_pt=18.0,
+                    bold=False,
+                ),
+            ],
         )
     )
 
     assert CoverTitleChecker().check(context_for(doc)) == []
 
 
+def test_cover_title_checker_flags_label_font_and_size_only():
+    doc = cover_doc(
+        make_para(
+            flow_index=0,
+            text="题    目：线性表的设计和实现",
+            alignment="center",
+            runs=[
+                make_run(
+                    text="题    目：",
+                    font_east_asian="宋体",
+                    font_latin="Times New Roman",
+                    size_pt=12.0,
+                    bold=False,
+                ),
+                make_run(
+                    text="线性表的设计和实现",
+                    font_east_asian="黑体",
+                    font_latin="Times New Roman",
+                    size_pt=18.0,
+                    bold=False,
+                ),
+            ],
+        )
+    )
+
+    issues = CoverTitleChecker().check(context_for(doc))
+
+    assert rule_ids(issues) == {"cover-title-label-001", "cover-title-label-002"}
+
+
 def test_cover_title_checker_flags_font_and_size():
     doc = cover_doc(
-        para(
-            0,
-            "题    目：线性表的设计和实现",
-            east="宋体",
-            size=16.0,
-            bold=False,
+        make_para(
+            flow_index=0,
+            text="题    目：线性表的设计和实现",
+            alignment="center",
+            runs=[
+                make_run(
+                    text="题    目：",
+                    font_east_asian="仿宋",
+                    font_latin="Times New Roman",
+                    size_pt=16.0,
+                    bold=False,
+                ),
+                make_run(
+                    text="线性表的设计和实现",
+                    font_east_asian="宋体",
+                    font_latin="Times New Roman",
+                    size_pt=16.0,
+                    bold=False,
+                ),
+            ],
         )
     )
 
