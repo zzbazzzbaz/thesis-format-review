@@ -72,10 +72,10 @@ jobs:
           script: |
             set -eu
             cd "${{ env.REMOTE_DIR }}"
-            echo "${{ secrets.REGISTRY_TOKEN }}" | docker login ${{ env.REGISTRY }} -u "${{ gitea.actor }}" --password-stdin
-            IMAGE_TAG="${{ gitea.sha }}" docker compose pull
-            IMAGE_TAG="${{ gitea.sha }}" docker compose up -d --remove-orphans
-            docker compose ps
+            echo "${{ secrets.REGISTRY_TOKEN }}" | sudo docker login ${{ env.REGISTRY }} -u "${{ gitea.actor }}" --password-stdin
+            IMAGE_TAG="${{ gitea.sha }}" sudo -E docker compose pull
+            IMAGE_TAG="${{ gitea.sha }}" sudo -E docker compose up -d --remove-orphans
+            sudo docker compose ps
             sudo tee /etc/nginx/snippets/thesis_review.conf >/dev/null <<'NGINX'
             location = /thesis_review {
                 return 301 /thesis_review/;
