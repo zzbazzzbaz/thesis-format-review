@@ -1,9 +1,0 @@
-services:
-  app:
-    image: git.gqt.plus/gqt/thesis-review:${IMAGE_TAG:-latest}
-    container_name: thesis-review-app
-    restart: unless-stopped
-    environment:
-      SOFFICE_BIN: /usr/bin/soffice
-    ports:
-      - "127.0.0.1:18080:8000"

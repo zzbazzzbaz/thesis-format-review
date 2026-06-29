@@ -1,3 +1,12 @@
+# CI/CD application Dockerfile.
+#
+# Purpose:
+# - Built by `.gitea/workflows/uno-docker.yml`.
+# - Published as `git.gqt.plus/gqt/thesis-review`.
+# - Runs the web application with uvicorn in the deployment container.
+#
+# Not the local UNO test image. Local UNO development uses
+# `thesis_review/Dockerfile.uno-dev`.
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive

@@ -10,6 +10,10 @@ PROJECT_ROOT = TESTS_ROOT.parent
 RULES_ROOT = PROJECT_ROOT / "docs" / "rules"
 
 
+def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line("markers", "uno: 需要 LibreOffice/UNO 环境的测试")
+
+
 @pytest.fixture
 def rules_root() -> Path:
     return RULES_ROOT

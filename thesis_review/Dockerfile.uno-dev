@@ -1,3 +1,12 @@
+# Local UNO development/test Dockerfile.
+#
+# Purpose:
+# - Build the local image `thesis-review-uno-dev`.
+# - Run pytest, especially tests marked with `@pytest.mark.uno`.
+# - Mount the project into /workspace during development.
+#
+# Not for CI/CD publishing. The Gitea deployment workflow builds
+# `thesis_review/Dockerfile` instead.
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
