@@ -17,7 +17,11 @@ class SectionRange(BaseModel):
 
 
 _TOC_ENTRY_RE = re.compile(
-    r"^(?:第[一二三四五六七八九十\d]+章 *.+|\d+(?:\.\d+){1,2} *.+)\t\d+\s*$"
+    r"^(?:"
+    r"摘[ 　]*要|ABSTRACT|参考[ 　]*文献|致[ 　]*谢|附[ 　]*录|"
+    r"第[一二三四五六七八九十\d]+章 *.+|\d+(?:\.\d+){1,2} *.+"
+    r")\t\d+\s*$",
+    re.IGNORECASE,
 )
 _BODY_CHAPTER_RE = re.compile(r"^(?:第[一二三四五六七八九十\d]+章).+")
 
@@ -54,6 +58,22 @@ def is_body_chapter(para: ParagraphBlock) -> bool:
     if "\t" in text:
         return False
     return bool(_BODY_CHAPTER_RE.match(text))
+
+
+def is_body_start_candidate(para: ParagraphBlock) -> bool:
+    if is_body_chapter(para):
+        return True
+    if para.outline_level != 0:
+        return False
+    normalized = norm_text(para.text)
+    return normalized not in {
+        "摘要",
+        "ABSTRACT",
+        "目录",
+        "参考文献",
+        "致谢",
+        "附录",
+    }
 
 
 def is_references_title_candidate(para: ParagraphBlock) -> bool:
@@ -125,13 +145,9 @@ def detect_sections(document: DocumentModel) -> dict[str, SectionRange]:
 
     body_start = None
     for para in paragraphs:
-        if (
-            toc_start is not None
-            and toc_end is not None
-            and toc_start <= para.flow_index < toc_end
-        ):
+        if toc_end is not None and para.flow_index < toc_end:
             continue
-        if is_body_chapter(para):
+        if is_body_start_candidate(para):
             body_start = para.flow_index
             break
 

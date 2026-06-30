@@ -19,21 +19,26 @@ def test_detect_toc_does_not_treat_toc_first_chapter_as_body_start():
         make_para(flow_index=1, text="ABSTRACT"),
         make_para(flow_index=2, text="目    录", alignment="center"),
         make_para(flow_index=3, text="", runs=[]),
-        make_para(flow_index=4, text="第一章  引言\t1"),
-        make_para(flow_index=5, text="2.1 线性表的定义\t2"),
-        make_para(flow_index=6, text="第一章  引言", outline_level=0),
-        make_para(flow_index=7, text="正文段落"),
-        make_para(flow_index=8, text="参考文献", outline_level=0),
-        make_para(flow_index=9, text="[1] Turing A M. Computing machinery and intelligence[J]."),
+        make_para(flow_index=4, text="摘要\t1"),
+        make_para(flow_index=5, text="ABSTRACT\t2"),
+        make_para(flow_index=6, text="第一章  引言\t3"),
+        make_para(flow_index=7, text="2.1 线性表的定义\t4"),
+        make_para(flow_index=8, text="参考文献\t5"),
+        make_para(flow_index=9, text="致谢\t6"),
+        make_para(flow_index=10, text="附录\t7"),
+        make_para(flow_index=11, text="第一章  引言", outline_level=0),
+        make_para(flow_index=12, text="正文段落"),
+        make_para(flow_index=13, text="参考文献", outline_level=0),
+        make_para(flow_index=14, text="[1] Turing A M. Computing machinery and intelligence[J]."),
     ])
 
     sections = detect_sections(doc)
 
     assert sections["table-of-contents"].start == 2
-    assert sections["table-of-contents"].end == 6
-    assert sections["main-text"].start == 6
-    assert sections["main-text"].end == 8
-    assert sections["references"].start == 8
+    assert sections["table-of-contents"].end == 11
+    assert sections["main-text"].start == 11
+    assert sections["main-text"].end == 13
+    assert sections["references"].start == 13
     assert "body" not in sections
 
 
