@@ -21,6 +21,15 @@ cd thesis_review
 docker build -f Dockerfile.uno-dev -t thesis-review-uno-dev .
 ```
 
+## 重建本地测试镜像
+
+依赖、系统包或 `Dockerfile.uno-dev` 变更后，用下面命令强制重建本地测试镜像：
+
+```bash
+cd thesis_review
+docker build --no-cache --pull -f Dockerfile.uno-dev -t thesis-review-uno-dev .
+```
+
 ## 测试
 
 只保留两种测试方式，全部通过 Docker 镜像运行。

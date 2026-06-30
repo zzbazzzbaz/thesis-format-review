@@ -151,6 +151,22 @@ def test_main_text_heading_checker_flags_level_one_rules():
     assert "main-text-heading-level-one-006" not in rule_ids(issues)
 
 
+def test_main_text_heading_checker_flags_styled_level_one_without_blank_line():
+    doc = thesis_doc(
+        make_para(
+            flow_index=5,
+            text="随便",
+            outline_level=0,
+            runs=[run("随便", east="宋体", size=12.0)],
+        ),
+        body(6),
+    )
+
+    issues = MainTextHeadingChecker().check(context_for(doc))
+
+    assert "main-text-heading-level-one-005" in rule_ids(issues)
+
+
 def test_main_text_heading_checker_ignores_deprecated_new_page_rule():
     doc = thesis_doc(
         h1(5, page_break_before=False),

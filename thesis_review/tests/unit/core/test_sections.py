@@ -75,6 +75,23 @@ def test_detect_sections_uses_text_anchors_without_h1():
     assert "thanks" not in sections
 
 
+def test_detect_sections_uses_heading_level_one_style_as_main_text_start():
+    doc = make_doc([
+        make_para(flow_index=0, text="摘    要"),
+        make_para(flow_index=1, text="摘要正文"),
+        make_para(flow_index=2, text="目    录"),
+        make_para(flow_index=3, text="", runs=[]),
+        make_para(flow_index=4, text="随便", outline_level=0),
+        make_para(flow_index=5, text="正文"),
+        make_para(flow_index=6, text="参考文献", outline_level=0),
+    ])
+
+    sections = detect_sections(doc)
+
+    assert sections["main-text"].start == 4
+    assert sections["main-text"].end == 6
+
+
 def test_detect_english_abstract_anchor_is_case_insensitive_for_rule_checks():
     doc = make_doc([
         make_para(flow_index=0, text="摘    要"),
