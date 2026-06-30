@@ -567,88 +567,10 @@ class MainTextReferenceCitationChecker:
 
 class MainTextFormulaChecker:
     checker_id = "main-text-formula"
-    rule_ids = (
-        "main-text-formula-001",
-        "main-text-formula-002",
-        "main-text-formula-005",
-        "main-text-formula-006",
-    )
+    rule_ids: tuple[str, ...] = ()
 
     def check(self, context: RuleContext) -> list[Issue]:
-        blocks = section_blocks(context, "main-text")
-        issues: list[Issue] = []
-        formula_seq_by_chapter: dict[int, int] = {}
-        for index, block in enumerate(blocks):
-            if (
-                block.kind != "paragraph"
-                or not _is_formula_candidate(block)
-                or _is_formula_number_for_previous(blocks, index)
-                or _is_continuation_blank_formula(blocks, index)
-            ):
-                continue
-            chapter = _chapter_for_block(blocks, index)
-            if chapter is None:
-                append_issue(
-                    issues,
-                    context,
-                    "main-text-formula-002",
-                    "未识别章节",
-                    block_location(block),
-                )
-                continue
-            formula_seq_by_chapter[chapter] = formula_seq_by_chapter.get(chapter, 0) + 1
-            expected = f"{chapter}-{formula_seq_by_chapter[chapter]}"
-            match = _FORMULA_NUMBER_RE.search(block.text)
-            number_para = block
-            if match is None:
-                next_item = _next_non_empty_block(blocks, index)
-                if (
-                    next_item is not None
-                    and next_item[1].kind == "paragraph"
-                    and _FORMULA_NUMBER_RE.fullmatch(next_item[1].text.strip())
-                ):
-                    number_para = next_item[1]
-                    match = _FORMULA_NUMBER_RE.search(number_para.text)
-            if match is None:
-                append_issue(
-                    issues,
-                    context,
-                    "main-text-formula-001",
-                    "未找到",
-                    block_location(block),
-                )
-                continue
-            actual = f"{match.group(1)}-{match.group(2)}"
-            if actual != expected:
-                append_issue(
-                    issues,
-                    context,
-                    "main-text-formula-002",
-                    match.group(0),
-                    block_location(number_para),
-                )
-            number_runs = runs_overlapping(number_para, match.start(), match.end())
-            for run in number_runs:
-                if run.size_pt != 10.5:
-                    append_issue(
-                        issues,
-                        context,
-                        "main-text-formula-005",
-                        display_size(run.size_pt),
-                        run_location(number_para, run),
-                    )
-                    break
-            for run in number_runs:
-                if run.font_latin != "Times New Roman":
-                    append_issue(
-                        issues,
-                        context,
-                        "main-text-formula-006",
-                        run.font_latin or "未识别",
-                        run_location(number_para, run),
-                    )
-                    break
-        return issues
+        return []
 
 
 class MainTextFigureCaptionChecker:

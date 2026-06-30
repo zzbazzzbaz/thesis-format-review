@@ -84,8 +84,12 @@ def test_stage_two_main_text_object_rules_have_expected_statuses():
     by_id = {rule.id: rule for rule in main_text.rules}
 
     for rule_id in {
+        "main-text-formula-001",
+        "main-text-formula-002",
         "main-text-formula-003",
         "main-text-formula-004",
+        "main-text-formula-005",
+        "main-text-formula-006",
         "main-text-figure-caption-001",
         "main-text-figure-caption-002",
         "main-text-table-caption-001",
@@ -94,10 +98,6 @@ def test_stage_two_main_text_object_rules_have_expected_statuses():
         assert by_id[rule_id].status == "deprecated"
 
     for rule_id in {
-        "main-text-formula-001",
-        "main-text-formula-002",
-        "main-text-formula-005",
-        "main-text-formula-006",
         "main-text-figure-caption-003",
         "main-text-figure-caption-004",
         "main-text-figure-caption-005",

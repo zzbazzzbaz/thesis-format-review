@@ -208,15 +208,15 @@ rules:
   - id: main-text-formula-001
     title: 公式编号存在
     severity: error
-    status: active
-    description: 检查正文中出现的公式是否有公式号。
+    status: deprecated
+    description: 废弃。当前禁用正文公式相关检查。
     message: 正文公式应有公式号
     expected: 有公式号
   - id: main-text-formula-002
     title: 公式编号章内序号
     severity: error
-    status: active
-    description: 检查公式号是否按章编号，例如第 3 章第 1 个公式为 (3-1)。
+    status: deprecated
+    description: 废弃。当前禁用正文公式相关检查。
     message: 公式号应按章编号
     expected: (章号-序号)
   - id: main-text-formula-003
@@ -236,15 +236,15 @@ rules:
   - id: main-text-formula-005
     title: 公式编号字号
     severity: error
-    status: active
-    description: 检查公式编号字号是否为五号，即 10.5pt。
+    status: deprecated
+    description: 废弃。当前禁用正文公式相关检查。
     message: 公式编号字号应为五号
     expected: 五号（10.5pt）
   - id: main-text-formula-006
     title: 公式编号字体
     severity: error
-    status: active
-    description: 检查公式编号字体是否为 Times New Roman。
+    status: deprecated
+    description: 废弃。当前禁用正文公式相关检查。
     message: 公式编号字体应为 Times New Roman
     expected: Times New Roman
   - id: main-text-figure-caption-001

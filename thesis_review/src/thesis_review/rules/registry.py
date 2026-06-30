@@ -27,7 +27,6 @@ from thesis_review.rules.global_rules import (
 )
 from thesis_review.rules.main_text_rules import (
     MainTextFigureCaptionChecker,
-    MainTextFormulaChecker,
     MainTextHeadingChecker,
     MainTextParagraphChecker,
     MainTextReferenceCitationChecker,
@@ -63,7 +62,6 @@ CHECKER_CLASSES: tuple[type[RuleChecker], ...] = (
     MainTextHeadingChecker,
     MainTextParagraphChecker,
     MainTextReferenceCitationChecker,
-    MainTextFormulaChecker,
     MainTextFigureCaptionChecker,
     MainTextTableCaptionChecker,
 )
