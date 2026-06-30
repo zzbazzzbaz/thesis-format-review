@@ -1,9 +1,9 @@
 """审核结果模型。"""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TypedDict
+from typing import Any, TypedDict
 
 from thesis_review.core.models import Issue
 
@@ -22,6 +22,7 @@ class ReviewResult:
     marked_docx: Path
     issues_json: Path
     issues: list[Issue]
+    sections: dict[str, Any] = field(default_factory=dict)
 
     @property
     def summary(self) -> IssueSummary:

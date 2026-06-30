@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from thesis_review.core.models import DocumentModel, Issue, Location, ParagraphBlock
+from thesis_review.core.sections import SectionRange
 from thesis_review.engine.review import ReviewDependencies, review
 
 
@@ -91,7 +92,21 @@ def test_review_creates_out_dir_marked_docx_and_issues_json(tmp_path):
 
     def fake_build_context(document):
         assert document.source_docx == str(input_docx)
-        return {"document": document}
+        return type(
+            "FakeContext",
+            (),
+            {
+                "document": document,
+                "sections": {
+                    "table-of-contents": SectionRange(
+                        name="table-of-contents",
+                        start=0,
+                        end=1,
+                        block_ids={"b-0000"},
+                    )
+                },
+            },
+        )()
 
     def fake_annotate(session, source: str, target: str, issues: list[Issue]):
         calls.append((source, target, [item.rule_id for item in issues]))
@@ -112,6 +127,7 @@ def test_review_creates_out_dir_marked_docx_and_issues_json(tmp_path):
     assert result.marked_docx == out_dir / "marked.docx"
     assert result.issues_json == out_dir / "issues.json"
     assert result.issues == [issue]
+    assert "table-of-contents" in result.sections
     assert result.marked_docx.read_bytes() == b"marked"
     assert result.issues_json.exists()
     assert calls == [

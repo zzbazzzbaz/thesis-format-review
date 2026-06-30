@@ -6,6 +6,7 @@ import json
 from thesis_review.core.models import Issue, Location
 from thesis_review.engine.report import result_payload, write_issues_json
 from thesis_review.engine.result import ReviewResult, summarize_issues
+from thesis_review.core.sections import SectionRange
 
 
 def make_issue(rule_id: str, severity: str = "error") -> Issue:
@@ -59,8 +60,61 @@ def test_result_payload_contains_stable_issue_schema(tmp_path):
         "warning": 0,
         "info": 0,
     }
+    assert payload["sections"]["missing_required"] == [
+        "cover",
+        "abstract",
+        "table-of-contents",
+        "main-text",
+        "references",
+    ]
     assert payload["issues"][0]["rule_id"] == "table-of-contents-title-001"
     assert payload["issues"][0]["location"]["block_id"] == "b-0001"
+
+
+def test_result_payload_reports_section_detection_status(tmp_path):
+    result = ReviewResult(
+        input_docx=tmp_path / "input.docx",
+        out_dir=tmp_path / "out",
+        marked_docx=tmp_path / "out" / "marked.docx",
+        issues_json=tmp_path / "out" / "issues.json",
+        issues=[],
+        sections={
+            "cover": SectionRange(
+                name="cover",
+                start=0,
+                end=3,
+                block_ids={"b-0000", "b-0001", "b-0002"},
+            ),
+            "abstract-chinese": SectionRange(
+                name="abstract-chinese",
+                start=3,
+                end=5,
+                block_ids={"b-0003", "b-0004"},
+            ),
+            "table-of-contents": SectionRange(
+                name="table-of-contents",
+                start=8,
+                end=12,
+                block_ids={"b-0008"},
+            ),
+        },
+    )
+
+    sections = result_payload(result)["sections"]
+
+    assert sections["detected"]["cover"] == {
+        "start": 0,
+        "end": 3,
+        "block_count": 3,
+    }
+    assert sections["modules"]["cover"]["detected"] is True
+    assert sections["modules"]["abstract"]["detected"] is False
+    assert sections["modules"]["abstract"]["partial"] is True
+    assert sections["modules"]["abstract"]["missing_sections"] == [
+        "abstract-english"
+    ]
+    assert "abstract" in sections["missing_required"]
+    assert "table-of-contents" not in sections["missing_required"]
 
 
 def test_write_issues_json_creates_parent_and_utf8_json(tmp_path):

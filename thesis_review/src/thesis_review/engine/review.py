@@ -69,6 +69,7 @@ def review(
         marked_docx=marked_docx,
         issues_json=issues_json,
         issues=issues,
+        sections=getattr(context, "sections", {}),
     )
     write_issues_json(result)
     return result
