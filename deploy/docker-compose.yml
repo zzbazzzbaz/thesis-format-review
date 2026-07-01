@@ -20,22 +20,17 @@ services:
       thesis_review:
         condition: service_healthy
     ports:
-      - "127.0.0.1:${BACKEND_HOST_PORT:-18080}:8000"
+      - "127.0.0.1:${BACKEND_HOST_PORT:-18180}:8000"
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set DJANGO_SECRET_KEY}
       DJANGO_DEBUG: ${DJANGO_DEBUG:-false}
       DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-INFO}
-      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0,101.35.223.219}
-      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-http://101.35.223.219}
-      DJANGO_FORCE_SCRIPT_NAME: ${DJANGO_FORCE_SCRIPT_NAME:-/thesis_reviews/backend}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0,49.232.5.241}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-http://49.232.5.241}
       DJANGO_SESSION_COOKIE_SECURE: ${DJANGO_SESSION_COOKIE_SECURE:-false}
       DJANGO_CSRF_COOKIE_SECURE: ${DJANGO_CSRF_COOKIE_SECURE:-false}
-      DJANGO_SESSION_COOKIE_PATH: ${DJANGO_SESSION_COOKIE_PATH:-/thesis_reviews/backend}
-      DJANGO_CSRF_COOKIE_PATH: ${DJANGO_CSRF_COOKIE_PATH:-/thesis_reviews/backend}
       SQLITE_DB_PATH: /app/data/db.sqlite3
       MEDIA_ROOT: /app/media
-      MEDIA_URL: ${MEDIA_URL:-/thesis_reviews/backend/media/}
-      STATIC_URL: ${STATIC_URL:-/thesis_reviews/backend/static/}
       THESIS_REVIEW_BASE_URL: http://thesis_review:8000
       THESIS_REVIEW_TIMEOUT_SECONDS: ${THESIS_REVIEW_TIMEOUT_SECONDS:-300}
       JWT_ACCESS_TOKEN_SECONDS: ${JWT_ACCESS_TOKEN_SECONDS:-7200}
@@ -61,7 +56,7 @@ services:
     container_name: thesis_review_frontend
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${FRONTEND_HOST_PORT:-18081}:80"
+      - "127.0.0.1:${FRONTEND_HOST_PORT:-18181}:80"
     depends_on:
       backend:
         condition: service_healthy
