@@ -197,11 +197,15 @@ jobs:
             fi
 
             if [ "$sudo_prefix" = "sudo -S" ]; then
-              printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S cp nginx-thesis-reviews.conf /etc/nginx/conf.d/thesis-reviews.conf
+              printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S cp nginx-thesis-reviews.conf /etc/nginx/snippets/thesis-reviews.conf
+              printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S rm -f /etc/nginx/conf.d/thesis-reviews.conf
+              printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S sh -c 'grep -q "snippets/thesis-reviews.conf" /etc/nginx/conf.d/ice-rink-miniprogram.conf || sed -i "/snippets\\/thesis_review.conf/a\\    include /etc/nginx/snippets/thesis-reviews.conf;" /etc/nginx/conf.d/ice-rink-miniprogram.conf'
               printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S nginx -t
               printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S systemctl reload nginx
             else
-              sudo -n cp nginx-thesis-reviews.conf /etc/nginx/conf.d/thesis-reviews.conf
+              sudo -n cp nginx-thesis-reviews.conf /etc/nginx/snippets/thesis-reviews.conf
+              sudo -n rm -f /etc/nginx/conf.d/thesis-reviews.conf
+              sudo -n sh -c 'grep -q "snippets/thesis-reviews.conf" /etc/nginx/conf.d/ice-rink-miniprogram.conf || sed -i "/snippets\\/thesis_review.conf/a\\    include /etc/nginx/snippets/thesis-reviews.conf;" /etc/nginx/conf.d/ice-rink-miniprogram.conf'
               sudo -n nginx -t
               sudo -n systemctl reload nginx
             fi
