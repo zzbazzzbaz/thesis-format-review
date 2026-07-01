@@ -9,17 +9,21 @@ on:
       - test
     paths:
       - "thesis_review/**"
+      - "backend/**"
+      - "deploy/**"
       - ".gitea/workflows/uno-docker.yml"
   workflow_dispatch:
 
 env:
   REGISTRY: git.gqt.plus
-  IMAGE_NAME: gqt/thesis-review
-  APP_DOCKERFILE: thesis_review/Dockerfile
+  THESIS_REVIEW_IMAGE_NAME: gqt/thesis-review
+  THESIS_REVIEW_DOCKERFILE: thesis_review/Dockerfile
+  BACKEND_IMAGE_NAME: gqt/thesis-review-backend
+  BACKEND_DOCKERFILE: backend/Dockerfile
 
 jobs:
-  docker-build:
-    name: Build and push image
+  thesis-review-docker-build:
+    name: Build and push thesis_review image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -28,18 +32,44 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build application image
+      - name: Build thesis_review image
         run: |
           docker build \
-            -f ${APP_DOCKERFILE} \
-            -t ${REGISTRY}/${IMAGE_NAME}:${{ gitea.sha }} \
-            -t ${REGISTRY}/${IMAGE_NAME}:latest \
+            -f ${THESIS_REVIEW_DOCKERFILE} \
+            -t ${REGISTRY}/${THESIS_REVIEW_IMAGE_NAME}:${{ gitea.sha }} \
+            -t ${REGISTRY}/${THESIS_REVIEW_IMAGE_NAME}:latest \
             thesis_review
 
       - name: Login to Gitea Container Registry
         run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login ${REGISTRY} -u "${{ gitea.actor }}" --password-stdin
 
-      - name: Push image
+      - name: Push thesis_review image
         run: |
-          docker push ${REGISTRY}/${IMAGE_NAME}:${{ gitea.sha }}
-          docker push ${REGISTRY}/${IMAGE_NAME}:latest
+          docker push ${REGISTRY}/${THESIS_REVIEW_IMAGE_NAME}:${{ gitea.sha }}
+          docker push ${REGISTRY}/${THESIS_REVIEW_IMAGE_NAME}:latest
+
+  backend-docker-build:
+    name: Build and push backend image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: |
+          docker build \
+            -f ${BACKEND_DOCKERFILE} \
+            -t ${REGISTRY}/${BACKEND_IMAGE_NAME}:${{ gitea.sha }} \
+            -t ${REGISTRY}/${BACKEND_IMAGE_NAME}:latest \
+            backend
+
+      - name: Login to Gitea Container Registry
+        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login ${REGISTRY} -u "${{ gitea.actor }}" --password-stdin
+
+      - name: Push backend image
+        run: |
+          docker push ${REGISTRY}/${BACKEND_IMAGE_NAME}:${{ gitea.sha }}
+          docker push ${REGISTRY}/${BACKEND_IMAGE_NAME}:latest

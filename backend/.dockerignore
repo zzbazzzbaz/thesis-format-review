@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.venv/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+data/*
+!data/.gitkeep
+media/*
+!media/.gitkeep
+staticfiles/
+*.sqlite3
+*.log
+.DS_Store

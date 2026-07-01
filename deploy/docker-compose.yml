@@ -1,0 +1,57 @@
+services:
+  thesis_review:
+    image: git.gqt.plus/gqt/thesis-review:latest
+    container_name: thesis_review
+    restart: unless-stopped
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  backend:
+    image: git.gqt.plus/gqt/thesis-review-backend:latest
+    container_name: thesis_review_backend
+    restart: unless-stopped
+    depends_on:
+      thesis_review:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-false}
+      DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-INFO}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-}
+      DJANGO_SESSION_COOKIE_SECURE: ${DJANGO_SESSION_COOKIE_SECURE:-false}
+      DJANGO_CSRF_COOKIE_SECURE: ${DJANGO_CSRF_COOKIE_SECURE:-false}
+      SQLITE_DB_PATH: /app/data/db.sqlite3
+      MEDIA_ROOT: /app/media
+      THESIS_REVIEW_BASE_URL: http://thesis_review:8000
+      THESIS_REVIEW_TIMEOUT_SECONDS: ${THESIS_REVIEW_TIMEOUT_SECONDS:-300}
+      JWT_ACCESS_TOKEN_SECONDS: ${JWT_ACCESS_TOKEN_SECONDS:-7200}
+      JWT_REFRESH_TOKEN_SECONDS: ${JWT_REFRESH_TOKEN_SECONDS:-604800}
+    volumes:
+      - backend_data:/app/data
+      - backend_media:/app/media
+      - backend_static:/app/staticfiles
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             (python manage.py review_worker &) &&
+             exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 300"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  backend_data:
+  backend_media:
+  backend_static:
