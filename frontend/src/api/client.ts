@@ -2,9 +2,7 @@ import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig 
 
 import type { RefreshResponse } from '@/types/auth'
 
-export const API_BASE_URL = normalizeApiBaseUrl(
-  import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/',
-)
+export const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL || '/')
 
 export const SESSION_EXPIRED_MESSAGE = '登录已过期，请重新登录'
 

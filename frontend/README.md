@@ -12,8 +12,10 @@ npm run dev
 默认 API 地址在 `.env` 和 `.env.example` 中配置：
 
 ```bash
-VITE_API_BASE_URL=http://127.0.0.1:8000/
+VITE_API_BASE_URL=/
 ```
+
+开发环境下 Vite 会把同源的 `/api` 和 `/healthz` 请求代理到 `http://127.0.0.1:8000`，避免浏览器跨源预检导致登录请求被后端拒绝。
 
 ## 常用命令
 
