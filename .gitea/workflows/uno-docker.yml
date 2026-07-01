@@ -176,18 +176,24 @@ jobs:
             set_env DJANGO_ALLOWED_HOSTS "localhost,127.0.0.1,0.0.0.0,${{ env.PUBLIC_HOST }}"
             set_env DJANGO_CSRF_TRUSTED_ORIGINS "http://${{ env.PUBLIC_HOST }}"
 
+            sudo_prefix="sudo -n"
+            if ! sudo -n true >/dev/null 2>&1; then
+              sudo_prefix="sudo -S"
+            fi
+
             registry_username="${{ secrets.REGISTRY_USERNAME }}"
             if [ -z "$registry_username" ]; then
               registry_username="${{ gitea.actor }}"
             fi
-            echo "${{ secrets.REGISTRY_TOKEN }}" | docker login "${{ env.REGISTRY }}" -u "$registry_username" --password-stdin
 
-            docker compose pull
-            docker compose up -d --remove-orphans
-
-            sudo_prefix="sudo -n"
-            if ! sudo -n true >/dev/null 2>&1; then
-              sudo_prefix="sudo -S"
+            if [ "$sudo_prefix" = "sudo -S" ]; then
+              printf '%s\n%s\n' "$DEPLOY_PASSWORD" "${{ secrets.REGISTRY_TOKEN }}" | sudo -S docker login "${{ env.REGISTRY }}" -u "$registry_username" --password-stdin
+              printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S docker compose pull
+              printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S docker compose up -d --remove-orphans
+            else
+              echo "${{ secrets.REGISTRY_TOKEN }}" | sudo -n docker login "${{ env.REGISTRY }}" -u "$registry_username" --password-stdin
+              sudo -n docker compose pull
+              sudo -n docker compose up -d --remove-orphans
             fi
 
             if [ "$sudo_prefix" = "sudo -S" ]; then
@@ -200,4 +206,8 @@ jobs:
               sudo -n systemctl reload nginx
             fi
 
-            docker compose ps
+            if [ "$sudo_prefix" = "sudo -S" ]; then
+              printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S docker compose ps
+            else
+              sudo -n docker compose ps
+            fi

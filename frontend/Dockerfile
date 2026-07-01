@@ -22,6 +22,6 @@ RUN npm run build -- --base ${VITE_PUBLIC_BASE_PATH} \
 FROM nginx:1.27-alpine
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html/thesis_reviews/frontend
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
