@@ -1,0 +1,27 @@
+[project]
+name = "thesis-review-backend"
+version = "0.1.0"
+description = "Product-side backend for thesis review workflows"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "django>=5.0,<6.0",
+    "django-environ>=0.14.0",
+    "django-ninja>=1.4,<2.0",
+    "django-simpleui>=2026.1.13",
+    "httpx>=0.27,<1.0",
+    "pyjwt>=2.8,<3.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0,<9.0",
+    "pytest-django>=4.8,<5.0",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py", "*_test.py"]
+testpaths = ["apps"]
+addopts = "-q"
+
