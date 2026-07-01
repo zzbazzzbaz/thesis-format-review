@@ -175,6 +175,11 @@ jobs:
             set_env FRONTEND_HOST_PORT "${{ env.FRONTEND_HOST_PORT }}"
             set_env DJANGO_ALLOWED_HOSTS "localhost,127.0.0.1,0.0.0.0,${{ env.PUBLIC_HOST }}"
             set_env DJANGO_CSRF_TRUSTED_ORIGINS "http://${{ env.PUBLIC_HOST }}"
+            set_env DJANGO_FORCE_SCRIPT_NAME "/thesis_reviews/backend"
+            set_env DJANGO_SESSION_COOKIE_PATH "/thesis_reviews/backend"
+            set_env DJANGO_CSRF_COOKIE_PATH "/thesis_reviews/backend"
+            set_env STATIC_URL "/thesis_reviews/backend/static/"
+            set_env MEDIA_URL "/thesis_reviews/backend/media/"
 
             sudo_prefix="sudo -n"
             if ! sudo -n true >/dev/null 2>&1; then

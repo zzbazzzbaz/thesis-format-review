@@ -27,6 +27,7 @@ ALLOWED_HOSTS = env.list(
     default=["localhost", "127.0.0.1", "0.0.0.0"],
 )
 CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
+FORCE_SCRIPT_NAME = env("DJANGO_FORCE_SCRIPT_NAME", default=None) or None
 
 
 # -----------------------------------------------------------------------------
@@ -158,7 +159,10 @@ AUTH_USER_MODEL = "accounts.User"
 # -----------------------------------------------------------------------------
 # Static and media files
 # -----------------------------------------------------------------------------
-STATIC_URL = "static/"
+STATIC_URL = env(
+    "STATIC_URL",
+    default=f"{FORCE_SCRIPT_NAME.rstrip('/')}/static/" if FORCE_SCRIPT_NAME else "static/",
+)
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
 STORAGES = {
@@ -170,7 +174,10 @@ STORAGES = {
     },
 }
 MEDIA_ROOT = env("MEDIA_ROOT", default=str(BASE_DIR / "media"))
-MEDIA_URL = "/media/"
+MEDIA_URL = env(
+    "MEDIA_URL",
+    default=f"{FORCE_SCRIPT_NAME.rstrip('/')}/media/" if FORCE_SCRIPT_NAME else "/media/",
+)
 
 
 # -----------------------------------------------------------------------------
@@ -179,6 +186,8 @@ MEDIA_URL = "/media/"
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SESSION_COOKIE_SECURE = env.bool("DJANGO_SESSION_COOKIE_SECURE", default=False)
 CSRF_COOKIE_SECURE = env.bool("DJANGO_CSRF_COOKIE_SECURE", default=False)
+SESSION_COOKIE_PATH = env("DJANGO_SESSION_COOKIE_PATH", default=FORCE_SCRIPT_NAME or "/")
+CSRF_COOKIE_PATH = env("DJANGO_CSRF_COOKIE_PATH", default=FORCE_SCRIPT_NAME or "/")
 
 
 # -----------------------------------------------------------------------------
