@@ -144,6 +144,7 @@ jobs:
           password: ${{ secrets.DEPLOY_PASSWORD }}
           port: ${{ env.DEPLOY_PORT }}
           envs: DEPLOY_PASSWORD
+          command_timeout: 60m
           script: |
             set -eu
             cd "${{ env.DEPLOY_DIR }}"
