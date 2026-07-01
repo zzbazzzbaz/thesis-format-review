@@ -1,6 +1,6 @@
 services:
   thesis_review:
-    image: git.gqt.plus/gqt/thesis-review:latest
+    image: git.gqt.plus/gqt/thesis-review:${IMAGE_TAG:-latest}
     container_name: thesis_review
     restart: unless-stopped
     expose:
@@ -13,20 +13,20 @@ services:
       start_period: 20s
 
   backend:
-    image: git.gqt.plus/gqt/thesis-review-backend:latest
+    image: git.gqt.plus/gqt/thesis-review-backend:${IMAGE_TAG:-latest}
     container_name: thesis_review_backend
     restart: unless-stopped
     depends_on:
       thesis_review:
         condition: service_healthy
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${BACKEND_HOST_PORT:-18080}:8000"
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set DJANGO_SECRET_KEY}
       DJANGO_DEBUG: ${DJANGO_DEBUG:-false}
       DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-INFO}
-      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
-      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0,101.35.223.219}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-http://101.35.223.219}
       DJANGO_SESSION_COOKIE_SECURE: ${DJANGO_SESSION_COOKIE_SECURE:-false}
       DJANGO_CSRF_COOKIE_SECURE: ${DJANGO_CSRF_COOKIE_SECURE:-false}
       SQLITE_DB_PATH: /app/data/db.sqlite3
@@ -50,6 +50,22 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
+
+  frontend:
+    image: git.gqt.plus/gqt/thesis-review-frontend:${IMAGE_TAG:-latest}
+    container_name: thesis_review_frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${FRONTEND_HOST_PORT:-18081}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 volumes:
   backend_data:

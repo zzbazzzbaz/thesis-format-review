@@ -17,6 +17,12 @@ VITE_API_BASE_URL=/
 
 开发环境下 Vite 会把同源的 `/api` 和 `/healthz` 请求代理到 `http://127.0.0.1:8000`，避免浏览器跨源预检导致登录请求被后端拒绝。
 
+如果本地前端要直接联调公网后端，保持 `VITE_API_BASE_URL=/`，只改代理目标：
+
+```bash
+VITE_PROXY_API_TARGET=http://101.35.223.219/thesis_reviews/backend
+```
+
 ## 常用命令
 
 ```bash

@@ -1,15 +1,17 @@
-# CI workflow for the deployable application image.
-# Uses thesis_review/Dockerfile. The local UNO development/test image is
-# thesis_review/Dockerfile.uno-dev and is intentionally not published here.
-name: Thesis Review Docker CI
+# CI/CD workflow for the deployable application images.
+# The local UNO development/test image is thesis_review/Dockerfile.uno-dev and
+# is intentionally not published here.
+name: Thesis Review Docker CI/CD
 
 on:
   push:
     branches:
       - test
+      - dev-2
     paths:
       - "thesis_review/**"
       - "backend/**"
+      - "frontend/**"
       - "deploy/**"
       - ".gitea/workflows/uno-docker.yml"
   workflow_dispatch:
@@ -20,6 +22,15 @@ env:
   THESIS_REVIEW_DOCKERFILE: thesis_review/Dockerfile
   BACKEND_IMAGE_NAME: gqt/thesis-review-backend
   BACKEND_DOCKERFILE: backend/Dockerfile
+  FRONTEND_IMAGE_NAME: gqt/thesis-review-frontend
+  FRONTEND_DOCKERFILE: frontend/Dockerfile
+  DEPLOY_DIR: /home/ubuntu/thesis_review
+  DEPLOY_HOST: 101.35.223.219
+  DEPLOY_USER: ubuntu
+  DEPLOY_PORT: 22
+  PUBLIC_HOST: 101.35.223.219
+  BACKEND_HOST_PORT: 18080
+  FRONTEND_HOST_PORT: 18081
 
 jobs:
   thesis-review-docker-build:
@@ -73,3 +84,120 @@ jobs:
         run: |
           docker push ${REGISTRY}/${BACKEND_IMAGE_NAME}:${{ gitea.sha }}
           docker push ${REGISTRY}/${BACKEND_IMAGE_NAME}:latest
+
+  frontend-docker-build:
+    name: Build and push frontend image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build frontend image
+        run: |
+          docker build \
+            -f ${FRONTEND_DOCKERFILE} \
+            --build-arg VITE_PUBLIC_BASE_PATH=/thesis_reviews/frontend/ \
+            --build-arg VITE_API_BASE_URL=/thesis_reviews/backend \
+            -t ${REGISTRY}/${FRONTEND_IMAGE_NAME}:${{ gitea.sha }} \
+            -t ${REGISTRY}/${FRONTEND_IMAGE_NAME}:latest \
+            frontend
+
+      - name: Login to Gitea Container Registry
+        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login ${REGISTRY} -u "${{ gitea.actor }}" --password-stdin
+
+      - name: Push frontend image
+        run: |
+          docker push ${REGISTRY}/${FRONTEND_IMAGE_NAME}:${{ gitea.sha }}
+          docker push ${REGISTRY}/${FRONTEND_IMAGE_NAME}:latest
+
+  deploy:
+    name: Deploy public stack
+    runs-on: ubuntu-latest
+    needs:
+      - thesis-review-docker-build
+      - backend-docker-build
+      - frontend-docker-build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload deploy files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          port: ${{ env.DEPLOY_PORT }}
+          source: "deploy/docker-compose.yml,deploy/nginx-thesis-reviews.conf"
+          target: "${{ env.DEPLOY_DIR }}"
+          strip_components: 1
+          overwrite: true
+
+      - name: Deploy with Docker Compose
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+        with:
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          port: ${{ env.DEPLOY_PORT }}
+          envs: DEPLOY_PASSWORD
+          script: |
+            set -eu
+            cd "${{ env.DEPLOY_DIR }}"
+
+            if ! command -v docker >/dev/null 2>&1; then
+              echo "docker is not installed on deploy host" >&2
+              exit 1
+            fi
+
+            touch .env
+            set_env() {
+              key="$1"
+              value="$2"
+              if grep -q "^${key}=" .env; then
+                sed -i "s|^${key}=.*|${key}=${value}|" .env
+              else
+                printf '%s=%s\n' "$key" "$value" >> .env
+              fi
+            }
+
+            if ! grep -q '^DJANGO_SECRET_KEY=' .env; then
+              set_env DJANGO_SECRET_KEY "$(openssl rand -hex 32)"
+            fi
+            set_env IMAGE_TAG "${{ gitea.sha }}"
+            set_env PUBLIC_HOST "${{ env.PUBLIC_HOST }}"
+            set_env BACKEND_HOST_PORT "${{ env.BACKEND_HOST_PORT }}"
+            set_env FRONTEND_HOST_PORT "${{ env.FRONTEND_HOST_PORT }}"
+            set_env DJANGO_ALLOWED_HOSTS "localhost,127.0.0.1,0.0.0.0,${{ env.PUBLIC_HOST }}"
+            set_env DJANGO_CSRF_TRUSTED_ORIGINS "http://${{ env.PUBLIC_HOST }}"
+
+            registry_username="${{ secrets.REGISTRY_USERNAME }}"
+            if [ -z "$registry_username" ]; then
+              registry_username="${{ gitea.actor }}"
+            fi
+            echo "${{ secrets.REGISTRY_TOKEN }}" | docker login "${{ env.REGISTRY }}" -u "$registry_username" --password-stdin
+
+            docker compose pull
+            docker compose up -d --remove-orphans
+
+            sudo_prefix="sudo -n"
+            if ! sudo -n true >/dev/null 2>&1; then
+              sudo_prefix="sudo -S"
+            fi
+
+            if [ "$sudo_prefix" = "sudo -S" ]; then
+              printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S cp nginx-thesis-reviews.conf /etc/nginx/conf.d/thesis-reviews.conf
+              printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S nginx -t
+              printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S systemctl reload nginx
+            else
+              sudo -n cp nginx-thesis-reviews.conf /etc/nginx/conf.d/thesis-reviews.conf
+              sudo -n nginx -t
+              sudo -n systemctl reload nginx
+            fi
+
+            docker compose ps
