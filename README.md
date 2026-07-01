@@ -76,3 +76,10 @@ docker run --rm -p 8000:8000 -v "$PWD":/workspace -w /workspace \
 ```
 
 浏览器访问 `http://127.0.0.1:8000/`。
+
+Web 服务接口：
+
+- `GET /healthz`：健康检查。
+- `POST /api/review`：上传 `.docx`，返回 `multipart/mixed`，包含两个 part：
+  - `marked_docx`：标注后的 Word 文件，文件名 `marked.docx`。
+  - `issues_json`：结构化审核结果，文件名 `issues.json`。

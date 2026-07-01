@@ -28,10 +28,8 @@
         status.className = className ? `status ${className}` : "status";
       }
 
-      function downloadBlob(blob, fallbackName, response) {
-        const disposition = response.headers.get("content-disposition") || "";
-        const match = disposition.match(/filename="([^"]+)"/);
-        const filename = match ? match[1] : fallbackName;
+      function downloadBytes(bytes, type, filename) {
+        const blob = new Blob([bytes], { type });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -40,6 +38,93 @@
         link.click();
         link.remove();
         URL.revokeObjectURL(url);
+      }
+
+      function bytesOf(text) {
+        return new TextEncoder().encode(text);
+      }
+
+      function findBytes(source, target, start) {
+        for (let index = start; index <= source.length - target.length; index += 1) {
+          let matched = true;
+          for (let offset = 0; offset < target.length; offset += 1) {
+            if (source[index + offset] !== target[offset]) {
+              matched = false;
+              break;
+            }
+          }
+          if (matched) {
+            return index;
+          }
+        }
+        return -1;
+      }
+
+      function parseHeaders(text) {
+        return Object.fromEntries(
+          text.split(/\r?\n/)
+            .filter(Boolean)
+            .map((line) => {
+              const index = line.indexOf(":");
+              return [
+                line.slice(0, index).trim().toLowerCase(),
+                line.slice(index + 1).trim(),
+              ];
+            })
+        );
+      }
+
+      function parseMultipartMixed(buffer, contentType) {
+        const match = contentType.match(/boundary="?([^";]+)"?/i);
+        if (!match) {
+          throw new Error("missing multipart boundary");
+        }
+
+        const bytes = new Uint8Array(buffer);
+        const delimiter = bytesOf(`--${match[1]}`);
+        const headerSeparator = bytesOf("\r\n\r\n");
+        const decoder = new TextDecoder();
+        const parts = [];
+        let cursor = findBytes(bytes, delimiter, 0);
+
+        while (cursor !== -1) {
+          let partStart = cursor + delimiter.length;
+          if (bytes[partStart] === 45 && bytes[partStart + 1] === 45) {
+            break;
+          }
+          if (bytes[partStart] === 13 && bytes[partStart + 1] === 10) {
+            partStart += 2;
+          }
+
+          const next = findBytes(bytes, delimiter, partStart);
+          if (next === -1) {
+            break;
+          }
+
+          let partEnd = next;
+          if (bytes[partEnd - 2] === 13 && bytes[partEnd - 1] === 10) {
+            partEnd -= 2;
+          }
+
+          const headerEnd = findBytes(bytes, headerSeparator, partStart);
+          if (headerEnd === -1 || headerEnd > partEnd) {
+            throw new Error("invalid multipart part");
+          }
+
+          const headers = parseHeaders(decoder.decode(bytes.slice(partStart, headerEnd)));
+          const disposition = headers["content-disposition"] || "";
+          const name = (disposition.match(/name="([^"]+)"/) || [])[1] || "";
+          const filename = (disposition.match(/filename="([^"]+)"/) || [])[1] || name;
+          parts.push({
+            name,
+            filename,
+            type: headers["content-type"] || "application/octet-stream",
+            content: bytes.slice(headerEnd + headerSeparator.length, partEnd),
+          });
+          cursor = next;
+        }
+
+        return parts;
       }
 
       form.addEventListener("submit", async (event) => {
@@ -75,10 +160,21 @@
             return;
           }
 
-          const blob = await response.blob();
           const stem = file.name.replace(/\.docx$/i, "");
-          downloadBlob(blob, `${stem}.marked.docx`, response);
-          setStatus("审核完成，已开始下载", "success");
+          const parts = parseMultipartMixed(
+            await response.arrayBuffer(),
+            response.headers.get("content-type") || ""
+          );
+          const marked = parts.find((part) => part.name === "marked_docx");
+          const issues = parts.find((part) => part.name === "issues_json");
+
+          if (!marked || !issues) {
+            throw new Error("missing review artifacts");
+          }
+
+          downloadBytes(marked.content, marked.type, `${stem}.marked.docx`);
+          downloadBytes(issues.content, issues.type, `${stem}.issues.json`);
+          setStatus("审核完成，已开始下载 Word 和 JSON", "success");
         } catch (error) {
           setStatus("审核失败，请稍后重试", "error");
         } finally {

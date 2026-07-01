@@ -9,7 +9,6 @@ from starlette.responses import FileResponse, Response
 
 from thesis_review.interfaces.web import services
 
-DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 STATIC_DIR = Path(__file__).parent / "static"
 
 router = APIRouter()
@@ -25,18 +24,30 @@ def index_head() -> Response:
     return Response(status_code=200)
 
 
-@router.post("/api/review")
-async def review_endpoint(file: UploadFile = File(...)) -> FileResponse:
+@router.get("/healthz")
+def healthz() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+@router.post(
+    "/api/review",
+    responses={
+        200: {
+            "description": "审核产物，包含 marked_docx 和 issues_json 两个 multipart part",
+            "content": {"multipart/mixed": {}},
+        }
+    },
+)
+def review_endpoint(file: UploadFile = File(...)) -> Response:
     try:
-        result = await services.review_upload(file)
+        artifacts = services.review_upload_artifacts(file)
     except services.InvalidUpload as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail="审核失败，请稍后重试") from exc
 
-    return FileResponse(
-        result.output_path,
-        media_type=DOCX_MIME,
-        filename=result.download_name,
-        background=BackgroundTask(result.cleanup),
+    return Response(
+        content=artifacts.body,
+        media_type=artifacts.media_type,
+        background=BackgroundTask(artifacts.cleanup),
     )

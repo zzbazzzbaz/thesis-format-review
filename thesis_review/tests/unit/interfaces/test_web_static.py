@@ -21,6 +21,9 @@ def test_index_has_docx_upload_form_and_fetch_logic():
     assert 'name="file"' in html
     assert 'accept=".docx"' in html
     assert 'fetch("/api/review"' in html
+    assert "parseMultipartMixed" in html
+    assert "marked_docx" in html
+    assert "issues_json" in html
     assert "URL.createObjectURL" in html
     assert "正在审核" in html
     assert "审核失败" in html
