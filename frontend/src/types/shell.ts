@@ -1,0 +1,8 @@
+import type { Component } from 'vue'
+
+export interface ShellNavItem {
+  label: string
+  to: string
+  icon: Component
+  hidden?: boolean
+}
