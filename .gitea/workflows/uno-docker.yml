@@ -28,7 +28,6 @@ env:
   DEPLOY_HOST: 101.35.223.219
   DEPLOY_USER: ubuntu
   DEPLOY_PORT: 22
-  PUBLIC_HOST: thesis-review.test.chatgqt.top
 
 jobs:
   thesis-review-docker-build:
@@ -120,21 +119,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Upload Docker Compose template
+      - name: Upload deploy bundle
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ env.DEPLOY_HOST }}
           username: ${{ env.DEPLOY_USER }}
           password: ${{ secrets.DEPLOY_PASSWORD }}
           port: ${{ env.DEPLOY_PORT }}
-          source: "deploy/docker-compose.yml"
+          source: "deploy/**"
           target: "${{ env.DEPLOY_DIR }}"
           strip_components: 1
           overwrite: true
 
-      - name: Deploy with Docker Compose and system nginx
+      - name: Run remote deploy script
         uses: appleboy/ssh-action@v1.0.3
         env:
+          GITEA_ACTOR: ${{ gitea.actor }}
+          IMAGE_TAG: ${{ gitea.sha }}
+          REGISTRY: ${{ env.REGISTRY }}
           DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
           REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
           REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
@@ -143,204 +145,10 @@ jobs:
           username: ${{ env.DEPLOY_USER }}
           password: ${{ secrets.DEPLOY_PASSWORD }}
           port: ${{ env.DEPLOY_PORT }}
-          envs: DEPLOY_PASSWORD,REGISTRY_TOKEN,REGISTRY_USERNAME
+          envs: GITEA_ACTOR,IMAGE_TAG,REGISTRY,DEPLOY_PASSWORD,REGISTRY_TOKEN,REGISTRY_USERNAME
           command_timeout: 60m
           script: |
             set -eu
             cd "${{ env.DEPLOY_DIR }}"
-
-            if ! command -v docker >/dev/null 2>&1; then
-              echo "docker is not installed on deploy host" >&2
-              exit 1
-            fi
-
-            if [ ! -f .env ]; then
-              echo "${{ env.DEPLOY_DIR }}/.env does not exist. Create it from backend/.env.example before deploying." >&2
-              exit 1
-            fi
-
-            set_env() {
-              key="$1"
-              value="$2"
-              if grep -q "^${key}=" .env; then
-                sed -i "s|^${key}=.*|${key}=${value}|" .env
-              else
-                printf '%s=%s\n' "$key" "$value" >> .env
-              fi
-            }
-
-            grep -q '^DJANGO_SECRET_KEY=' .env || {
-              echo "DJANGO_SECRET_KEY is missing in ${{ env.DEPLOY_DIR }}/.env" >&2
-              exit 1
-            }
-            set_env IMAGE_TAG "${{ gitea.sha }}"
-
-            sudo_auth() {
-              if sudo -n true >/dev/null 2>&1; then
-                return 0
-              fi
-              printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S true >/dev/null 2>&1
-            }
-
-            sudo_run() {
-              if sudo -n true >/dev/null 2>&1; then
-                sudo -n "$@"
-              else
-                printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S "$@"
-              fi
-            }
-
-            docker_run() {
-              if docker ps >/dev/null 2>&1; then
-                docker "$@"
-              else
-                sudo_auth
-                sudo -n docker "$@"
-              fi
-            }
-
-            registry_username="${REGISTRY_USERNAME:-}"
-            if [ -z "$registry_username" ]; then
-              registry_username="${{ gitea.actor }}"
-            fi
-
-            echo "$REGISTRY_TOKEN" | docker_run login "${{ env.REGISTRY }}" -u "$registry_username" --password-stdin
-            docker_run compose pull
-            docker_run compose up -d --remove-orphans
-
-            if ! command -v nginx >/dev/null 2>&1 || ! command -v certbot >/dev/null 2>&1; then
-              sudo_run apt-get update
-              sudo_run apt-get install -y nginx certbot python3-certbot-nginx
-            fi
-
-            write_nginx_config() {
-              cert_mode="$1"
-              tmp_file="$(mktemp)"
-              if [ "$cert_mode" = "ssl" ]; then
-                cat > "$tmp_file" <<'NGINX'
-            server {
-                listen 80;
-                listen [::]:80;
-                server_name thesis-review.test.chatgqt.top;
-                return 301 https://$host$request_uri;
-            }
-
-            server {
-                listen 443 ssl http2;
-                listen [::]:443 ssl http2;
-                server_name thesis-review.test.chatgqt.top;
-
-                ssl_certificate /etc/letsencrypt/live/thesis-review.test.chatgqt.top/fullchain.pem;
-                ssl_certificate_key /etc/letsencrypt/live/thesis-review.test.chatgqt.top/privkey.pem;
-                include /etc/letsencrypt/options-ssl-nginx.conf;
-                ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
-
-                client_max_body_size 50m;
-
-                location /api/ {
-                    proxy_pass http://127.0.0.1:18180/api/;
-                    proxy_http_version 1.1;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                    proxy_read_timeout 300s;
-                }
-
-                location /admin/ {
-                    proxy_pass http://127.0.0.1:18180/admin/;
-                    proxy_http_version 1.1;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                }
-
-                location /static/ {
-                    proxy_pass http://127.0.0.1:18180/static/;
-                    proxy_http_version 1.1;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                }
-
-                location /media/ {
-                    proxy_pass http://127.0.0.1:18180/media/;
-                    proxy_http_version 1.1;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                    proxy_read_timeout 300s;
-                }
-
-                location = /healthz {
-                    proxy_pass http://127.0.0.1:18180/healthz;
-                    proxy_http_version 1.1;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                }
-
-                location / {
-                    proxy_pass http://127.0.0.1:18181/;
-                    proxy_http_version 1.1;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                }
-            }
-            NGINX
-              else
-                cat > "$tmp_file" <<'NGINX'
-            server {
-                listen 80;
-                listen [::]:80;
-                server_name thesis-review.test.chatgqt.top;
-
-                location /.well-known/acme-challenge/ {
-                    root /var/www/html;
-                }
-
-                location / {
-                    proxy_pass http://127.0.0.1:18181/;
-                    proxy_http_version 1.1;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                }
-            }
-            NGINX
-              fi
-
-              sudo_run mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
-              sudo_run cp "$tmp_file" /etc/nginx/sites-available/thesis-review.conf
-              sudo_run ln -sf /etc/nginx/sites-available/thesis-review.conf /etc/nginx/sites-enabled/thesis-review.conf
-              sudo_run rm -f /etc/nginx/conf.d/thesis-reviews.conf /etc/nginx/conf.d/thesis-review.conf
-              rm -f "$tmp_file"
-            }
-
-            if [ -f /etc/letsencrypt/live/thesis-review.test.chatgqt.top/fullchain.pem ]; then
-              write_nginx_config ssl
-            else
-              write_nginx_config http
-            fi
-
-            sudo_run nginx -t
-            sudo_run systemctl reload nginx
-
-            if [ ! -f /etc/letsencrypt/live/thesis-review.test.chatgqt.top/fullchain.pem ]; then
-              sudo_run certbot --nginx -d thesis-review.test.chatgqt.top --non-interactive --agree-tos --register-unsafely-without-email
-              write_nginx_config ssl
-              sudo_run nginx -t
-              sudo_run systemctl reload nginx
-            fi
-
-            sudo_run systemctl enable --now certbot.timer >/dev/null 2>&1 || true
-
-            docker_run compose ps
-            docker_run compose exec -T backend python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); user, _ = User.objects.get_or_create(username='admin'); user.role = 'admin'; user.name = user.name or '管理员'; user.is_staff = True; user.is_superuser = True; user.is_active = True; user.set_password('123456'); user.save(); print('admin ready')"
+            chmod +x scripts/deploy-remote.sh
+            ./scripts/deploy-remote.sh
