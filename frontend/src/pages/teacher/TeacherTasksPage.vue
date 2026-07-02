@@ -3,7 +3,7 @@
 
   <TeacherTaskFilters v-model="filters" class="mb-4" @submit="applyFilters" />
 
-  <LoadingState v-if="loading" />
+  <LoadingState v-if="loading" variant="skeleton" :rows="8" />
   <ErrorState v-else-if="error" :message="error">
     <template #actions>
       <button class="btn btn-secondary" type="button" @click="load">重新加载</button>
@@ -17,7 +17,12 @@
   />
 
   <div v-else>
-    <ReviewTaskTable :tasks="tasks" scope="teacher" show-student @error="downloadError = $event">
+    <ReviewTaskTable
+      :tasks="tasks"
+      scope="teacher"
+      show-student
+      @error="showToast($event, 'error')"
+    >
       <template #pagination>
         <Pagination
           :page="filters.page || 1"
@@ -27,7 +32,6 @@
         />
       </template>
     </ReviewTaskTable>
-    <ErrorState v-if="downloadError" class="mt-4" :message="downloadError" title="下载失败" />
   </div>
 </template>
 
@@ -45,6 +49,7 @@ import Pagination from '@/components/common/Pagination.vue'
 import ReviewTaskTable from '@/components/review/ReviewTaskTable.vue'
 import TeacherTaskFilters from '@/components/stats/TeacherTaskFilters.vue'
 import type { TeacherTaskListParams, TeacherTaskSummary } from '@/types/teacher'
+import { showToast } from '@/utils/toast'
 
 const pageSize = 20
 const filters = ref<TeacherTaskListParams>({ page: 1, page_size: pageSize })
@@ -52,14 +57,12 @@ const total = ref(0)
 const tasks = ref<TeacherTaskSummary[]>([])
 const loading = ref(false)
 const error = ref('')
-const downloadError = ref('')
 
 onMounted(load)
 
 async function load() {
   loading.value = true
   error.value = ''
-  downloadError.value = ''
   try {
     const response = await listTeacherReviewTasks(filters.value)
     tasks.value = response.items

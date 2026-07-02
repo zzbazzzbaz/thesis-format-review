@@ -1,8 +1,5 @@
 <template>
-  <PageHeader
-    title="上传论文"
-    description="仅支持上传 .docx 文件；上传成功后由后端扣减一次审核次数。"
-  >
+  <PageHeader title="上传论文" description="仅支持上传 .docx 文件；每次上传将消耗一次审核次数。">
     <template #actions>
       <RouterLink class="btn btn-secondary" to="/student/history">查看历史</RouterLink>
     </template>
@@ -12,10 +9,10 @@
   <ErrorState v-else-if="profileError" :message="profileError" />
 
   <div v-else class="grid grid-cols-[1fr_360px] gap-6">
-    <section class="rounded-lg border border-slate-200 bg-white p-6">
+    <section class="card">
       <div
         class="flex h-64 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 text-center"
-        :class="{ 'border-blue-400 bg-blue-50': dragging }"
+        :class="{ 'border-indigo-400 bg-indigo-50': dragging }"
         @dragenter.prevent="dragging = true"
         @dragover.prevent="dragging = true"
         @dragleave.prevent="dragging = false"
@@ -68,9 +65,12 @@
         <p v-if="!canUpload" class="mt-3 text-sm text-red-600">剩余审核次数不足，请联系管理员。</p>
       </article>
 
-      <article v-if="uploadedTask" class="rounded-lg border border-emerald-200 bg-emerald-50 p-5">
+      <article
+        v-if="uploadedTask"
+        class="rounded-lg border border-emerald-200 bg-emerald-50 p-5 shadow-sm"
+      >
         <p class="text-sm font-semibold text-emerald-900">上传成功</p>
-        <p class="mt-2 break-all text-sm text-emerald-800">任务 ID：{{ uploadedTask.id }}</p>
+        <p class="mt-2 break-all text-sm text-emerald-800">任务编号：{{ uploadedTask.id }}</p>
         <RouterLink class="btn btn-primary mt-4" :to="`/student/tasks/${uploadedTask.id}`"
           >查看任务</RouterLink
         >

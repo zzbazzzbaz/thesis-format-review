@@ -31,9 +31,8 @@
         :tasks="stats.recent_tasks"
         scope="teacher"
         show-student
-        @error="downloadError = $event"
+        @error="showToast($event, 'error')"
       />
-      <ErrorState v-if="downloadError" class="mt-4" :message="downloadError" title="下载失败" />
     </section>
   </div>
 </template>
@@ -51,18 +50,17 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import ReviewTaskTable from '@/components/review/ReviewTaskTable.vue'
 import TeacherStatsCards from '@/components/stats/TeacherStatsCards.vue'
 import type { TeacherStats } from '@/types/teacher'
+import { showToast } from '@/utils/toast'
 
 const stats = ref<TeacherStats | null>(null)
 const loading = ref(false)
 const error = ref('')
-const downloadError = ref('')
 
 onMounted(load)
 
 async function load() {
   loading.value = true
   error.value = ''
-  downloadError.value = ''
   try {
     stats.value = await getTeacherStats()
   } catch (loadError) {

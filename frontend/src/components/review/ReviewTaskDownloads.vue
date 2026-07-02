@@ -1,5 +1,5 @@
 <template>
-  <div class="rounded-lg border border-slate-200 bg-white">
+  <div class="card p-0">
     <div class="border-b border-slate-200 px-5 py-4">
       <h3 class="text-base font-semibold text-slate-950">文件下载</h3>
     </div>
@@ -29,11 +29,11 @@
         @click="download('issues')"
       >
         <FileJson class="h-4 w-4" aria-hidden="true" />
-        issues.json
+        问题清单 (JSON)
       </button>
     </div>
     <p v-if="!canDownloadResult" class="border-t border-slate-200 px-5 py-3 text-sm text-slate-500">
-      审核完成后可下载标注 Word 和 issues.json。
+      审核完成后可下载标注 Word 和问题清单。
     </p>
   </div>
 </template>

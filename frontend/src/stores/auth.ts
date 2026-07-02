@@ -54,7 +54,7 @@ export const useAuthStore = defineStore('auth', {
       if (state.user?.role === 'student') return '学生'
       if (state.user?.role === 'teacher') return '教师'
       if (state.user?.role === 'admin') return '管理员'
-      return '未知角色'
+      return '未分配角色'
     },
     defaultHome: (state) => {
       if (state.user?.role === 'teacher') return '/teacher'

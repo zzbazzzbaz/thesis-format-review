@@ -14,9 +14,8 @@
 
   <div v-else-if="task" class="space-y-6">
     <ErrorState v-if="pollingWarning" :message="pollingWarning" title="自动刷新已停止" />
-    <ErrorState v-if="downloadError" :message="downloadError" title="下载失败" />
 
-    <section class="rounded-lg border border-slate-200 bg-white p-5">
+    <section class="card">
       <div class="flex items-start justify-between gap-6">
         <div class="min-w-0">
           <p class="text-sm font-semibold text-slate-500">文件名</p>
@@ -26,12 +25,16 @@
           >
             {{ task.original_filename }}
           </h3>
-          <p class="mt-2 break-all text-xs text-slate-500">任务 ID：{{ task.id }}</p>
+          <p class="mt-2 break-all text-xs text-slate-400">任务编号：{{ task.id }}</p>
         </div>
         <StatusBadge :status="task.status" />
       </div>
       <div class="mt-5">
-        <ProgressBar :value="displayProgress" label="审核进度" />
+        <ProgressBar
+          :value="displayProgress"
+          label="审核进度"
+          :running="task.status === 'running'"
+        />
       </div>
     </section>
 
@@ -54,7 +57,7 @@
       :task-id="task.id"
       :status="task.status"
       :original-filename="task.original_filename"
-      @error="downloadError = $event"
+      @error="showToast($event, 'error')"
     />
   </div>
 </template>
@@ -76,6 +79,7 @@ import ReviewTaskTimeline from '@/components/review/ReviewTaskTimeline.vue'
 import type { ReviewTaskDetail } from '@/types/review'
 import { createTaskPoller, type TaskPoller } from '@/utils/polling'
 import { getStatusMeta, isUnfinishedStatus } from '@/utils/format'
+import { showToast } from '@/utils/toast'
 
 const route = useRoute()
 const taskId = computed(() => String(route.params.id))
@@ -83,7 +87,6 @@ const task = ref<ReviewTaskDetail | null>(null)
 const loading = ref(false)
 const error = ref('')
 const pollingWarning = ref('')
-const downloadError = ref('')
 const poller = ref<TaskPoller | null>(null)
 
 const displayProgress = computed(() => {

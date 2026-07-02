@@ -1,7 +1,7 @@
 <template>
   <PageHeader title="历史记录" description="分页查看自己的审核任务，并下载已生成的审核结果。" />
 
-  <section class="mb-4 rounded-lg border border-slate-200 bg-white p-4">
+  <section class="mb-4 card">
     <div class="flex items-end gap-3">
       <label class="form-field w-56">
         <span>状态筛选</span>
@@ -16,7 +16,7 @@
     </div>
   </section>
 
-  <LoadingState v-if="loading" />
+  <LoadingState v-if="loading" variant="skeleton" :rows="8" />
   <ErrorState v-else-if="error" :message="error">
     <template #actions>
       <button class="btn btn-secondary" type="button" @click="load">重新加载</button>
@@ -34,12 +34,11 @@
   </EmptyState>
 
   <div v-else>
-    <ReviewTaskTable :tasks="tasks" scope="student" @error="downloadError = $event">
+    <ReviewTaskTable :tasks="tasks" scope="student" @error="showToast($event, 'error')">
       <template #pagination>
         <Pagination :page="page" :page-size="pageSize" :total="total" @change="changePage" />
       </template>
     </ReviewTaskTable>
-    <ErrorState v-if="downloadError" class="mt-4" :message="downloadError" title="下载失败" />
   </div>
 </template>
 
@@ -57,6 +56,7 @@ import Pagination from '@/components/common/Pagination.vue'
 import ReviewTaskTable from '@/components/review/ReviewTaskTable.vue'
 import type { ReviewTaskStatus, ReviewTaskSummary } from '@/types/review'
 import { statusOptions } from '@/utils/format'
+import { showToast } from '@/utils/toast'
 
 const page = ref(1)
 const pageSize = 20
@@ -65,14 +65,12 @@ const status = ref<ReviewTaskStatus | ''>('')
 const tasks = ref<ReviewTaskSummary[]>([])
 const loading = ref(false)
 const error = ref('')
-const downloadError = ref('')
 
 onMounted(load)
 
 async function load() {
   loading.value = true
   error.value = ''
-  downloadError.value = ''
   try {
     const response = await listStudentReviewTasks({
       page: page.value,

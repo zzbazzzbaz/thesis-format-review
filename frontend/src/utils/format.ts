@@ -33,11 +33,11 @@ export function canDownloadResults(status: ReviewTaskStatus) {
 
 export function formatDate(value: string | null | undefined) {
   if (!value) {
-    return '-'
+    return '—'
   }
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) {
-    return '-'
+    return '—'
   }
   const year = date.getFullYear()
   const month = pad(date.getMonth() + 1)

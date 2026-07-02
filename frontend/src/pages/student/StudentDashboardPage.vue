@@ -16,31 +16,31 @@
   </ErrorState>
 
   <div v-else class="space-y-6">
-    <section class="grid grid-cols-5 gap-4">
+    <section class="grid grid-cols-3 gap-4">
       <article class="panel">
         <p class="panel-label">姓名</p>
-        <h3 class="panel-value">{{ profile?.name || '-' }}</h3>
+        <h3 class="panel-value">{{ profile?.name || '—' }}</h3>
       </article>
       <article class="panel">
         <p class="panel-label">学号</p>
-        <h3 class="panel-value">{{ profile?.student_no || '-' }}</h3>
+        <h3 class="panel-value">{{ profile?.student_no || '—' }}</h3>
       </article>
       <article class="panel">
         <p class="panel-label">专业 / 班级</p>
         <h3
           class="panel-value truncate"
-          :title="`${profile?.major || '-'} / ${profile?.class_name || '-'}`"
+          :title="`${profile?.major || '—'} / ${profile?.class_name || '—'}`"
         >
-          {{ profile?.major || '-' }} / {{ profile?.class_name || '-' }}
+          {{ profile?.major || '—' }} / {{ profile?.class_name || '—' }}
         </h3>
       </article>
       <article class="panel">
         <p class="panel-label">指导教师</p>
-        <h3 class="panel-value">{{ profile?.teacher || '-' }}</h3>
+        <h3 class="panel-value">{{ profile?.teacher || '—' }}</h3>
       </article>
-      <article class="panel">
-        <p class="panel-label">剩余次数</p>
-        <h3 class="panel-value">{{ profile?.remaining_reviews ?? '-' }}</h3>
+      <article class="panel col-span-2 border-l-4 border-l-indigo-500">
+        <p class="panel-label">剩余审核次数</p>
+        <h3 class="panel-value">{{ profile?.remaining_reviews ?? '—' }}</h3>
       </article>
     </section>
 
@@ -65,9 +65,8 @@
         v-else
         :tasks="tasks.recentTasks"
         scope="student"
-        @error="downloadError = $event"
+        @error="showToast($event, 'error')"
       />
-      <ErrorState v-if="downloadError" class="mt-4" :message="downloadError" title="下载失败" />
     </section>
   </div>
 </template>
@@ -87,6 +86,7 @@ import type { ReviewTaskSummary, ReviewTaskStatus } from '@/types/review'
 import { getErrorMessage } from '@/api/client'
 import { createTaskPoller, type TaskPoller } from '@/utils/polling'
 import { isUnfinishedStatus } from '@/utils/format'
+import { showToast } from '@/utils/toast'
 
 interface OverviewPollResult {
   status: ReviewTaskStatus
@@ -96,7 +96,6 @@ interface OverviewPollResult {
 const tasks = useTasksStore()
 const error = ref('')
 const pollingWarning = ref('')
-const downloadError = ref('')
 const poller = ref<TaskPoller | null>(null)
 const profile = computed(() => tasks.profile)
 

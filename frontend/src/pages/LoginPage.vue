@@ -1,10 +1,12 @@
 <template>
   <div
-    class="grid w-[1040px] grid-cols-[420px_1fr] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+    class="grid w-[1040px] grid-cols-[420px_1fr] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg"
   >
-    <section class="border-r border-slate-200 bg-slate-950 px-8 py-10 text-white">
-      <p class="text-sm font-semibold text-sky-200">毕业设计格式审核系统</p>
-      <h1 class="mt-4 text-3xl font-bold leading-tight">产品侧工作台登录</h1>
+    <section
+      class="border-r border-slate-200 bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 px-8 py-10 text-white"
+    >
+      <p class="text-sm font-semibold text-indigo-300">毕业设计格式审核系统</p>
+      <h1 class="mt-4 text-3xl font-bold leading-tight">欢迎使用毕业设计格式审核系统</h1>
       <p class="mt-5 text-sm leading-7 text-slate-300">
         学生可提交 Word 文档并下载审核结果，教师可查看所指导学生的提交情况与统计数据。
       </p>
@@ -12,7 +14,7 @@
 
     <section class="px-10 py-10">
       <h2 class="text-2xl font-bold text-slate-950">账号登录</h2>
-      <p class="mt-2 text-sm text-slate-500">请输入产品侧账号和密码。</p>
+      <p class="mt-2 text-sm text-slate-500">请输入您的账号和密码登录。</p>
 
       <ErrorState v-if="error" class="mt-6" :message="error" title="登录失败" />
 
@@ -64,7 +66,7 @@ async function submit() {
     const user = await auth.login(username.value, password.value)
     if (user.role === 'admin') {
       auth.clearSession()
-      error.value = '管理员请使用 Django Admin 后台入口。'
+      error.value = '管理员请通过管理后台登录。'
       return
     }
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''

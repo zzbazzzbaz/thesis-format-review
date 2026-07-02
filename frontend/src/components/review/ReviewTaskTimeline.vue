@@ -1,5 +1,5 @@
 <template>
-  <div class="rounded-lg border border-slate-200 bg-white p-5">
+  <div class="card">
     <h3 class="text-base font-semibold text-slate-950">时间信息</h3>
     <dl class="mt-4 grid grid-cols-3 gap-4">
       <div class="timeline-item">

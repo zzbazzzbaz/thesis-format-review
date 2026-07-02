@@ -1,5 +1,5 @@
 <template>
-  <form class="rounded-lg border border-slate-200 bg-white p-4" @submit.prevent="submit">
+  <form class="card" @submit.prevent="submit">
     <div class="grid grid-cols-[1fr_1fr_180px_180px_180px_auto] items-end gap-3">
       <label class="form-field">
         <span>学号</span>

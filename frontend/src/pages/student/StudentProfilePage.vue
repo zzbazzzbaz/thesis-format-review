@@ -1,5 +1,5 @@
 <template>
-  <PageHeader title="个人信息" description="个人资料和剩余审核次数由后端维护，当前页面仅展示。">
+  <PageHeader title="个人信息" description="查看您的个人资料与剩余审核次数。">
     <template #actions>
       <button class="btn btn-secondary" type="button" @click="load">刷新</button>
     </template>
@@ -8,7 +8,7 @@
   <LoadingState v-if="loading" />
   <ErrorState v-else-if="error" :message="error" />
 
-  <section v-else-if="profile" class="rounded-lg border border-slate-200 bg-white p-6">
+  <section v-else-if="profile" class="card">
     <dl class="grid grid-cols-3 gap-5">
       <div class="info-cell">
         <dt>姓名</dt>

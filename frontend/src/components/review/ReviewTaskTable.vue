@@ -1,5 +1,5 @@
 <template>
-  <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+  <div class="card overflow-hidden p-0">
     <table class="data-table">
       <thead>
         <tr>
@@ -64,7 +64,7 @@
               <button
                 class="icon-btn"
                 type="button"
-                title="下载 issues.json"
+                title="下载问题清单 (JSON)"
                 :disabled="task.status !== 'succeeded' || loadingKey === `${task.id}:issues`"
                 @click="download(task, 'issues')"
               >

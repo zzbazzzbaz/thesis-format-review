@@ -1,5 +1,5 @@
 <template>
-  <div class="rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
+  <div class="rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800 shadow-sm">
     <div class="flex items-start gap-3">
       <AlertTriangle class="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
       <div class="min-w-0">

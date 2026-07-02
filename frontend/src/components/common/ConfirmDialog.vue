@@ -8,7 +8,13 @@
         <div class="px-5 py-4 text-sm leading-6 text-slate-600">{{ message }}</div>
         <div class="flex justify-end gap-3 border-t border-slate-200 px-5 py-4">
           <button class="btn btn-secondary" type="button" @click="$emit('cancel')">取消</button>
-          <button class="btn btn-primary" type="button" @click="$emit('confirm')">确认</button>
+          <button
+            :class="variant === 'danger' ? 'btn btn-danger' : 'btn btn-primary'"
+            type="button"
+            @click="$emit('confirm')"
+          >
+            确认
+          </button>
         </div>
       </div>
     </div>
@@ -16,11 +22,17 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  open: boolean
-  title: string
-  message: string
-}>()
+withDefaults(
+  defineProps<{
+    open: boolean
+    title: string
+    message: string
+    variant?: 'primary' | 'danger'
+  }>(),
+  {
+    variant: 'primary',
+  },
+)
 
 defineEmits<{
   confirm: []
