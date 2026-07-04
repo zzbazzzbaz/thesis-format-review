@@ -1,6 +1,8 @@
 """审核编排入口。"""
 from __future__ import annotations
 
+import logging
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,6 +11,8 @@ from typing import Any, Protocol
 from thesis_review.core.models import DocumentModel, Issue
 from thesis_review.engine.report import write_issues_json
 from thesis_review.engine.result import ReviewResult
+
+log = logging.getLogger(__name__)
 
 
 class SessionFactory(Protocol):
@@ -54,14 +58,21 @@ def review(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     deps = dependencies or default_dependencies()
+    log.info("review begin: input=%s", input_path)
+    t0 = time.monotonic()
     with deps.session_factory() as session:
         with session.open(str(input_path)) as doc:
+            t = time.monotonic()
             document = deps.extract(doc, source_path=str(input_path))
+            log.info("review: extract done %.1fs blocks=%s", time.monotonic() - t, len(document.blocks))
         context = deps.build_rule_context(document)
         issues: list[Issue] = []
         for checker in deps.get_checkers():
             issues.extend(checker.check(context))
+        log.info("review: rules done issues=%s", len(issues))
+        t = time.monotonic()
         deps.annotate(session, str(input_path), str(marked_docx), issues)
+        log.info("review: annotate done %.1fs issues=%s", time.monotonic() - t, len(issues))
 
     result = ReviewResult(
         input_docx=input_path,
@@ -72,4 +83,5 @@ def review(
         sections=getattr(context, "sections", {}),
     )
     write_issues_json(result)
+    log.info("review end: input=%s total=%.1fs", input_path, time.monotonic() - t0)
     return result

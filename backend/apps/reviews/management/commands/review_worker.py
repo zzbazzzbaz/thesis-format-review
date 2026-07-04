@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import logging
 import signal
 import time
 
 from django.core.management.base import BaseCommand
 
 from apps.reviews.services.executor import claim_next_pending_task, execute_task
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -36,6 +39,7 @@ class Command(BaseCommand):
                 time.sleep(interval)
                 continue
             self.stdout.write(f"processing task {task.pk}")
+            logger.info("worker picked task: id=%s", task.pk)
             execute_task(task.pk)
             if once:
                 break

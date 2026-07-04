@@ -99,6 +99,7 @@ class UnoSession:
             else _resolve_timeout_seconds()
         )
         self._watchdog: SessionWatchdog | None = None
+        self._current_path: str | None = None
 
     # ── context manager ──────────────────────────────────────────────
 
@@ -176,6 +177,7 @@ class UnoSession:
 
         作为上下文管理器使用，退出时自动关闭文档。
         """
+        self._current_path = path
         props = (PropertyValue(Name="Hidden", Value=True),)
         url = path_to_url(path)
         doc = self._desktop.loadComponentFromURL(url, "_blank", 0, props)
@@ -184,6 +186,7 @@ class UnoSession:
         finally:
             with contextlib.suppress(Exception):
                 doc.close(False)
+            self._current_path = None
 
     def close(self) -> None:
         """关闭 UNO 连接并终止 soffice 进程组。
@@ -215,7 +218,11 @@ class UnoSession:
         if proc is None:
             return
         if proc.poll() is None:
-            log.info("终止 soffice 进程组 pid=%s", proc.pid)
+            log.info(
+                "终止 soffice 进程组 pid=%s doc=%s",
+                proc.pid,
+                self._current_path or "?",
+            )
             kill_process_group(proc.pid)
         try:
             proc.wait(timeout=5)

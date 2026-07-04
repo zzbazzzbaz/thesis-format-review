@@ -1,6 +1,7 @@
 """Web HTTP 路由。"""
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
@@ -8,6 +9,8 @@ from starlette.background import BackgroundTask
 from starlette.responses import FileResponse, Response
 
 from thesis_review.interfaces.web import services
+
+log = logging.getLogger(__name__)
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -39,12 +42,16 @@ def healthz() -> dict[str, str]:
     },
 )
 def review_endpoint(file: UploadFile = File(...)) -> Response:
+    log.info("review start: filename=%s size=%s", file.filename, getattr(file, "size", "?"))
     try:
         artifacts = services.review_upload_artifacts(file)
     except services.InvalidUpload as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
+        log.exception("review failed: filename=%s", file.filename)
         raise HTTPException(status_code=500, detail="审核失败，请稍后重试") from exc
+
+    log.info("review done: filename=%s", file.filename)
 
     return Response(
         content=artifacts.body,

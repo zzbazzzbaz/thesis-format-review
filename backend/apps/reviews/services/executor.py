@@ -41,6 +41,7 @@ def claim_next_pending_task() -> ReviewTask | None:
 def execute_task(task_id, client: ThesisReviewClient | None = None) -> ReviewTask:
     client = client or ThesisReviewClient()
     task = ReviewTask.objects.get(pk=task_id)
+    logger.info("processing task: id=%s file=%s", task.pk, task.original_filename)
     try:
         if not task.source_file:
             raise RuntimeError("missing source file")
@@ -74,7 +75,12 @@ def execute_task(task_id, client: ThesisReviewClient | None = None) -> ReviewTas
         )
     except Exception as exc:
         _mark_failed(task, _safe_error_message(exc))
-        logger.info("review task failed: %s", task.pk, exc_info=exc)
+        logger.info(
+            "review task failed: id=%s file=%s",
+            task.pk,
+            task.original_filename,
+            exc_info=exc,
+        )
     return task
 
 
