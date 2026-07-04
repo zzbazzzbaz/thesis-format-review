@@ -6,6 +6,8 @@
 """
 from __future__ import annotations
 
+import os
+
 import pytest
 
 pytest.importorskip("uno")  # 无 UNO 环境时跳过整个模块
@@ -49,3 +51,17 @@ def test_session_can_reattach(sample_docx):
             assert doc1.supportsService("com.sun.star.text.TextDocument")
         with session.open(sample_docx) as doc2:
             assert doc2.supportsService("com.sun.star.text.TextDocument")
+
+
+@pytest.mark.uno
+def test_session_close_kills_process_group(sample_docx):
+    """close() 后 soffice 进程组应被彻底清理，无孤儿 soffice.bin/僵尸进程。"""
+    with UnoSession() as session:
+        assert session._proc is not None
+        soffice_pid = session._proc.pid
+        with session.open(sample_docx) as doc:
+            assert doc.supportsService("com.sun.star.text.TextDocument")
+
+    # 退出 with → close() 已执行；进程组应已彻底退出并被回收
+    with pytest.raises(ProcessLookupError):
+        os.getpgid(soffice_pid)

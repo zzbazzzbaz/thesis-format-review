@@ -3,6 +3,8 @@ services:
     image: git.gqt.plus/gqt/thesis-review:${IMAGE_TAG:-latest}
     container_name: gqt_thesis_review_engine
     restart: unless-stopped
+    environment:
+      UNO_SESSION_TIMEOUT_SECONDS: ${UNO_SESSION_TIMEOUT_SECONDS:-240}
     expose:
       - "8000"
     healthcheck:

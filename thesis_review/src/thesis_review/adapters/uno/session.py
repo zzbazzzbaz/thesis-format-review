@@ -4,6 +4,12 @@
 提供"打开文档 → 拿到 UNO 文档组件 → 用完关闭"的上下文管理器。
 
 soffice 路径通过 SOFFICE_BIN 环境变量覆盖，默认探测常见路径。
+
+会话级超时：LibreOffice 处理个别 docx 时可能无限空转 CPU（UNO 同步
+调用卡死）。通过 ``SessionWatchdog`` 在独立 daemon 线程计时，超时则
+杀掉整个 soffice 进程组，使被阻塞的 UNO 调用抛异常解除阻塞，避免
+worker 线程与 soffice 进程泄漏。超时由 ``UNO_SESSION_TIMEOUT_SECONDS``
+环境变量配置，默认 240s（需小于 backend 的 300s 超时）。
 """
 from __future__ import annotations
 
@@ -19,7 +25,11 @@ from pathlib import Path
 import uno
 from com.sun.star.beans import PropertyValue
 
+from thesis_review.adapters.uno.watchdog import SessionWatchdog, kill_process_group
+
 log = logging.getLogger(__name__)
+
+_DEFAULT_TIMEOUT_SECONDS = 240.0
 
 _DEFAULT_SOFFICE = [
     "/usr/bin/soffice",                                       # Linux / Docker
@@ -44,6 +54,22 @@ def path_to_url(path: str) -> str:
     return uno.systemPathToFileUrl(str(Path(path).resolve()))
 
 
+def _resolve_timeout_seconds() -> float:
+    """从 UNO_SESSION_TIMEOUT_SECONDS 环境变量读取会话超时，默认 240s。"""
+    raw = os.environ.get("UNO_SESSION_TIMEOUT_SECONDS", "").strip()
+    if not raw:
+        return _DEFAULT_TIMEOUT_SECONDS
+    try:
+        value = float(raw)
+    except ValueError:
+        log.warning("UNO_SESSION_TIMEOUT_SECONDS=%r 非法，回退默认 %ss", raw, _DEFAULT_TIMEOUT_SECONDS)
+        return _DEFAULT_TIMEOUT_SECONDS
+    if value <= 0:
+        log.warning("UNO_SESSION_TIMEOUT_SECONDS=%r 非正，回退默认 %ss", raw, _DEFAULT_TIMEOUT_SECONDS)
+        return _DEFAULT_TIMEOUT_SECONDS
+    return value
+
+
 def _find_free_port() -> int:
     """获取本机临时空闲端口，降低并行测试/运行的端口冲突概率。"""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -62,11 +88,17 @@ class UnoSession:
                 ...
     """
 
-    def __init__(self, port: int | None = None) -> None:
+    def __init__(self, port: int | None = None, timeout_seconds: float | None = None) -> None:
         self._proc: subprocess.Popen | None = None
         self._desktop = None
         self._port = port if port is not None else _find_free_port()
         self._profile_dir: tempfile.TemporaryDirectory | None = None
+        self._timeout_seconds = (
+            timeout_seconds
+            if timeout_seconds is not None
+            else _resolve_timeout_seconds()
+        )
+        self._watchdog: SessionWatchdog | None = None
 
     # ── context manager ──────────────────────────────────────────────
 
@@ -99,20 +131,25 @@ class UnoSession:
                 ],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
+                start_new_session=True,
             )
             # 等 soffice 就绪（最多 30 秒）
             last_err: Exception | None = None
             for _i in range(60):
                 try:
                     self._connect()
-                    return
+                    break
                 except Exception as e:
                     last_err = e
                     time.sleep(0.5)
-            raise RuntimeError(f"无法连接 soffice UNO bridge：{last_err}")
+            else:
+                raise RuntimeError(f"无法连接 soffice UNO bridge：{last_err}")
         except Exception:
             self.close()
             raise
+        # 连接成功后启动看门狗：超时杀进程组，防止 UNO 调用卡死泄漏
+        self._watchdog = SessionWatchdog(self._kill_process_group, self._timeout_seconds)
+        self._watchdog.start()
 
     def _connect(self) -> None:
         ctx_local = uno.getComponentContext()
@@ -149,21 +186,38 @@ class UnoSession:
                 doc.close(False)
 
     def close(self) -> None:
-        """关闭 UNO 连接并终止 soffice 进程。"""
+        """关闭 UNO 连接并终止 soffice 进程组。
+
+        先停看门狗避免与正常关闭竞争；再尝试 UNO 优雅退出；最后兜底杀
+        整个进程组（含 soffice.bin 子进程），防止孤儿进程泄漏。
+        """
+        if self._watchdog is not None:
+            self._watchdog.stop()
+            self._watchdog = None
         if self._desktop is not None:
             with contextlib.suppress(Exception):
                 self._desktop.terminate()
             self._desktop = None
         if self._proc is not None:
-            try:
-                self._proc.terminate()
-                self._proc.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                self._proc.kill()
-                self._proc.wait(timeout=10)
-            except Exception:
-                log.exception("关闭 soffice 进程失败")
+            self._kill_process_group()
             self._proc = None
         if self._profile_dir is not None:
             self._profile_dir.cleanup()
             self._profile_dir = None
+
+    def _kill_process_group(self) -> None:
+        """杀掉 soffice 所在进程组（oosplash + soffice.bin 等）并回收子进程。
+
+        先 SIGTERM/SIGKILL 整组，再 ``proc.wait()`` 回收 oosplash 直接子进程，
+        避免僵尸进程残留。即使进程已被看门狗杀死，wait 仍会回收僵尸。
+        """
+        proc = self._proc
+        if proc is None:
+            return
+        if proc.poll() is None:
+            log.info("终止 soffice 进程组 pid=%s", proc.pid)
+            kill_process_group(proc.pid)
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            log.warning("soffice 进程组 pid=%s 回收超时", proc.pid)
