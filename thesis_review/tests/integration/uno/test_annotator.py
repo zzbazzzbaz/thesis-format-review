@@ -169,3 +169,97 @@ def test_annotate_run_level_backcolor(tmp_path, sample_docx):
             located = iter_blocks(doc)[target.flow_index].element
             portions = text_portions(located)
             assert portions[run.run_index].CharBackColor == 0xFF0000
+
+
+@pytest.mark.uno
+def test_annotate_combines_multiple_issues_per_block(tmp_path, sample_docx):
+    """同一段落多个 issue 合并为一条批注，内容含全部 rule_id。"""
+    out = str(tmp_path / "marked.docx")
+    with UnoSession() as session:
+        target = _first_text_paragraph(session, sample_docx)
+        issues = [
+            Issue(
+                rule_id="rule-a-001",
+                category="format",
+                severity="error",
+                message="问题一",
+                location=Location(
+                    target="block",
+                    block_id=target.id,
+                    block_kind="paragraph",
+                    flow_index=target.flow_index,
+                ),
+            ),
+            Issue(
+                rule_id="rule-b-002",
+                category="format",
+                severity="warning",
+                message="问题二",
+                location=Location(
+                    target="block",
+                    block_id=target.id,
+                    block_kind="paragraph",
+                    flow_index=target.flow_index,
+                ),
+            ),
+        ]
+        annotate(session, sample_docx, out, issues)
+        with session.open(out) as doc:
+            fields = doc.getTextFields().createEnumeration()
+            comments = []
+            while fields.hasMoreElements():
+                f = fields.nextElement()
+                if f.supportsService("com.sun.star.text.textfield.Annotation"):
+                    comments.append((f.Author, f.Content))
+
+    # 合并后只有 1 条批注
+    assert len(comments) == 1
+    author, content = comments[0]
+    # author 取第一个 issue 的 rule_id
+    assert author == "rule-a-001"
+    # 内容含两个 rule_id 和 message
+    assert "rule-a-001" in content
+    assert "问题一" in content
+    assert "rule-b-002" in content
+    assert "问题二" in content
+
+
+@pytest.mark.uno
+def test_annotate_caps_at_limit(tmp_path, sample_docx):
+    """超过上限的 issue 不进 marked.docx，并插汇总批注。"""
+    out = str(tmp_path / "marked.docx")
+    with UnoSession() as session:
+        target = _first_text_paragraph(session, sample_docx)
+        # 构造 10 个 issue，上限设为 5
+        issues = [
+            Issue(
+                rule_id=f"rule-cap-{i:03d}",
+                category="format",
+                severity="error" if i < 3 else "warning",
+                message=f"问题{i}",
+                location=Location(
+                    target="block",
+                    block_id=target.id,
+                    block_kind="paragraph",
+                    flow_index=target.flow_index,
+                ),
+            )
+            for i in range(10)
+        ]
+        annotate(session, sample_docx, out, issues, max_annotations=5)
+        with session.open(out) as doc:
+            fields = doc.getTextFields().createEnumeration()
+            count = 0
+            has_summary = False
+            while fields.hasMoreElements():
+                f = fields.nextElement()
+                if f.supportsService("com.sun.star.text.textfield.Annotation"):
+                    count += 1
+                    if f.Author == "审核汇总":
+                        has_summary = True
+                        assert "共 10 处" in f.Content
+                        assert "已标注前 5 处" in f.Content
+
+    # 5 个标注合并到同一段 → 1 条 + 1 条汇总 = 2
+    assert count == 2
+    assert has_summary
