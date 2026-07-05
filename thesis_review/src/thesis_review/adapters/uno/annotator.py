@@ -5,8 +5,9 @@
 marked.docx。定位失败跳过该 issue，不崩溃。
 
 性能优化：按段落分组处理——同一段落的多个 issue 只枚举一次 portions、
-每 portion 只设一次底纹、合并为一条批注。对 issue 数量极大的文档，
-按严重度排序后截断到上限，超出部分只进 issues.json 不进 marked.docx。
+每 portion 只设一次底纹，每个 issue 独立一条批注。对 issue 数量极大
+的文档，按严重度排序后截断到上限，超出部分只进 issues.json 不进
+marked.docx。
 """
 from __future__ import annotations
 
@@ -27,7 +28,7 @@ from thesis_review.adapters.uno.traversal import text_portions
 log = logging.getLogger(__name__)
 
 _RED = 0xFF0000
-_DEFAULT_MAX_ANNOTATIONS = 500
+_DEFAULT_MAX_ANNOTATIONS = 1000
 _SEVERITY_ORDER = {"error": 0, "warning": 1, "info": 2}
 
 
@@ -79,9 +80,9 @@ def _collect_color_targets(block_issues: list[Issue], portion_count: int) -> set
 
 
 def _annotate_paragraph_block(doc, block: TraversedBlock, block_issues: list[Issue]) -> None:
-    """对单个段落块写入底纹 + 合并批注。
+    """对单个段落块写入底纹 + 每 issue 一条批注。
 
-    portions 只枚举一次；每 portion 只着色一次；所有 issue 合并为一条批注。
+    portions 只枚举一次；每 portion 只着色一次；每个 issue 独立一条批注。
     """
     para = block.element
     portions = text_portions(para)
@@ -93,10 +94,14 @@ def _annotate_paragraph_block(doc, block: TraversedBlock, block_issues: list[Iss
     for idx in color_targets:
         portions[idx].CharBackColor = _RED
 
-    # 合并批注：author 取第一个 issue 的 rule_id，内容列出全部
-    author = block_issues[0].rule_id
-    lines = [f"[{issue.rule_id}] {issue.message}" for issue in block_issues]
-    _add_comment(doc, portions[0], author, "\n".join(lines))
+    # 批注：每个 issue 独立一条，锚在对应文本
+    for issue in block_issues:
+        target = portions[0]
+        if issue.location.target == "run" and issue.location.run_index is not None:
+            r_idx = issue.location.run_index
+            if 0 <= r_idx < len(portions):
+                target = portions[r_idx]
+        _add_comment(doc, target, issue.rule_id, issue.message)
 
 
 def _group_issues_by_block(issues: list[Issue]) -> dict[int, list[Issue]]:
@@ -135,7 +140,7 @@ def annotate(
         output_docx: 输出路径（marked.docx）
         issues: 需要标注的问题列表
         max_annotations: marked.docx 最多标注的 issue 数（按严重度排序截断），
-            超出部分只进 issues.json。默认 500。
+            超出部分只进 issues.json。默认 1000。
     """
     # 按严重度排序后截断：error 优先，其次 warning，最后 info
     sorted_issues = sorted(

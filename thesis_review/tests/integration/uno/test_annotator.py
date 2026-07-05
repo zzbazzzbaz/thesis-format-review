@@ -172,8 +172,8 @@ def test_annotate_run_level_backcolor(tmp_path, sample_docx):
 
 
 @pytest.mark.uno
-def test_annotate_combines_multiple_issues_per_block(tmp_path, sample_docx):
-    """同一段落多个 issue 合并为一条批注，内容含全部 rule_id。"""
+def test_annotate_one_comment_per_issue(tmp_path, sample_docx):
+    """同一段落多个 issue 各自独立一条批注，author=rule_id、内容=该 issue message。"""
     out = str(tmp_path / "marked.docx")
     with UnoSession() as session:
         target = _first_text_paragraph(session, sample_docx)
@@ -212,16 +212,11 @@ def test_annotate_combines_multiple_issues_per_block(tmp_path, sample_docx):
                 if f.supportsService("com.sun.star.text.textfield.Annotation"):
                     comments.append((f.Author, f.Content))
 
-    # 合并后只有 1 条批注
-    assert len(comments) == 1
-    author, content = comments[0]
-    # author 取第一个 issue 的 rule_id
-    assert author == "rule-a-001"
-    # 内容含两个 rule_id 和 message
-    assert "rule-a-001" in content
-    assert "问题一" in content
-    assert "rule-b-002" in content
-    assert "问题二" in content
+    # 每个 issue 独立一条批注
+    assert len(comments) == 2
+    by_author = {author: content for author, content in comments}
+    assert by_author["rule-a-001"] == "问题一"
+    assert by_author["rule-b-002"] == "问题二"
 
 
 @pytest.mark.uno
@@ -260,6 +255,6 @@ def test_annotate_caps_at_limit(tmp_path, sample_docx):
                         assert "共 10 处" in f.Content
                         assert "已标注前 5 处" in f.Content
 
-    # 5 个标注合并到同一段 → 1 条 + 1 条汇总 = 2
-    assert count == 2
+    # 5 个 issue 各一条 + 1 条汇总 = 6
+    assert count == 6
     assert has_summary
