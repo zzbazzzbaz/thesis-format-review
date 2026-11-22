@@ -6,7 +6,7 @@ DEPLOY_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 ENV_FILE="${ENV_FILE:-.env}"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.yml}"
-REGISTRY="${REGISTRY:-git.gqt.plus}"
+REGISTRY="${REGISTRY:-ghcr.io/zzbazzzbaz}"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
 
 cd "${DEPLOY_DIR}"

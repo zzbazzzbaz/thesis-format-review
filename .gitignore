@@ -6,3 +6,17 @@ __pycache__/
 
 .idea/
 
+# Env / local data
+.env
+backend/.env
+frontend/.env
+db.sqlite3
+backend/data/
+backend/media/
+backend/staticfiles/
+
+# Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+

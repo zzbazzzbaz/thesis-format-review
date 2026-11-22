@@ -2,7 +2,7 @@
 #
 # Purpose:
 # - Built by `.gitea/workflows/uno-docker.yml`.
-# - Published as `git.gqt.plus/gqt/thesis-review`.
+# - Published as `ghcr.io/zzbazzzbaz/thesis-review`.
 # - Runs the web application with uvicorn in the deployment container.
 #
 # Not the local UNO test image. Local UNO development uses

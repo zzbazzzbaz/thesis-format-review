@@ -1,7 +1,7 @@
 # Product frontend Dockerfile.
 #
 # Built by `.gitea/workflows/uno-docker.yml` and published as
-# `git.gqt.plus/gqt/thesis-review-frontend`.
+# `ghcr.io/zzbazzzbaz/thesis-review-frontend`.
 FROM node:22-alpine AS build
 
 WORKDIR /app

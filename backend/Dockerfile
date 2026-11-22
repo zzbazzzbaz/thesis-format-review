@@ -1,7 +1,7 @@
 # Product backend Dockerfile.
 #
 # Built by `.gitea/workflows/uno-docker.yml` and published as
-# `git.gqt.plus/gqt/thesis-review-backend`.
+# `ghcr.io/zzbazzzbaz/thesis-review-backend`.
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
